@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+		<Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+		<AssemblyVersion>1.1.2.0</AssemblyVersion>
+		<FileVersion>1.1.2.0</FileVersion>
+		<Version>1.1.2</Version>
+		<TargetFramework>net48</TargetFramework>
+		<RootNamespace>VarietyMatters</RootNamespace>
+		<AssemblyName>VarietyMatters</AssemblyName>
+		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+		<FileAlignment>512</FileAlignment>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+		<OutputPath>..\1.4\Assemblies\</OutputPath>
+		<DebugType>portable</DebugType>
+		<DebugSymbols>true</DebugSymbols>
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+		<LangVersion>8.0</LangVersion>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+		<OutputPath>..\1.4\Assemblies\</OutputPath>
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+		<DebugType>none</DebugType>
+		<DebugSymbols>false</DebugSymbols>
+		<LangVersion>8.0</LangVersion>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	</PropertyGroup>
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="Exists('C:\Program Files (x86)\Mono\bin\pdb2mdb.bat')">
+		<Exec Command="if $(ConfigurationName) == Debugger call &quot;C:\Program Files (x86)\Mono\bin\pdb2mdb.bat&quot; $(TargetDir)$(TargetName)$(TargetExt)" />
+	</Target>
+	<ItemGroup>
+		<PackageReference Include="Krafs.Publicizer" Version="2.2.1">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="Krafs.Rimworld.Ref" Version="1.4.3704" GeneratePathProperty="true" />
+		<PackageReference Include="Lib.Harmony" Version="2.2.2" ExcludeAssets="runtime" />
+	</ItemGroup>
+</Project>
