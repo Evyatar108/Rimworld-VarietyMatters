@@ -102,8 +102,8 @@ namespace VarietyMatters
 		{
 			get
 			{
-				bool hasVarietyNeed = this.pawn.Dead || !TraitDef_ModExtension.NeedsVariety(this.pawn) || this.pawn.needs.food == null || this.pawn.needs.mood == null;
-				if (!hasVarietyNeed)
+				bool doesNotHaveVarietyNeed = this.pawn.Dead || !TraitDef_ModExtension.NeedsVariety(this.pawn) || this.pawn.needs.food == null || this.pawn.needs.mood == null;
+				if (doesNotHaveVarietyNeed)
 				{
 					return true;
 				}

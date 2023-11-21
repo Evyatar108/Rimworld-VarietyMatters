@@ -21,9 +21,7 @@ namespace VarietyMatters
 			else
 			{
 				MenuCategory curCategory = need_FoodVariety.CurCategory;
-				if (!true)
-				{
-				}
+
 				ThoughtState thoughtState;
 				switch (curCategory)
 				{

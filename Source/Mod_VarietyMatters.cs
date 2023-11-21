@@ -35,7 +35,15 @@ namespace VarietyMatters
 		public override void DoSettingsWindowContents(Rect inRect)
 		{
 			Listing_Standard listing_Standard = new Listing_Standard();
-			Rect rect = new Rect(10f, 50f, inRect.width * 0.5f, inRect.height);
+
+            // After this line:
+            Rect rectScroll = new Rect(5f, 35f, inRect.width * 0.54f, inRect.height);
+            // Add these lines:
+            float contentHeight1 = 700f; // This is a tentative value; adjust as needed based on the actual content of your column
+            Rect viewRect1 = new Rect(0f, 0f, rectScroll.width - 16f, contentHeight1); // 16f is the width of the scrollbar
+            Widgets.BeginScrollView(rectScroll, ref leftScrollPosition, viewRect1);
+
+            Rect rect = new Rect(10f, 0f, inRect.width * 0.5f, inRect.height*1.05f);
 			listing_Standard.Begin(rect);
 			listing_Standard.Label("Variety Tracking Options:", -1f, null);
 			bool flag = listing_Standard.RadioButton("     Track meals and ingredients: ", ModSettings_VarietyMatters.maxVariety, 0f, null, null);
@@ -63,12 +71,18 @@ namespace VarietyMatters
 				listing_Standard.CheckboxLabeled("     Cooks use different ingredients: ", ref ModSettings_VarietyMatters.preferVariety, null, 0f, 1f);
 				listing_Standard.CheckboxLabeled("     Cooks prefer spoiling ingredients: ", ref ModSettings_VarietyMatters.preferSpoiling, null, 0f, 1f);
 				listing_Standard.CheckboxLabeled("     Stack meals by ingredients: ", ref ModSettings_VarietyMatters.stackByIngredients, null, 0f, 1f);
-				string label = Translator.Translate("     Ingredients When Stacking (vanilla = 3):");
+				string label = "     Ingredients When Stacking (vanilla = 3):";
 				string text = ModSettings_VarietyMatters.numIngredients.ToString();
 				this.LabeledIntEntry(listing_Standard.GetRect(24f, 1f), label, ref ModSettings_VarietyMatters.numIngredients, ref text, 1, 1, 1, 10);
 			}
 			listing_Standard.CheckboxLabeled("     Sick pawns ignore variety thoughts: ", ref ModSettings_VarietyMatters.sickPawns, null, 0f, 1f);
-			listing_Standard.GapLine(12f);
+
+            listing_Standard.CheckboxLabeled("     Vanilla Cooking Expanded- Fix desserts", ref ModSettings_VarietyMatters.fixDesserts);
+            listing_Standard.CheckboxLabeled("     Vanilla Cooking Expanded- Better gourmet meals", ref ModSettings_VarietyMatters.betterGourmet);
+
+            listing_Standard.CheckboxLabeled("     More Archotech Garbag- Better Archotech meals", ref ModSettings_VarietyMatters.betterArchotech);
+
+            listing_Standard.GapLine(12f);
 			bool flag5 = listing_Standard.ButtonTextLabeled("Expectation Level Base Varieties:", "Reset", 0, null, null);
 			if (flag5)
 			{
@@ -133,7 +147,9 @@ namespace VarietyMatters
 			listing_Standard.CheckboxLabeled("     Mod-added varieties (reload required): ", ref ModSettings_VarietyMatters.foodModAdjustments, null, 0f, 1f);
 			listing_Standard.CheckboxLabeled("     Seasonal temperature: ", ref ModSettings_VarietyMatters.tempAdjustments, null, 0f, 1f);
 			listing_Standard.End();
-			Rect rect2 = new Rect(50f + inRect.width * 0.5f, 0f, inRect.width * 0.4f, 50f);
+            Widgets.EndScrollView();
+
+            Rect rect2 = new Rect(50f + inRect.width * 0.5f, 0f, inRect.width * 0.4f, 50f);
 			listing_Standard.Begin(rect2);
 			bool flag6 = listing_Standard.ButtonTextLabeled("Enable/Disable Variety:", "Reset Current Races", 0, null, null);
 			if (flag6)
@@ -145,7 +161,7 @@ namespace VarietyMatters
 			List<string> curRaces = ModSettings_VarietyMatters.curRaces;
 			Rect rect3 = new Rect(50f + inRect.width * 0.5f, 50f, inRect.width * 0.4f, inRect.height - 10f);
 			Rect rect4 = new Rect(0f, 0f, rect3.width - 30f, (float)curRaces.Count * 24f);
-			Widgets.BeginScrollView(rect3, ref Mod_VarietyMatters.scrollPosition, rect4, true);
+			Widgets.BeginScrollView(rect3, ref Mod_VarietyMatters.rightScrollPosition, rect4, true);
 			listing_Standard.Begin(rect4);
 			for (int i = 0; i < curRaces.Count; i++)
 			{
@@ -206,6 +222,9 @@ namespace VarietyMatters
 		}
 
 		// Token: 0x04000023 RID: 35
-		private static Vector2 scrollPosition = Vector2.zero;
-	}
+		private static Vector2 rightScrollPosition = Vector2.zero;
+
+        private static Vector2 leftScrollPosition = Vector2.zero;
+
+    }
 }

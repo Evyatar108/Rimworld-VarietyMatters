@@ -56,7 +56,13 @@ namespace VarietyMatters
 			Scribe_Values.Look<bool>(ref ModSettings_VarietyMatters.preferVariety, "preferVariety", true, false);
 			Scribe_Values.Look<bool>(ref ModSettings_VarietyMatters.preferSpoiling, "preferSpoiling", true, false);
 			Scribe_Collections.Look<string, bool>(ref ModSettings_VarietyMatters.raceVariety, "raceVariety", (LookMode)1, (LookMode)1, ref ModSettings_VarietyMatters.raceKeys, ref ModSettings_VarietyMatters.raceValues, true);
-			base.ExposeData();
+
+            Scribe_Values.Look(ref fixDesserts, nameof(fixDesserts), false);
+            Scribe_Values.Look(ref betterGourmet, nameof(betterGourmet), false);
+            Scribe_Values.Look(ref betterArchotech, nameof(betterArchotech), false);
+
+
+            base.ExposeData();
 		}
 
 		// Token: 0x0400000D RID: 13
@@ -130,5 +136,10 @@ namespace VarietyMatters
 
 		// Token: 0x04000022 RID: 34
 		public static List<string> curRaces = new List<string>();
-	}
+
+
+        public static bool fixDesserts = false;
+        public static bool betterGourmet = false;
+        public static bool betterArchotech = false;
+    }
 }

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<Patch>
+
+    <Operation Class="PatchOperationFindMod">
+        <mods>
+            <li>More Archotech Garbage Reupload</li>
+        </mods>
+        <match Class="PatchOperationSequence">
+            <operations>
+
+                <!-- Normal food -->
+                <li Class="PatchOperationAddModExtension">
+                    <xpath>Defs/ThingDef[defName = "MealArchoAdvanced" or "MAG_ArchotechSoup" or "MAG_archotechgrill" or "MAG_ArchotechBake"]</xpath>
+                    <value>
+                        <li Class="VarietyMattersMoreCompat.VarietyExtension">
+                            <isArchotech>true</isArchotech>
+                        </li>
+                    </value>
+                </li>
+
+                <!-- Desserts -->
+                <li Class="PatchOperationAddModExtension" MayRequire="VanillaExpanded.VCookE">
+                    <xpath>Defs/ThingDef[defName="MAG_ArchotechDessert"]</xpath>
+                    <value>
+                        <li Class="VarietyMattersMoreCompat.VarietyExtension">
+                            <isArchotech>true</isArchotech>
+                            <dessertQuality>4</dessertQuality>
+                        </li>
+                    </value>
+                </li>
+
+            </operations>
+        </match>
+    </Operation>
+</Patch>

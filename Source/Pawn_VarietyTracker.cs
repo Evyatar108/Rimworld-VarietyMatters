@@ -22,7 +22,7 @@ namespace VarietyMatters
 				int num = 0;
 				while ((float)num < baseVarietyExpectation - 1f)
 				{
-					pawnRecord.recentlyConsumed.Add(num.ToString());
+					pawnRecord.recentlyConsumed.Add($"Unknown{num}");
 					num++;
 				}
 				pawnRecord.lastVariety = new List<string>();
@@ -45,7 +45,7 @@ namespace VarietyMatters
 		// Token: 0x06000025 RID: 37 RVA: 0x000037F0 File Offset: 0x000019F0
 		public static void TrackVarieties(ref Pawn_VarietyTracker pawnRecord, Pawn ingester, Thing foodSource, int varietyExpectation)
 		{
-			CompIngredients compIngredients = ThingCompUtility.TryGetComp<CompIngredients>(foodSource);
+            CompIngredients compIngredients = ThingCompUtility.TryGetComp<CompIngredients>(foodSource);
 			FoodPreferability preferability = foodSource.def.ingestible.preferability;
 			string label = foodSource.def.label;
 			pawnRecord.lastVariety.Clear();
@@ -75,7 +75,7 @@ namespace VarietyMatters
 						if (flag5)
 						{
 							pawnRecord.recentlyConsumed.Insert(0, "BadVariety");
-							pawnRecord.recentlyConsumed.Add("plant food");
+							pawnRecord.lastVariety.Add("plant food");
 							return;
 						}
 						bool flag6 = FoodUtility.HasVegetarianRequiredPrecept(ingester.Ideo);
@@ -93,7 +93,7 @@ namespace VarietyMatters
 					if (flag8)
 					{
 						pawnRecord.recentlyConsumed.Insert(0, "BadVariety");
-						pawnRecord.recentlyConsumed.Add("disgusting meat");
+						pawnRecord.lastVariety.Add("disgusting meat");
 						return;
 					}
 					bool isFungus = foodSource.def.IsFungus;
