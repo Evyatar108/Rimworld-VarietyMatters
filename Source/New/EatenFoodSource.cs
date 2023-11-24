@@ -24,7 +24,9 @@
         {
             this.uniqueId = "EatenFoodSource_" + foodSourceThing.GetUniqueLoadID();
 
-            IngredientsDefs = ThingCompUtility.TryGetComp<CompIngredients>(foodSourceThing).ingredients;
+            IngredientsDefs = ThingCompUtility.TryGetComp<CompIngredients>(foodSourceThing)?.ingredients?.ToList() ?? new List<ThingDef>();
+            IngredientsDefs.SortBy(x => x.label);
+
             IsRotten = RottableUtility.IsNotFresh(foodSourceThing);
             IsAcceptableToCarnivores = new FastLazy<bool>(() => FoodUtility.AcceptableCarnivore(foodSourceThing));
             IsAcceptableToVegetarians = new FastLazy<bool>(() => FoodUtility.AcceptableVegetarian(foodSourceThing));

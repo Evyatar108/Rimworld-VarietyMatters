@@ -38,12 +38,12 @@
 
             if (ingester.IsSlave)
             {
-                expectedVariety = Math.Max(1, expectedVariety / ModSettings_VarietyMatters.divideSlaveVarietyBy);
+                expectedVariety = Math.Max(1, expectedVariety * ModSettings_VarietyMatters.slaveExpectedVarietyPercentage / 100);
             }
 
             if (ingester.IsPrisoner)
             {
-                expectedVariety = Math.Max(1, expectedVariety / ModSettings_VarietyMatters.dividePrisonerVarietyBy);
+                expectedVariety = Math.Max(1, expectedVariety * ModSettings_VarietyMatters.prisonerExpectedVarietyPercentage / 100);
             }
 
             if (ingester.story.traits.HasTrait(TraitDef.Named("Gourmand")))

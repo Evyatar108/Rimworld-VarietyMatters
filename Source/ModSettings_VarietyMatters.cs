@@ -45,10 +45,10 @@
 			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.skyHighVariety, "skyHighVariety", 12, false);
 			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.nobleVariety, "nobleVariety", 15, false);
 			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.numIngredients, "numIngredients", 3, false);
-            Scribe_Values.Look<bool>(ref ModSettings_VarietyMatters.slavesHaveVarietyNeed, "slavesHaveVarietyNeed", false, false);
-            Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.divideSlaveVarietyBy, "divideSlaveVarietyBy", 3, false);
-            Scribe_Values.Look<bool>(ref ModSettings_VarietyMatters.prisonersHaveVarietyNeed, "prisonersHaveVarietyNeed", false, false);
-            Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.dividePrisonerVarietyBy, "dividePrisonerVarietyBy", 3, false);
+            Scribe_Values.Look<bool>(ref ModSettings_VarietyMatters.slavesHaveVarietyNeed, "slavesHaveVarietyNeed", true, false);
+            Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.slaveExpectedVarietyPercentage, "slaveExpectedVarietyPercentage", 65, false);
+            Scribe_Values.Look<bool>(ref ModSettings_VarietyMatters.prisonersHaveVarietyNeed, "prisonersHaveVarietyNeed", true, false);
+            Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.prisonerExpectedVarietyPercentage, "prisonerExpectedVarietyPercentage", 50, false);
             Scribe_Values.Look<bool>(ref ModSettings_VarietyMatters.mealUpdateDisplayed, "mealupdateDisplayed", false, false);
 			Scribe_Values.Look<bool>(ref ModSettings_VarietyMatters.preferVariety, "preferVariety", true, false);
 			Scribe_Values.Look<bool>(ref ModSettings_VarietyMatters.preferSpoiling, "preferSpoiling", true, false);
@@ -93,11 +93,11 @@
 		// Token: 0x0400001B RID: 27
 		public static int nobleVariety = 15;
 
-		public static bool slavesHaveVarietyNeed = false;
-		public static int divideSlaveVarietyBy = 3;
+		public static bool slavesHaveVarietyNeed = true;
+		public static int slaveExpectedVarietyPercentage = 65;
 
-        public static bool prisonersHaveVarietyNeed = false;
-        public static int dividePrisonerVarietyBy = 3;
+        public static bool prisonersHaveVarietyNeed = true;
+        public static int prisonerExpectedVarietyPercentage = 50;
 
         // Token: 0x0400001C RID: 28
         public static bool preferVariety = true;

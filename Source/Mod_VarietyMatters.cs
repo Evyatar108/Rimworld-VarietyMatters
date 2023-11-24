@@ -97,7 +97,7 @@
 				ModSettings_VarietyMatters.highVariety = 10;
 				ModSettings_VarietyMatters.skyHighVariety = 12;
 				ModSettings_VarietyMatters.nobleVariety = 15;
-                ModSettings_VarietyMatters.divideSlaveVarietyBy = 3;
+                ModSettings_VarietyMatters.slaveExpectedVarietyPercentage = 3;
                 ModSettings_VarietyMatters.slavesHaveVarietyNeed = false;
                 ModSettings_VarietyMatters.prisonersHaveVarietyNeed = false;
             }
@@ -125,24 +125,24 @@
 			this.LabeledIntEntry(listing_Standard.GetRect(24f, 1f), label8, ref ModSettings_VarietyMatters.nobleVariety, ref text8, 1, 5, 1, 50);
 
 
-            string labelSlavesHaveVarietyNeed = "     Slaves have variety need (default false):";
+            string labelSlavesHaveVarietyNeed = "     Slaves have variety need (default true):";
 			listing_Standard.CheckboxLabeled(labelSlavesHaveVarietyNeed, ref ModSettings_VarietyMatters.slavesHaveVarietyNeed, null, 0f, 1f);
 
 			if (ModSettings_VarietyMatters.slavesHaveVarietyNeed)
 			{
-				string labelDivideSlaveVariety = "               Divide slave variety by (default 3):";
-				string textDivideSlaveVariety = ModSettings_VarietyMatters.divideSlaveVarietyBy.ToString();
-				this.LabeledIntEntry(listing_Standard.GetRect(24f, 1f), labelDivideSlaveVariety, ref ModSettings_VarietyMatters.divideSlaveVarietyBy, ref textDivideSlaveVariety, 1, 5, 1, 50);
+				string labelDivideSlaveVariety = "     Slave expected variety (default 65%):";
+				string textDivideSlaveVariety = ModSettings_VarietyMatters.slaveExpectedVarietyPercentage.ToString();
+				this.LabeledIntEntry(listing_Standard.GetRect(24f, 1f), labelDivideSlaveVariety, ref ModSettings_VarietyMatters.slaveExpectedVarietyPercentage, ref textDivideSlaveVariety, 1, 5, 1, 50);
 			}
 
-            string labelPrisonersHaveVarietyNeed = "     Prisoners have variety need (default false):";
+            string labelPrisonersHaveVarietyNeed = "     Prisoners have variety need (default true):";
             listing_Standard.CheckboxLabeled(labelPrisonersHaveVarietyNeed, ref ModSettings_VarietyMatters.prisonersHaveVarietyNeed, null, 0f, 1f);
 
             if (ModSettings_VarietyMatters.prisonersHaveVarietyNeed)
             {
-                string labelDividePrisonerVariety = "               Divide prisoner variety by (default 3):";
-                string textDividePrisonerVariety = ModSettings_VarietyMatters.dividePrisonerVarietyBy.ToString();
-                this.LabeledIntEntry(listing_Standard.GetRect(24f, 1f), labelDividePrisonerVariety, ref ModSettings_VarietyMatters.dividePrisonerVarietyBy, ref textDividePrisonerVariety, 1, 5, 1, 50);
+                string labelDividePrisonerVariety = "     Prisoner expected variety (default 50%):";
+                string textDividePrisonerVariety = ModSettings_VarietyMatters.prisonerExpectedVarietyPercentage.ToString();
+                this.LabeledIntEntry(listing_Standard.GetRect(24f, 1f), labelDividePrisonerVariety, ref ModSettings_VarietyMatters.prisonerExpectedVarietyPercentage, ref textDividePrisonerVariety, 1, 5, 1, 50);
             }
 
             listing_Standard.GapLine(12f);

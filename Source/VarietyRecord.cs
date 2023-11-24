@@ -91,6 +91,11 @@
 			base.ExposeData();
 			Scribe_Collections.Look<Pawn, DietTracker>(ref VarietyRecord.varietyRecord, "VarietyRecordV2", LookMode.Reference, LookMode.Deep, ref VarietyRecord.trackedPawns, ref VarietyRecord.pawnRecords, true);
 
+			if (varietyRecord == null)
+			{
+				varietyRecord = new Dictionary<Pawn, DietTracker>();
+			}
+
 			if (Scribe.mode == LoadSaveMode.Saving)
 			{
                 eatenFoodSources = varietyRecord.Values.SelectMany(x => x.EatenFoodSourcesByOrder).ToList().Distinct().ToList();
@@ -98,7 +103,7 @@
 
 			Scribe_Collections.Look<EatenFoodSource>(ref eatenFoodSources, "eatenFoodSources", LookMode.Deep);
 
-            if (Scribe.mode == LoadSaveMode.PostLoadInit)
+            if (Scribe.mode == LoadSaveMode.PostLoadInit && eatenFoodSources != null)
 			{
 				FoodSourceFactory.Init(eatenFoodSources);
             }
