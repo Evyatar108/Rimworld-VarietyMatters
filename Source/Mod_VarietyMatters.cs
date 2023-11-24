@@ -44,19 +44,19 @@
 
 			var previousFoodTrackingType = ModSettings_VarietyMatters.foodTrackingType;
 
-			bool flag = listing_Standard.RadioButton("     Track meals and ingredients: ", ModSettings_VarietyMatters.foodTrackingType == New.FoodTrackingType.ByMealAndIngredients, 0f, null, null);
+			bool flag = listing_Standard.RadioButton("     Track meals and ingredients: ", ModSettings_VarietyMatters.foodTrackingType == FoodTrackingType.ByMealAndIngredients, 0f, null, null);
 			if (flag)
 			{
 				ModSettings_VarietyMatters.foodTrackingType = FoodTrackingType.ByMealAndIngredients;
 			}
 
-			bool flag2 = listing_Standard.RadioButton("     Track ingredients only: ", ModSettings_VarietyMatters.foodTrackingType == New.FoodTrackingType.ByIngredients, 0f, null, null);
+			bool flag2 = listing_Standard.RadioButton("     Track ingredients only: ", ModSettings_VarietyMatters.foodTrackingType == FoodTrackingType.ByIngredients, 0f, null, null);
 			if (flag2)
 			{
 				ModSettings_VarietyMatters.foodTrackingType = FoodTrackingType.ByIngredients;
 			}
 
-			bool flag3 = listing_Standard.RadioButton("     Track meals only: ", ModSettings_VarietyMatters.foodTrackingType == New.FoodTrackingType.ByMeal, 0f, null, null);
+			bool flag3 = listing_Standard.RadioButton("     Track meals only: ", ModSettings_VarietyMatters.foodTrackingType == FoodTrackingType.ByMeal, 0f, null, null);
 			if (flag3)
 			{
 				ModSettings_VarietyMatters.foodTrackingType = FoodTrackingType.ByMeal;
@@ -64,7 +64,7 @@
 
 			if (previousFoodTrackingType != ModSettings_VarietyMatters.foodTrackingType)
 			{
-                foreach (DietTracker dietTracker in VarietyRecord.pawnRecords)
+                foreach (DietTracker dietTracker in VarietyRecord.varietyRecord.Values)
 				{
 					dietTracker.ReCount();
 

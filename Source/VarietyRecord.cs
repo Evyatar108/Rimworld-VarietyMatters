@@ -89,7 +89,7 @@
 		public override void ExposeData()
 		{
 			base.ExposeData();
-			Scribe_Collections.Look<Pawn, DietTracker>(ref VarietyRecord.varietyRecord, "VarietyRecordV2", LookMode.Reference, LookMode.Deep, ref VarietyRecord.trackedPawns, ref VarietyRecord.pawnRecords, true);
+			Scribe_Collections.Look<Pawn, DietTracker>(ref VarietyRecord.varietyRecord, "VarietyRecordV2", LookMode.Reference, LookMode.Deep);
 
 			if (varietyRecord == null)
 			{
@@ -109,14 +109,8 @@
             }
 		}
 
-		// Token: 0x04000030 RID: 48
-		public static List<DietTracker> pawnRecords = new List<DietTracker>();
-
-		// Token: 0x04000031 RID: 49
-		private static List<Pawn> trackedPawns = new List<Pawn>();
-
 		// Token: 0x04000032 RID: 50
-		private static Dictionary<Pawn, DietTracker> varietyRecord;
+		public static Dictionary<Pawn, DietTracker> varietyRecord;
 
 		private static List<EatenFoodSource> eatenFoodSources;
 

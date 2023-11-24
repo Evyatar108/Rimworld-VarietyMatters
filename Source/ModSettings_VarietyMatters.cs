@@ -33,7 +33,7 @@
 		// Token: 0x0600000F RID: 15 RVA: 0x00002520 File Offset: 0x00000720
 		public override void ExposeData()
 		{
-			Scribe_Values.Look<FoodTrackingType>(ref ModSettings_VarietyMatters.foodTrackingType, "foodTrackingType", default, false);
+			Scribe_Values.Look<FoodTrackingType>(ref ModSettings_VarietyMatters.foodTrackingType, "foodTrackingType", FoodTrackingType.ByMealAndIngredients, false);
 			Scribe_Values.Look<bool>(ref ModSettings_VarietyMatters.halveVarietyMoodImpact, "halveVarietyMoodImpact", false, false);
             Scribe_Values.Look<bool>(ref ModSettings_VarietyMatters.stackByIngredients, "stackByIngredients", false, false);
 			Scribe_Values.Look<bool>(ref ModSettings_VarietyMatters.moreVarietyMemory, "moreVarietyMemory", false, false);
