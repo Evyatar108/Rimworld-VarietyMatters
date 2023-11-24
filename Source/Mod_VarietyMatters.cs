@@ -64,7 +64,7 @@
 
 			if (previousFoodTrackingType != ModSettings_VarietyMatters.foodTrackingType)
 			{
-                foreach (DietTracker dietTracker in VarietyRecord.varietyRecord.Values)
+                foreach (DietTracker dietTracker in VarietyRecord.pawnRecords)
 				{
 					dietTracker.ReCount();
 

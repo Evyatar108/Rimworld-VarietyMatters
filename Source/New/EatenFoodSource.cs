@@ -193,7 +193,14 @@
                     return MealAsString;
                 case FoodTrackingType.ByIngredients:
                 case FoodTrackingType.ByMealAndIngredients:
-                    return MealAndIngredientsAsString;
+                    if (IngredientsDefs.Count > 0)
+                    {
+                        return MealAndIngredientsAsString;
+                    }
+                    else
+                    {
+                        return MealAsString;
+                    }
                 default:
                     throw new Exception($"Not valid FoodTrackingType: {foodTrackingType}");
             }

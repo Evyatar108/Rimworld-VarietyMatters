@@ -35,7 +35,7 @@
 		{
 			Scribe_Values.Look<FoodTrackingType>(ref ModSettings_VarietyMatters.foodTrackingType, "foodTrackingType", FoodTrackingType.ByMealAndIngredients, false);
 			Scribe_Values.Look<bool>(ref ModSettings_VarietyMatters.halveVarietyMoodImpact, "halveVarietyMoodImpact", false, false);
-            Scribe_Values.Look<bool>(ref ModSettings_VarietyMatters.stackByIngredients, "stackByIngredients", false, false);
+            Scribe_Values.Look<bool>(ref ModSettings_VarietyMatters.stackByIngredients, "stackByIngredients", true, false);
 			Scribe_Values.Look<bool>(ref ModSettings_VarietyMatters.moreVarietyMemory, "moreVarietyMemory", false, false);
 			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.extremelyLowVariety, "extremelyLowVariety", 2, false);
 			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.veryLowVariety, "veryLowVariety", 4, false);
@@ -63,7 +63,7 @@
 		public static bool halveVarietyMoodImpact = false;
 
 		// Token: 0x04000010 RID: 16
-		public static bool stackByIngredients = false;
+		public static bool stackByIngredients = true;
 
 		public static bool moreVarietyMemory = false;
 

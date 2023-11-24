@@ -38,15 +38,12 @@
 
             int varietyExpectation = VarietyExpectation.GetVarietyExpectation(trackedPawn);
 			int maxEatenFoodSourceInMemory = (int)(varietyExpectation * memoryMultiplier);
-            DietTracker tracker;
-            if (VarietyRecord.varietyRecord.ContainsKey(trackedPawn))
+            if (!VarietyRecord.varietyRecord.TryGetValue(trackedPawn, out var tracker))
 			{
-				tracker = VarietyRecord.GetVarietyRecord(trackedPawn);
-			}
-			else
-			{
-				tracker = new DietTracker(trackedPawn, maxEatenFoodSourceInMemory);
+                tracker = new DietTracker(trackedPawn, maxEatenFoodSourceInMemory);
                 VarietyRecord.varietyRecord.Add(trackedPawn, tracker);
+                VarietyRecord.trackedPawns.Add(trackedPawn);
+                VarietyRecord.pawnRecords.Add(tracker);
 			}
 
             EatenFoodSource foodSource = FoodSourceFactory.CreateOrGetFoodSourceFromThing(foodSourceThing);
@@ -61,9 +58,11 @@
 		// Token: 0x06000043 RID: 67 RVA: 0x0000493C File Offset: 0x00002B3C
 		public static void RemoveTrackedPawn(Pawn trackedPawn)
 		{
-			if (VarietyRecord.varietyRecord.ContainsKey(trackedPawn))
+			if (VarietyRecord.varietyRecord.TryGetValue(trackedPawn, out var tracker))
 			{
 				VarietyRecord.varietyRecord.Remove(trackedPawn);
+				VarietyRecord.trackedPawns.Remove(trackedPawn);
+				VarietyRecord.pawnRecords.Remove(tracker);
 			}
 		}
 
@@ -89,16 +88,18 @@
 		public override void ExposeData()
 		{
 			base.ExposeData();
-			Scribe_Collections.Look<Pawn, DietTracker>(ref VarietyRecord.varietyRecord, "VarietyRecordV2", LookMode.Reference, LookMode.Deep);
+			Scribe_Collections.Look<Pawn, DietTracker>(ref VarietyRecord.varietyRecord, "VarietyRecordV2", LookMode.Reference, LookMode.Deep, ref trackedPawns, ref pawnRecords, logNullErrors: true);
 
-			if (varietyRecord == null)
+			if (Scribe.mode == LoadSaveMode.PostLoadInit && varietyRecord == null)
 			{
 				varietyRecord = new Dictionary<Pawn, DietTracker>();
-			}
+				trackedPawns = new List<Pawn>();
+				pawnRecords = new List<DietTracker>();
+            }
 
 			if (Scribe.mode == LoadSaveMode.Saving)
 			{
-                eatenFoodSources = varietyRecord.Values.SelectMany(x => x.EatenFoodSourcesByOrder).ToList().Distinct().ToList();
+                eatenFoodSources = varietyRecord?.Values?.SelectMany(x => x.EatenFoodSourcesByOrder)?.ToList()?.Distinct()?.ToList() ?? new List<EatenFoodSource>();
 			}
 
 			Scribe_Collections.Look<EatenFoodSource>(ref eatenFoodSources, "eatenFoodSources", LookMode.Deep);
@@ -109,8 +110,14 @@
             }
 		}
 
+		// Token: 0x04000030 RID: 48
+		public static List<DietTracker> pawnRecords = new List<DietTracker>();
+
+		// Token: 0x04000031 RID: 49
+		private static List<Pawn> trackedPawns = new List<Pawn>();
+
 		// Token: 0x04000032 RID: 50
-		public static Dictionary<Pawn, DietTracker> varietyRecord;
+		private static Dictionary<Pawn, DietTracker> varietyRecord;
 
 		private static List<EatenFoodSource> eatenFoodSources;
 
