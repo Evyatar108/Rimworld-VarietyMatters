@@ -1,16 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Reflection;
-using HarmonyLib;
-using RimWorld;
-using UnityEngine;
-using Verse;
-using Verse.Sound;
-
-namespace VarietyMatters
+﻿namespace VarietyMatters
 {
-	// Token: 0x0200000B RID: 11
-	internal class Mod_VarietyMatters : Mod
+    using System.Collections.Generic;
+    using System.Reflection;
+    using HarmonyLib;
+    using RimWorld;
+    using UnityEngine;
+    using VarietyMatters.New;
+    using Verse;
+    using Verse.Sound;
+
+    // Token: 0x0200000B RID: 11
+    internal class Mod_VarietyMatters : Mod
 	{
 		// Token: 0x06000012 RID: 18 RVA: 0x00002744 File Offset: 0x00000944
 		public Mod_VarietyMatters(ModContentPack content) : base(content)
@@ -23,11 +23,6 @@ namespace VarietyMatters
 		// Token: 0x06000013 RID: 19 RVA: 0x00002778 File Offset: 0x00000978
 		public override void WriteSettings()
 		{
-			bool maxVariety = ModSettings_VarietyMatters.maxVariety;
-			if (maxVariety)
-			{
-				ModSettings_VarietyMatters.ignoreIngredients = false;
-			}
 			base.WriteSettings();
 		}
 
@@ -46,41 +41,50 @@ namespace VarietyMatters
             Rect rect = new Rect(10f, 0f, inRect.width * 0.5f, inRect.height*1.05f);
 			listing_Standard.Begin(rect);
 			listing_Standard.Label("Variety Tracking Options:", -1f, null);
-			bool flag = listing_Standard.RadioButton("     Track meals and ingredients: ", ModSettings_VarietyMatters.maxVariety, 0f, null, null);
+
+			var previousFoodTrackingType = ModSettings_VarietyMatters.foodTrackingType;
+
+			bool flag = listing_Standard.RadioButton("     Track meals and ingredients: ", ModSettings_VarietyMatters.foodTrackingType == New.FoodTrackingType.ByMealAndIngredients, 0f, null, null);
 			if (flag)
 			{
-				ModSettings_VarietyMatters.maxVariety = true;
-				ModSettings_VarietyMatters.ignoreIngredients = false;
+				ModSettings_VarietyMatters.foodTrackingType = FoodTrackingType.ByMealAndIngredients;
 			}
-			bool flag2 = listing_Standard.RadioButton("     Track ingredients only: ", !ModSettings_VarietyMatters.maxVariety && !ModSettings_VarietyMatters.ignoreIngredients, 0f, null, null);
+
+			bool flag2 = listing_Standard.RadioButton("     Track ingredients only: ", ModSettings_VarietyMatters.foodTrackingType == New.FoodTrackingType.ByIngredients, 0f, null, null);
 			if (flag2)
 			{
-				ModSettings_VarietyMatters.maxVariety = false;
-				ModSettings_VarietyMatters.ignoreIngredients = false;
+				ModSettings_VarietyMatters.foodTrackingType = FoodTrackingType.ByIngredients;
 			}
-			bool flag3 = listing_Standard.RadioButton("     Track meals only: ", !ModSettings_VarietyMatters.maxVariety && ModSettings_VarietyMatters.ignoreIngredients, 0f, null, null);
+
+			bool flag3 = listing_Standard.RadioButton("     Track meals only: ", ModSettings_VarietyMatters.foodTrackingType == New.FoodTrackingType.ByMeal, 0f, null, null);
 			if (flag3)
 			{
-				ModSettings_VarietyMatters.maxVariety = false;
-				ModSettings_VarietyMatters.ignoreIngredients = true;
+				ModSettings_VarietyMatters.foodTrackingType = FoodTrackingType.ByMeal;
 			}
+
+			if (previousFoodTrackingType != ModSettings_VarietyMatters.foodTrackingType)
+			{
+                foreach (DietTracker dietTracker in VarietyRecord.pawnRecords)
+				{
+					dietTracker.ReCount();
+
+                    int expectedVariety = VarietyExpectation.GetVarietyExpectation(dietTracker.Pawn);
+                    VarietyAdjuster.AdjustVarietyLevel(dietTracker, expectedVariety);
+                }
+            }
+
 			listing_Standard.Label("Other Options:", -1f, null);
-			bool flag4 = ModSettings_VarietyMatters.maxVariety || !ModSettings_VarietyMatters.ignoreIngredients;
-			if (flag4)
+			bool flag4 = ModSettings_VarietyMatters.foodTrackingType == New.FoodTrackingType.ByIngredients || ModSettings_VarietyMatters.foodTrackingType == New.FoodTrackingType.ByMealAndIngredients;
+            if (flag4)
 			{
 				listing_Standard.CheckboxLabeled("     Cooks use different ingredients: ", ref ModSettings_VarietyMatters.preferVariety, null, 0f, 1f);
 				listing_Standard.CheckboxLabeled("     Cooks prefer spoiling ingredients: ", ref ModSettings_VarietyMatters.preferSpoiling, null, 0f, 1f);
 				listing_Standard.CheckboxLabeled("     Stack meals by ingredients: ", ref ModSettings_VarietyMatters.stackByIngredients, null, 0f, 1f);
+
 				string label = "     Ingredients When Stacking (vanilla = 3):";
 				string text = ModSettings_VarietyMatters.numIngredients.ToString();
 				this.LabeledIntEntry(listing_Standard.GetRect(24f, 1f), label, ref ModSettings_VarietyMatters.numIngredients, ref text, 1, 1, 1, 10);
 			}
-			listing_Standard.CheckboxLabeled("     Sick pawns ignore variety thoughts: ", ref ModSettings_VarietyMatters.sickPawns, null, 0f, 1f);
-
-            listing_Standard.CheckboxLabeled("     Vanilla Cooking Expanded- Fix desserts", ref ModSettings_VarietyMatters.fixDesserts);
-            listing_Standard.CheckboxLabeled("     Vanilla Cooking Expanded- Better gourmet meals", ref ModSettings_VarietyMatters.betterGourmet);
-
-            listing_Standard.CheckboxLabeled("     More Archotech Garbag- Better Archotech meals", ref ModSettings_VarietyMatters.betterArchotech);
 
             listing_Standard.GapLine(12f);
 			bool flag5 = listing_Standard.ButtonTextLabeled("Expectation Level Base Varieties:", "Reset", 0, null, null);
@@ -143,13 +147,12 @@ namespace VarietyMatters
 
             listing_Standard.GapLine(12f);
 			listing_Standard.Label("Optional Variety Expectation Adjustments Factors:", -1f, null);
-			listing_Standard.CheckboxLabeled("     Current need level:", ref ModSettings_VarietyMatters.curNeedAdjustments, null, 0f, 1f);
-			listing_Standard.CheckboxLabeled("     Mod-added varieties (reload required): ", ref ModSettings_VarietyMatters.foodModAdjustments, null, 0f, 1f);
-			listing_Standard.CheckboxLabeled("     Seasonal temperature: ", ref ModSettings_VarietyMatters.tempAdjustments, null, 0f, 1f);
-			listing_Standard.End();
+            listing_Standard.CheckboxLabeled("     Halve variety mood effect: ", ref ModSettings_VarietyMatters.halveVarietyMoodImpact, null, 0f, 1f);
+            listing_Standard.CheckboxLabeled("     Longer variety meals memory for pawns (Easier): ", ref ModSettings_VarietyMatters.moreVarietyMemory, null, 0f, 1f);
+            listing_Standard.End();
             Widgets.EndScrollView();
 
-            Rect rect2 = new Rect(50f + inRect.width * 0.5f, 0f, inRect.width * 0.4f, 50f);
+            Rect rect2 = new Rect(50f + (inRect.width * 0.5f), 0f, inRect.width * 0.4f, 50f);
 			listing_Standard.Begin(rect2);
 			bool flag6 = listing_Standard.ButtonTextLabeled("Enable/Disable Variety:", "Reset Current Races", 0, null, null);
 			if (flag6)
@@ -159,7 +162,7 @@ namespace VarietyMatters
 			}
 			listing_Standard.End();
 			List<string> curRaces = ModSettings_VarietyMatters.curRaces;
-			Rect rect3 = new Rect(50f + inRect.width * 0.5f, 50f, inRect.width * 0.4f, inRect.height - 10f);
+			Rect rect3 = new Rect(50f + (inRect.width * 0.5f), 50f, inRect.width * 0.4f, inRect.height - 10f);
 			Rect rect4 = new Rect(0f, 0f, rect3.width - 30f, (float)curRaces.Count * 24f);
 			Widgets.BeginScrollView(rect3, ref Mod_VarietyMatters.rightScrollPosition, rect4, true);
 			listing_Standard.Begin(rect4);
@@ -183,7 +186,7 @@ namespace VarietyMatters
 			bool flag = multiplier != largeMultiplier;
 			if (flag)
 			{
-				bool flag2 = Widgets.ButtonText(new Rect(rect.xMax - (float)num * 5f, rect.yMin, (float)num, rect.height), (-1 * largeMultiplier).ToString(), true, true, true, null);
+				bool flag2 = Widgets.ButtonText(new Rect(rect.xMax - ((float)num * 5f), rect.yMin, (float)num, rect.height), (-1 * largeMultiplier).ToString(), true, true, true, null);
 				if (flag2)
 				{
 					value -= largeMultiplier * GenUI.CurrentAdjustmentMultiplier();
@@ -198,7 +201,7 @@ namespace VarietyMatters
 					SoundStarter.PlayOneShotOnCamera(SoundDefOf.Checkbox_TurnedOn, null);
 				}
 			}
-			bool flag4 = Widgets.ButtonText(new Rect(rect.xMax - (float)num * 4f, rect.yMin, (float)num, rect.height), (-1 * multiplier).ToString(), true, true, true, null);
+			bool flag4 = Widgets.ButtonText(new Rect(rect.xMax - ((float)num * 4f), rect.yMin, (float)num, rect.height), (-1 * multiplier).ToString(), true, true, true, null);
 			if (flag4)
 			{
 				value -= GenUI.CurrentAdjustmentMultiplier();

@@ -1,13 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using RimWorld;
-using UnityEngine;
-using Verse;
-
-namespace VarietyMatters
+﻿namespace VarietyMatters
 {
-	// Token: 0x02000013 RID: 19
-	public class VarietyCookingRecord : MapComponent
+    using System;
+    using System.Collections.Generic;
+    using RimWorld;
+    using UnityEngine;
+    using Verse;
+
+    // Token: 0x02000013 RID: 19
+    public class VarietyCookingRecord : MapComponent
 	{
         private List<string> recentlyCooked;
 

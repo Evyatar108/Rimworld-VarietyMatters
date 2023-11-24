@@ -1,11 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using Verse;
-
-namespace VarietyMatters
+﻿namespace VarietyMatters
 {
-	// Token: 0x02000004 RID: 4
-	[StaticConstructorOnStartup]
+    using System.Collections.Generic;
+    using Verse;
+
+    // Token: 0x02000004 RID: 4
+    [StaticConstructorOnStartup]
 	public class AddCompVariety
 	{
 		// Token: 0x06000003 RID: 3 RVA: 0x0000206C File Offset: 0x0000026C

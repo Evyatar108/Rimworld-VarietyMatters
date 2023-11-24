@@ -1,14 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using HarmonyLib;
-using RimWorld;
-using UnityEngine;
-using Verse;
-
-namespace VarietyMatters
+﻿namespace VarietyMatters
 {
-	// Token: 0x02000012 RID: 18
-	[HarmonyPatch]
+    using System;
+    using System.Collections.Generic;
+    using HarmonyLib;
+    using RimWorld;
+    using UnityEngine;
+    using Verse;
+
+    // Token: 0x02000012 RID: 18
+    [HarmonyPatch]
 	public class VarietyCooking : WorkGiver_DoBill
 	{
 		// Token: 0x17000006 RID: 6
@@ -21,8 +21,7 @@ namespace VarietyMatters
 		[HarmonyPrefix]
 		private static void GetChef(Pawn pawn)
 		{
-			bool flag = !ModSettings_VarietyMatters.ignoreIngredients && ModSettings_VarietyMatters.preferVariety;
-			if (flag)
+			if (ModSettings_VarietyMatters.foodTrackingType != New.FoodTrackingType.ByMeal && ModSettings_VarietyMatters.preferVariety)
 			{
 				VarietyCooking.Chef = pawn;
 			}
@@ -33,9 +32,8 @@ namespace VarietyMatters
 		[HarmonyPrefix]
 		private static bool BestVariety_AllowMix(ref bool __result, List<Thing> availableThings, Bill bill, List<ThingCount> chosen, IntVec3 rootCell)
 		{
-            bool flag = ModSettings_VarietyMatters.ignoreIngredients || !ModSettings_VarietyMatters.preferVariety;
 			bool result;
-			if (flag)
+			if (ModSettings_VarietyMatters.foodTrackingType == New.FoodTrackingType.ByMeal || !ModSettings_VarietyMatters.preferVariety)
 			{
 				result = true;
 			}
@@ -47,7 +45,7 @@ namespace VarietyMatters
 					ThingDef producedThingDef = bill.recipe.ProducedThingDef;
 					if (((producedThingDef != null) ? producedThingDef.ingestible : null) != null)
 					{
-						flag2 = (bill.recipe.specialProducts != null);
+						flag2 = bill.recipe.specialProducts != null;
 						goto IL_5B;
 					}
 				}
@@ -65,25 +63,25 @@ namespace VarietyMatters
 					for (int i = 0; i < bill.recipe.ingredients.Count; i++)
 					{
 						IngredientCount ingredientCount = bill.recipe.ingredients[i];
-						float num = ingredientCount.GetBaseCount();
+						float billRecipeIngredientBaseCount = ingredientCount.GetBaseCount();
 						for (int j = 0; j < availableThings.Count; j++)
 						{
-							Thing thing = availableThings[j];
-							bool flag4 = ingredientCount.filter.Allows(thing) && (ingredientCount.IsFixedIngredient || bill.ingredientFilter.Allows(thing));
-							if (flag4)
+							Thing availableThing = availableThings[j];
+							bool availableThingIsValidIngredient = ingredientCount.filter.Allows(availableThing) && (ingredientCount.IsFixedIngredient || bill.ingredientFilter.Allows(availableThing));
+							if (availableThingIsValidIngredient)
 							{
-								float num2 = bill.recipe.IngredientValueGetter.ValuePerUnitOf(thing.def);
-								int num3 = Mathf.Min(Mathf.CeilToInt(num / num2), thing.stackCount);
-								ThingCountUtility.AddToList(chosen, thing, num3);
-								num -= (float)num3 * num2;
-								bool flag5 = num <= 0.0001f;
+								float num2 = bill.recipe.IngredientValueGetter.ValuePerUnitOf(availableThing.def);
+								int num3 = Mathf.Min(Mathf.CeilToInt(billRecipeIngredientBaseCount / num2), availableThing.stackCount);
+								ThingCountUtility.AddToList(chosen, availableThing, num3);
+								billRecipeIngredientBaseCount -= (float)num3 * num2;
+								bool flag5 = billRecipeIngredientBaseCount <= 0.0001f;
 								if (flag5)
 								{
 									break;
 								}
 							}
 						}
-						bool flag6 = num > 0.0001f;
+						bool flag6 = billRecipeIngredientBaseCount > 0.0001f;
 						if (flag6)
 						{
 							__result = false;
@@ -104,12 +102,12 @@ namespace VarietyMatters
 		private static void BestVariety_NoMix(List<Thing> availableThings, Bill bill, IntVec3 rootCell, ref bool alreadySorted)
 		{
 			bool flag;
-			if (!ModSettings_VarietyMatters.ignoreIngredients && ModSettings_VarietyMatters.preferVariety && bill.recipe.workSkill == SkillDefOf.Cooking)
+			if (ModSettings_VarietyMatters.foodTrackingType != New.FoodTrackingType.ByMeal && ModSettings_VarietyMatters.preferVariety && bill.recipe.workSkill == SkillDefOf.Cooking)
 			{
 				ThingDef producedThingDef = bill.recipe.ProducedThingDef;
 				if (((producedThingDef != null) ? producedThingDef.ingestible : null) != null)
 				{
-					flag = (bill.recipe.specialProducts == null);
+					flag = bill.recipe.specialProducts == null;
 					goto IL_4B;
 				}
 			}
@@ -129,12 +127,12 @@ namespace VarietyMatters
 		private static void ChosenVariety_NoMix(bool __result, Bill bill, List<ThingCount> chosen, bool alreadySorted)
 		{
 			bool flag;
-			if (__result && alreadySorted && !ModSettings_VarietyMatters.ignoreIngredients && ModSettings_VarietyMatters.preferVariety && bill.recipe.workSkill == SkillDefOf.Cooking)
+			if (__result && alreadySorted && ModSettings_VarietyMatters.foodTrackingType != New.FoodTrackingType.ByMeal && ModSettings_VarietyMatters.preferVariety && bill.recipe.workSkill == SkillDefOf.Cooking)
 			{
 				ThingDef producedThingDef = bill.recipe.ProducedThingDef;
 				if (((producedThingDef != null) ? producedThingDef.ingestible : null) != null)
 				{
-					flag = (bill.recipe.specialProducts == null);
+					flag = bill.recipe.specialProducts == null;
 					goto IL_50;
 				}
 			}

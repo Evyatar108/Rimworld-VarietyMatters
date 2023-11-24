@@ -1,11 +1,11 @@
-﻿using System;
-using RimWorld;
-using Verse;
-
-namespace VarietyMatters
+﻿namespace VarietyMatters
 {
-	// Token: 0x02000006 RID: 6
-	public class CompVariety : ThingComp
+    using System;
+    using RimWorld;
+    using Verse;
+
+    // Token: 0x02000006 RID: 6
+    public class CompVariety : ThingComp
 	{
 		// Token: 0x17000001 RID: 1
 		// (get) Token: 0x06000006 RID: 6 RVA: 0x0000210F File Offset: 0x0000030F
@@ -35,8 +35,7 @@ namespace VarietyMatters
 		// Token: 0x06000008 RID: 8 RVA: 0x00002174 File Offset: 0x00000374
 		public override bool AllowStackWith(Thing other)
 		{
-			bool flag = !ModSettings_VarietyMatters.ignoreIngredients && ModSettings_VarietyMatters.stackByIngredients;
-			if (flag)
+			if (ModSettings_VarietyMatters.foodTrackingType != New.FoodTrackingType.ByMeal && ModSettings_VarietyMatters.stackByIngredients)
 			{
 				CompIngredients parentIngredients = this.parent.GetComp<CompIngredients>();
 				CompIngredients otherIngredients = ((ThingWithComps)other).GetComp<CompIngredients>();
@@ -115,7 +114,7 @@ namespace VarietyMatters
 			}
 			else
 			{
-				VarietyExpectation.moddedMeals = ((float)num - 24f) / (24f + (float)num * 2f);
+				VarietyExpectation.moddedMeals = ((float)num - 24f) / (24f + ((float)num * 2f));
 			}
 			bool flag6 = num2 <= 66;
 			if (flag6)

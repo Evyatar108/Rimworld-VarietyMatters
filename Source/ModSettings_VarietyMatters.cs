@@ -1,12 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Verse;
-
-namespace VarietyMatters
+﻿namespace VarietyMatters
 {
-	// Token: 0x0200000A RID: 10
-	internal class ModSettings_VarietyMatters : ModSettings
+    using System.Collections.Generic;
+    using System.Linq;
+    using VarietyMatters.New;
+    using Verse;
+
+    // Token: 0x0200000A RID: 10
+    internal class ModSettings_VarietyMatters : ModSettings
 	{
 		// Token: 0x0600000E RID: 14 RVA: 0x00002444 File Offset: 0x00000644
 		public static void GenerateRaces()
@@ -19,7 +19,7 @@ namespace VarietyMatters
 			foreach (ThingDef thingDef in from def in DefDatabase<ThingDef>.AllDefsListForReading.Where(delegate(ThingDef def)
 			{
 				RaceProperties race = def.race;
-				return race != null && (int)race.intelligence == 2 && !ModSettings_VarietyMatters.raceVariety.Keys.Contains(def.label);
+				return race != null && race.intelligence == Intelligence.Humanlike && !ModSettings_VarietyMatters.raceVariety.Keys.Contains(def.label);
 			})
 			orderby def.label
 			select def)
@@ -33,13 +33,10 @@ namespace VarietyMatters
 		// Token: 0x0600000F RID: 15 RVA: 0x00002520 File Offset: 0x00000720
 		public override void ExposeData()
 		{
-			Scribe_Values.Look<bool>(ref ModSettings_VarietyMatters.maxVariety, "maxVariety", false, false);
-			Scribe_Values.Look<bool>(ref ModSettings_VarietyMatters.ignoreIngredients, "ignoreIngredients", false, false);
-			Scribe_Values.Look<bool>(ref ModSettings_VarietyMatters.sickPawns, "sickPawns", true, false);
-			Scribe_Values.Look<bool>(ref ModSettings_VarietyMatters.stackByIngredients, "stackByIngredients", false, false);
-			Scribe_Values.Look<bool>(ref ModSettings_VarietyMatters.curNeedAdjustments, "curNeedAdjustments", true, false);
-			Scribe_Values.Look<bool>(ref ModSettings_VarietyMatters.foodModAdjustments, "foodModAdjustments", true, false);
-			Scribe_Values.Look<bool>(ref ModSettings_VarietyMatters.tempAdjustments, "tempAdjustments", true, false);
+			Scribe_Values.Look<FoodTrackingType>(ref ModSettings_VarietyMatters.foodTrackingType, "foodTrackingType", default, false);
+			Scribe_Values.Look<bool>(ref ModSettings_VarietyMatters.halveVarietyMoodImpact, "halveVarietyMoodImpact", false, false);
+            Scribe_Values.Look<bool>(ref ModSettings_VarietyMatters.stackByIngredients, "stackByIngredients", false, false);
+			Scribe_Values.Look<bool>(ref ModSettings_VarietyMatters.moreVarietyMemory, "moreVarietyMemory", false, false);
 			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.extremelyLowVariety, "extremelyLowVariety", 2, false);
 			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.veryLowVariety, "veryLowVariety", 4, false);
 			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.lowVariety, "lowVariety", 6, false);
@@ -57,37 +54,23 @@ namespace VarietyMatters
 			Scribe_Values.Look<bool>(ref ModSettings_VarietyMatters.preferSpoiling, "preferSpoiling", true, false);
 			Scribe_Collections.Look<string, bool>(ref ModSettings_VarietyMatters.raceVariety, "raceVariety", (LookMode)1, (LookMode)1, ref ModSettings_VarietyMatters.raceKeys, ref ModSettings_VarietyMatters.raceValues, true);
 
-            Scribe_Values.Look(ref fixDesserts, nameof(fixDesserts), false);
-            Scribe_Values.Look(ref betterGourmet, nameof(betterGourmet), false);
-            Scribe_Values.Look(ref betterArchotech, nameof(betterArchotech), false);
-
-
             base.ExposeData();
 		}
 
 		// Token: 0x0400000D RID: 13
-		public static bool maxVariety = false;
+		public static FoodTrackingType foodTrackingType = FoodTrackingType.ByMealAndIngredients;
 
-		// Token: 0x0400000E RID: 14
-		public static bool ignoreIngredients;
-
-		// Token: 0x0400000F RID: 15
-		public static bool sickPawns = true;
+		public static bool halveVarietyMoodImpact = false;
 
 		// Token: 0x04000010 RID: 16
 		public static bool stackByIngredients = false;
 
+		public static bool moreVarietyMemory = false;
+
+		public static float memoryMultiplier => moreVarietyMemory ? 3f : 2.25f;
+
 		// Token: 0x04000011 RID: 17
 		public static int numIngredients = 3;
-
-		// Token: 0x04000012 RID: 18
-		public static bool curNeedAdjustments = true;
-
-		// Token: 0x04000013 RID: 19
-		public static bool foodModAdjustments = true;
-
-		// Token: 0x04000014 RID: 20
-		public static bool tempAdjustments = true;
 
 		// Token: 0x04000015 RID: 21
 		public static int extremelyLowVariety = 2;
@@ -136,10 +119,5 @@ namespace VarietyMatters
 
 		// Token: 0x04000022 RID: 34
 		public static List<string> curRaces = new List<string>();
-
-
-        public static bool fixDesserts = false;
-        public static bool betterGourmet = false;
-        public static bool betterArchotech = false;
     }
 }
