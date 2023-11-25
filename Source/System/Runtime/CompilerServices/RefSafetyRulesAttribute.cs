@@ -1,10 +1,9 @@
-﻿using System;
-using Microsoft.CodeAnalysis;
-
-namespace System.Runtime.CompilerServices
+﻿namespace System.Runtime.CompilerServices
 {
-	// Token: 0x02000003 RID: 3
-	[CompilerGenerated]
+    using Microsoft.CodeAnalysis;
+
+    // Token: 0x02000003 RID: 3
+    [CompilerGenerated]
 	[Embedded]
 	[AttributeUsage(AttributeTargets.Module, AllowMultiple = false, Inherited = false)]
 	internal sealed class RefSafetyRulesAttribute : Attribute

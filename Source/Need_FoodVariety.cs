@@ -15,62 +15,67 @@
 		// Token: 0x17000002 RID: 2
 		// (get) Token: 0x06000018 RID: 24 RVA: 0x00002F8C File Offset: 0x0000118C
 		public MenuVarietyLevel CurCategory
-		{
-			get
-			{
+        {
+            get
+            {
                 if (this.Disabled || this.IsFrozen)
                 {
                     return MenuVarietyLevel.NA;
                 }
 
-                if (this.CurLevel > 0.9166f)
+                if (this.CurLevel <= 0.1538f) // 15.38% or less
                 {
-                    return MenuVarietyLevel.Overwhelming;
+                    return MenuVarietyLevel.Barren;
                 }
-                if (this.CurLevel > 0.8333f)
-                {
-                    return MenuVarietyLevel.Exceptional;
-                }
-                if (this.CurLevel > 0.7500f)
-                {
-                    return MenuVarietyLevel.Excellent;
-                }
-                if (this.CurLevel > 0.6666f)
-                {
-                    return MenuVarietyLevel.Great;
-                }
-                if (this.CurLevel > 0.5833f)
-                {
-                    return MenuVarietyLevel.Good;
-                }
-                if (this.CurLevel > 0.5000f)
-                {
-                    return MenuVarietyLevel.AboveAverage;
-                }
-                if (this.CurLevel > 0.4166f)
-                {
-                    return MenuVarietyLevel.Average;
-                }
-                if (this.CurLevel > 0.3333f)
-                {
-                    return MenuVarietyLevel.BelowAverage;
-                }
-                if (this.CurLevel > 0.2500f)
-                {
-                    return MenuVarietyLevel.Limited;
-                }
-                if (this.CurLevel > 0.1666f)
-                {
-                    return MenuVarietyLevel.Poor;
-                }
-                if (this.CurLevel > 0.0833f)
+                if (this.CurLevel <= 0.3077f) // Up to 30.77%
                 {
                     return MenuVarietyLevel.Empty;
                 }
+                if (this.CurLevel <= 0.4615f) // Up to 46.15%
+                {
+                    return MenuVarietyLevel.Poor;
+                }
+                if (this.CurLevel <= 0.6154f) // Up to 61.54%
+                {
+                    return MenuVarietyLevel.Scarce;
+                }
+                if (this.CurLevel <= 0.7692f) // Up to 76.92%
+                {
+                    return MenuVarietyLevel.Limited;
+                }
+                if (this.CurLevel <= 0.9231f) // Up to 92.31%
+                {
+                    return MenuVarietyLevel.BelowAverage;
+                }
+                if (this.CurLevel <= 1.0769f) // Up to 107.69%
+                {
+                    return MenuVarietyLevel.Average;
+                }
+                if (this.CurLevel <= 1.2308f) // Up to 123.08%
+                {
+                    return MenuVarietyLevel.AboveAverage;
+                }
+                if (this.CurLevel <= 1.3846f) // Up to 138.46%
+                {
+                    return MenuVarietyLevel.Good;
+                }
+                if (this.CurLevel <= 1.5385f) // Up to 153.85%
+                {
+                    return MenuVarietyLevel.Great;
+                }
+                if (this.CurLevel <= 1.6923f) // Up to 169.23%
+                {
+                    return MenuVarietyLevel.Excellent;
+                }
+                if (this.CurLevel <= 1.8462f) // Up to 184.62%
+                {
+                    return MenuVarietyLevel.Exceptional;
+                }
 
-                return MenuVarietyLevel.Barren;
+                // Above 184.62%
+                return MenuVarietyLevel.Overwhelming;
             }
-		}
+        }
 
 		// Token: 0x17000003 RID: 3
 		// (get) Token: 0x06000019 RID: 25 RVA: 0x0000303D File Offset: 0x0000123D
@@ -147,10 +152,10 @@
 		// Token: 0x0600001E RID: 30 RVA: 0x00003160 File Offset: 0x00001360
 		public override void NeedInterval()
 		{
-			bool disabled = this.Disabled;
-			if (disabled)
+			if (this.Disabled)
 			{
 				this.CurLevel = 0.5f;
+                return;
 			}
 		}
 

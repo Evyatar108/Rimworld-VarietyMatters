@@ -18,13 +18,13 @@
         {
         }
 
-        public DietTracker(Pawn pawn, int maxEatenFoodSourceInMemory)
+        public DietTracker(Pawn pawn)
         {
             this.pawn = pawn;
-            this.maxEatenFoodSourceInMemory = maxEatenFoodSourceInMemory;
+            this.maxEatenFoodSourceInMemory = GetMaxEatenFoodSourceInMemory(pawn);
 
-            this.foodSourcesInfoForPawn = new Dictionary<string, FoodSourceInfoForPawn>(maxEatenFoodSourceInMemory + 1);
-            this.foodSourcesByOrder = new Queue<EatenFoodSource>(maxEatenFoodSourceInMemory + 1);
+            this.foodSourcesInfoForPawn = new Dictionary<string, FoodSourceInfoForPawn>(this.maxEatenFoodSourceInMemory + 1);
+            this.foodSourcesByOrder = new Queue<EatenFoodSource>(this.maxEatenFoodSourceInMemory + 1);
             this.totalVariety = 0;
         }
 
@@ -42,9 +42,16 @@
             return this.foodSourcesByOrder.Select(x => this.foodSourcesInfoForPawn[x.GetFoodSourceKey(ModSettings_VarietyMatters.foodTrackingType)]);
         }
 
-        public void UpdateMaxFoodInMemory(int newMaxFoodSourcesInMemory)
+        private static int GetMaxEatenFoodSourceInMemory(Pawn pawn)
         {
-            this.maxEatenFoodSourceInMemory = newMaxFoodSourcesInMemory;
+            float memoryMultiplier = ModSettings_VarietyMatters.memoryMultiplier;
+            int varietyExpectation = VarietyExpectation.GetVarietyExpectation(pawn);
+            return (int)(varietyExpectation * memoryMultiplier);
+        }
+
+        public void UpdateMaxFoodInMemory()
+        {
+            this.maxEatenFoodSourceInMemory = GetMaxEatenFoodSourceInMemory(this.Pawn);
 
             while (this.foodSourcesByOrder.Count > this.maxEatenFoodSourceInMemory)
             {
@@ -72,6 +79,11 @@
             {
                 this.AddFoodSourceToCount(foodSource);
             }
+        }
+
+        public void ForgetOldestMeal()
+        {
+
         }
 
         private void AddFoodSourceToMemory(EatenFoodSource foodSource)

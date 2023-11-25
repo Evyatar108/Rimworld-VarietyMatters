@@ -10,7 +10,9 @@
         Scarce, // -3 mood
         Limited, // -2 mood
         BelowAverage, // -1 mood
+
         Average, // 0 mood
+
         AboveAverage, // 1 mood
         Good, // 2 mood
         Great, // 3 mood

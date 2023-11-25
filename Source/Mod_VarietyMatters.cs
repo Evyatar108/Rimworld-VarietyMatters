@@ -15,7 +15,7 @@
 		// Token: 0x06000012 RID: 18 RVA: 0x00002744 File Offset: 0x00000944
 		public Mod_VarietyMatters(ModContentPack content) : base(content)
 		{
-			base.GetSettings<ModSettings_VarietyMatters>();
+            GetSettings<ModSettings_VarietyMatters>();
 			Harmony harmony = new Harmony("rimworld.varietymatters");
 			harmony.PatchAll(Assembly.GetExecutingAssembly());
 		}
@@ -68,13 +68,12 @@
 				{
 					dietTracker.ReCount();
 
-                    int expectedVariety = VarietyExpectation.GetVarietyExpectation(dietTracker.Pawn);
-                    VarietyAdjuster.AdjustVarietyLevel(dietTracker, expectedVariety);
+                    VarietyAdjuster.AdjustVarietyLevel(dietTracker);
                 }
             }
 
 			listing_Standard.Label("Other Options:", -1f, null);
-			bool flag4 = ModSettings_VarietyMatters.foodTrackingType == New.FoodTrackingType.ByIngredients || ModSettings_VarietyMatters.foodTrackingType == New.FoodTrackingType.ByMealAndIngredients;
+			bool flag4 = ModSettings_VarietyMatters.foodTrackingType == FoodTrackingType.ByIngredients || ModSettings_VarietyMatters.foodTrackingType == FoodTrackingType.ByMealAndIngredients;
             if (flag4)
 			{
 				listing_Standard.CheckboxLabeled("     Cooks use different ingredients: ", ref ModSettings_VarietyMatters.preferVariety, null, 0f, 1f);
@@ -164,7 +163,7 @@
 			List<string> curRaces = ModSettings_VarietyMatters.curRaces;
 			Rect rect3 = new Rect(50f + (inRect.width * 0.5f), 50f, inRect.width * 0.4f, inRect.height - 10f);
 			Rect rect4 = new Rect(0f, 0f, rect3.width - 30f, (float)curRaces.Count * 24f);
-			Widgets.BeginScrollView(rect3, ref Mod_VarietyMatters.rightScrollPosition, rect4, true);
+			Widgets.BeginScrollView(rect3, ref rightScrollPosition, rect4, true);
 			listing_Standard.Begin(rect4);
 			for (int i = 0; i < curRaces.Count; i++)
 			{

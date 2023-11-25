@@ -48,7 +48,7 @@
 
             if (ingester.story.traits.HasTrait(TraitDef.Named("Gourmand")))
             {
-                expectedVariety = expectedVariety * 5 / 4; // *1.25
+                expectedVariety = expectedVariety * 5 / 4; // *1.25, 25%+
             }
 
             return expectedVariety;

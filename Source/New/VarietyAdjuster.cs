@@ -2,8 +2,10 @@
 {
     public static class VarietyAdjuster
     {
-        public static void AdjustVarietyLevel(DietTracker dietTracker, int varietyExpectation)
+        public static void AdjustVarietyLevel(DietTracker dietTracker)
         {
+            int varietyExpectation = VarietyExpectation.GetVarietyExpectation(dietTracker.Pawn);
+
             Need_FoodVariety varietyNeed = dietTracker.Pawn.needs.TryGetNeed<Need_FoodVariety>();
 
             int currentVariety = dietTracker.TotalVariety;

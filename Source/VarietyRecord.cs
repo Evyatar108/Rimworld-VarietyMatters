@@ -1,6 +1,7 @@
 ﻿namespace VarietyMatters
 {
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Linq;
     using VarietyMatters.New;
     using Verse;
@@ -17,42 +18,40 @@
 		// Token: 0x06000041 RID: 65 RVA: 0x000048BC File Offset: 0x00002ABC
 		public static DietTracker GetVarietyRecord(Pawn trackedPawn)
 		{
-            DietTracker pawn_VarietyTracker;
-			bool flag = VarietyRecord.varietyRecord.TryGetValue(trackedPawn, out pawn_VarietyTracker);
-            DietTracker result;
-			if (flag)
+            DietTracker tracker;
+			if (!VarietyRecord.varietyRecord.TryGetValue(trackedPawn, out tracker))
 			{
-				result = pawn_VarietyTracker;
+				tracker = AddVarietyRecord(trackedPawn);
 			}
-			else
-			{
-				result = null;
-			}
-			return result;
+
+			return tracker;
 		}
+
+		private static DietTracker AddVarietyRecord(Pawn pawn)
+		{
+            var tracker = new DietTracker(pawn);
+            VarietyRecord.varietyRecord.Add(pawn, tracker);
+            VarietyRecord.trackedPawns.Add(pawn);
+            VarietyRecord.pawnRecords.Add(tracker);
+
+			return tracker;
+        }
 
 		// Token: 0x06000042 RID: 66 RVA: 0x000048E8 File Offset: 0x00002AE8
 		public static void UpdateVarietyRecord(Pawn trackedPawn, Thing foodSourceThing)
 		{
-			float memoryMultiplier = ModSettings_VarietyMatters.memoryMultiplier;
-
-            int varietyExpectation = VarietyExpectation.GetVarietyExpectation(trackedPawn);
-			int maxEatenFoodSourceInMemory = (int)(varietyExpectation * memoryMultiplier);
             if (!VarietyRecord.varietyRecord.TryGetValue(trackedPawn, out var tracker))
 			{
-                tracker = new DietTracker(trackedPawn, maxEatenFoodSourceInMemory);
-                VarietyRecord.varietyRecord.Add(trackedPawn, tracker);
-                VarietyRecord.trackedPawns.Add(trackedPawn);
-                VarietyRecord.pawnRecords.Add(tracker);
+				tracker = AddVarietyRecord(trackedPawn);
 			}
 
             EatenFoodSource foodSource = FoodSourceFactory.CreateOrGetFoodSourceFromThing(foodSourceThing);
 
-			tracker.UpdateMaxFoodInMemory(maxEatenFoodSourceInMemory);
+			tracker.UpdateMaxFoodInMemory();
 
 			tracker.AddFoodSource(foodSource);
 
-			VarietyAdjuster.AdjustVarietyLevel(tracker, varietyExpectation);
+			VarietyAdjuster.AdjustVarietyLevel(tracker);
 		}
 
 		// Token: 0x06000043 RID: 67 RVA: 0x0000493C File Offset: 0x00002B3C
