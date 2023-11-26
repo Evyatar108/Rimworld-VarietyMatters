@@ -1,7 +1,6 @@
 ﻿namespace VarietyMatters.New
 {
     using System;
-    using System.Collections;
     using System.Collections.Generic;
     using System.Linq;
     using Verse;
@@ -109,6 +108,7 @@
             {
                 if (foodSource.ThingLabel == null && !foodSource.IsForgotton)
                 {
+                    Log.Warning("Found food source with null thing label");
                     continue;
                 }
 
@@ -163,7 +163,6 @@
 
         private void RemoveOldestFoodSourceFromMemory()
         {
-
             EatenFoodSource oldestFoodSource = this.foodSourcesByOrder.Dequeue();
             string oldestFoodSourceKey = oldestFoodSource.GetFoodSourceKey();
             FoodSourceInfoForPawn foodSourceInfoForPawn = this.foodSourcesInfoForPawn[oldestFoodSourceKey];
@@ -200,7 +199,7 @@
                 Scribe_Collections.Look(ref tempList, "foodSourcesByOrder", LookMode.Reference);
                 if (tempList != null)
                 {
-                    this.foodSourcesByOrder = new Queue<EatenFoodSource>(tempList);
+                    this.foodSourcesByOrder = new Queue<EatenFoodSource>(tempList.Where(x => x.ThingLabel != null || x.IsForgotton));
                 }
             }
 

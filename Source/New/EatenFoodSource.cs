@@ -9,7 +9,7 @@
 
     public class EatenFoodSource : IExposable, ILoadReferenceable
     {
-        public static EatenFoodSource ForgottenEatenFoodSource = new EatenFoodSource() { IsForgotton = true, uniqueId = "EatenFoodSource_ForgottenFood" };
+        public static EatenFoodSource ForgottenEatenFoodSource = new EatenFoodSource() { IsForgotton = true, uniqueId = "EatenFoodSource_ForgottenFood", ThingLabel = "Forgotten food", ingredients = new List<ThingDef>() };
 
         public EatenFoodSource()
         {
@@ -39,6 +39,11 @@
         public EatenFoodSource(Thing foodSourceThing)
             : this()
         {
+            if (foodSourceThing == null)
+            {
+                throw new ArgumentNullException(nameof(foodSourceThing));
+            }
+
             this.Thing = foodSourceThing;
 
             this.IsForgotton = false;
@@ -46,7 +51,18 @@
             this.uniqueId = "EatenFoodSource_" + foodSourceThing.GetUniqueLoadID();
 
             this.ThingDef = foodSourceThing.def;
+
+            if (this.ThingDef == null)
+            {
+                throw new ArgumentNullException(nameof(this.ThingDef));
+            }
+
             this.ThingLabel = foodSourceThing.Label;
+
+            if (this.ThingLabel == null)
+            {
+                throw new ArgumentNullException(nameof(this.ThingLabel));
+            }
 
             this.IngredientsDefs = ThingCompUtility.TryGetComp<CompIngredients>(foodSourceThing)?.ingredients?.ToList() ?? new List<ThingDef>();
             this.IngredientsDefs.SortBy(x => x.label);
@@ -177,6 +193,14 @@
             Scribe_Deep.Look(ref this.meatSourceCategory, "meatSourceCategory");
             Scribe_Values.Look(ref this.isFungus, "isFungus");
             Scribe_Values.Look(ref this.uniqueId, "uniqueId");
+
+            if (Scribe.mode == LoadSaveMode.PostLoadInit)
+            {
+                if (this.thingLabel == null && !this.isForgotton)
+                {
+                    Log.Warning("Loaded EatenFoodSource with null thingLabel");
+                }
+            }
         }
 
         public string GetFoodSourceKey()

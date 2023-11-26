@@ -13,6 +13,8 @@
 		public VarietyRecord(Game game)
 		{
 			VarietyRecord.varietyRecord = new Dictionary<Pawn, DietTracker>();
+			trackedPawns = new List<Pawn>();
+			pawnRecords = new List<DietTracker>();
 		}
 
 		// Token: 0x06000041 RID: 65 RVA: 0x000048BC File Offset: 0x00002ABC
@@ -109,27 +111,24 @@
 			base.ExposeData();
 			Scribe_Collections.Look<Pawn, DietTracker>(ref VarietyRecord.varietyRecord, "VarietyRecordV2", LookMode.Reference, LookMode.Deep, ref trackedPawns, ref pawnRecords, logNullErrors: true);
 
-			if (Scribe.mode == LoadSaveMode.PostLoadInit)
-			{
-				if (varietyRecord == null)
-				{
-					varietyRecord = new Dictionary<Pawn, DietTracker>();
-				}
-
-				if (trackedPawns == null)
-				{
-					trackedPawns = new List<Pawn>();
-				}
-
-				if (pawnRecords == null)
-				{
-					pawnRecords = new List<DietTracker>();
-				}
+            if (varietyRecord == null)
+            {
+                varietyRecord = new Dictionary<Pawn, DietTracker>();
             }
 
-			if (Scribe.mode == LoadSaveMode.Saving)
+            if (trackedPawns == null)
+            {
+                trackedPawns = new List<Pawn>();
+            }
+
+            if (pawnRecords == null)
+            {
+                pawnRecords = new List<DietTracker>();
+            }
+
+            if (Scribe.mode == LoadSaveMode.Saving)
 			{
-                eatenFoodSources = varietyRecord?.Values?.SelectMany(x => x.EatenFoodSourcesByOrder)?.ToList()?.Distinct()?.ToList() ?? new List<EatenFoodSource>();
+                eatenFoodSources = varietyRecord?.Values?.SelectMany(x => x.EatenFoodSourcesByOrder)?.Distinct(new EatenFoodSourceEqualityComparer())?.ToList() ?? new List<EatenFoodSource>();
 			}
 
 			Scribe_Collections.Look<EatenFoodSource>(ref eatenFoodSources, "eatenFoodSources", LookMode.Deep);
@@ -147,9 +146,22 @@
 		private static List<Pawn> trackedPawns = new List<Pawn>();
 
 		// Token: 0x04000032 RID: 50
-		private static Dictionary<Pawn, DietTracker> varietyRecord;
+		private static Dictionary<Pawn, DietTracker> varietyRecord = new Dictionary<Pawn, DietTracker>();
 
 		private static List<EatenFoodSource> eatenFoodSources;
 
+
+        private class EatenFoodSourceEqualityComparer : IEqualityComparer<EatenFoodSource>
+        {
+            public bool Equals(EatenFoodSource x, EatenFoodSource y)
+            {
+				return x.GetUniqueLoadID() == y.GetUniqueLoadID();
+            }
+
+            public int GetHashCode(EatenFoodSource obj)
+            {
+				return obj.GetUniqueLoadID().GetHashCode();
+            }
+        }
     }
 }

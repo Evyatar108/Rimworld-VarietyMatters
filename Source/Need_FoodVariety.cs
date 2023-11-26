@@ -173,7 +173,7 @@
 			if (dietTracker != null && dietTracker.MostRecentEatenFoodSource != null)
 			{
 				actualVarietiesCountText = dietTracker.TotalVariety.ToString();
-                mostRecentFoodSourceText = GetEatenFoodSourcesDescription(dietTracker);
+                mostRecentFoodSourceText = this.GetEatenFoodSourcesDescription(dietTracker);
             }
 
             float memoryMult = ModSettings_VarietyMatters.memoryMultiplier;
@@ -227,8 +227,8 @@
                 int seed = (foodKey, timesAlreadyIngestedSoFar).GetHashCode();
 
                 string varietyInfo = foodSourceInfoForPawn.HasVarietyValueForPawn
-                    ? isForgotten ? GetVarietyInfoForForgotten(seed) : GetVarietyInfoBasedOnIngestionCount(timesAlreadyIngestedSoFar, seed)
-                    : GetVarietyInfoBasedOnNoVarietyReason(foodSourceInfoForPawn, seed);
+                    ? isForgotten ? this.GetVarietyInfoForForgotten(seed) : this.GetVarietyInfoBasedOnIngestionCount(timesAlreadyIngestedSoFar, seed)
+                    : this.GetVarietyInfoBasedOnNoVarietyReason(foodSourceInfoForPawn, seed);
 
                 stringBuilder.Append(" ◊  ").Append(foodInfo);
 
@@ -256,7 +256,7 @@
 
         private string GetVarietyInfoForForgotten(int seed)
         {
-            return RandChooseForgottenFoodStrings(seed);
+            return this.RandChooseForgottenFoodStrings(seed);
         }
 
         private string GetVarietyInfoBasedOnIngestionCount(int timesAlreadyIngestedSoFar, int seed)
@@ -356,23 +356,25 @@
             switch (foodSourceInfoForPawn.NoVarietyReason)
             {
                 case NoVarietyReason.Rotten:
-                    return RandChooseRottenStrings(seed);
+                    return this.RandChooseRottenStrings(seed);
                 case NoVarietyReason.HumanLikeMeat:
-                    return RandChooseHumanLikeMeatStrings(seed);
+                    return this.RandChooseHumanLikeMeatStrings(seed);
                 case NoVarietyReason.InsectMeat:
-                    return RandChooseInsectMeatStrings(seed);
+                    return this.RandChooseInsectMeatStrings(seed);
                 case NoVarietyReason.RawOrRawlikeFood:
-                    return RandChooseRawOrRawlikeFoodStrings(seed);
+                    return this.RandChooseRawOrRawlikeFoodStrings(seed);
                 case NoVarietyReason.Fungus:
-                    return RandChooseFungusStrings(seed);
+                    return this.RandChooseFungusStrings(seed);
                 case NoVarietyReason.HasChemicals:
-                    return RandChooseChemicalStrings(seed);
+                    return this.RandChooseChemicalStrings(seed);
                 case NoVarietyReason.UnacceptableByVegetarians:
-                    return RandChooseUnacceptableByVegetariansStrings(seed);
+                    return this.RandChooseUnacceptableByVegetariansStrings(seed);
                 case NoVarietyReason.UnacceptableByCarnivores:
-                    return RandChooseUnacceptableByCarnivoresStrings(seed);
+                    return this.RandChooseUnacceptableByCarnivoresStrings(seed);
                 case NoVarietyReason.IsOrHasVenetratedAnimalMeat:
-                    return RandChooseIsOrHasVenetratedAnimalMeatStrings(seed);
+                    return this.RandChooseIsOrHasVenetratedAnimalMeatStrings(seed);
+                case NoVarietyReason.DisgustingMeal:
+                    return this.RandChooseDisgustingMealStrings(seed);
                 default:
                     throw new NotImplementedException($"No handling logic implemented in switch for NoVarietyReason value: {foodSourceInfoForPawn.NoVarietyReason}.");
             }
@@ -385,6 +387,33 @@
                 "(No Variety) This food was rotten or spoiled, I wanted to puke.",
                 "(No Variety) Spoiled again? The smell alone is a turn-off.",
                 "(No Variety) Rotten food is a no-go. It's completely inedible.");
+        }
+
+        private string RandChooseDisgustingMealStrings(int seed)
+        {
+            return this.RandChoose(
+                seed,
+                "(No Variety) That was revolting. I hope I never have to eat something like that again.",
+                "(No Variety) Absolutely disgusting! It's hard to believe that's considered food.",
+                "(No Variety) I've eaten some bad meals, but that one takes the cake for being the worst.",
+                "(No Variety) The mere thought of that meal makes my stomach turn.",
+                "(No Variety) That was horrendous. I'd rather go hungry than eat that again.",
+                "(No Variety) What was that? It tasted like a mix of bad decisions and regret.",
+                "(No Variety) Eating that was a challenge. It's the opposite of a culinary delight.",
+                "(No Variety) If there's a contest for the worst meal ever, that one's a strong contender.",
+                "(No Variety) Never again. That meal was a nightmare on a plate.",
+                "(No Variety) That dish was an assault on my taste buds. Truly appalling.",
+                "(No Variety) How can something edible be that repulsive? I'm baffled and nauseated.",
+                "(No Variety) It's like someone cooked up disappointment and served it with a side of misery.",
+                "(No Variety) I didn't think food could be that bad. I was wrong.",
+                "(No Variety) That's one meal I wish I could erase from my memory – and my taste buds.",
+                "(No Variety) It's hard to describe how bad that was. 'Disgusting' is an understatement.",
+                "(No Variety) Whoever thought that was a good idea for a meal was sadly mistaken.",
+                "(No Variety) I'm not sure what that was, but it's a culinary abomination.",
+                "(No Variety) That meal was a gastronomic disaster. Just terrible.",
+                "(No Variety) I've had some bad meals, but that one is going straight to the hall of shame.",
+                "(No Variety) A truly vile concoction. It's a mystery how it can even be classified as food."
+            );
         }
 
         private string RandChooseHumanLikeMeatStrings(int seed)
