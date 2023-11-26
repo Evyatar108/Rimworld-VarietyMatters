@@ -109,11 +109,22 @@
 			base.ExposeData();
 			Scribe_Collections.Look<Pawn, DietTracker>(ref VarietyRecord.varietyRecord, "VarietyRecordV2", LookMode.Reference, LookMode.Deep, ref trackedPawns, ref pawnRecords, logNullErrors: true);
 
-			if (Scribe.mode == LoadSaveMode.PostLoadInit && varietyRecord == null)
+			if (Scribe.mode == LoadSaveMode.PostLoadInit)
 			{
-				varietyRecord = new Dictionary<Pawn, DietTracker>();
-				trackedPawns = new List<Pawn>();
-				pawnRecords = new List<DietTracker>();
+				if (varietyRecord == null)
+				{
+					varietyRecord = new Dictionary<Pawn, DietTracker>();
+				}
+
+				if (trackedPawns == null)
+				{
+					trackedPawns = new List<Pawn>();
+				}
+
+				if (pawnRecords == null)
+				{
+					pawnRecords = new List<DietTracker>();
+				}
             }
 
 			if (Scribe.mode == LoadSaveMode.Saving)

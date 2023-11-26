@@ -27,17 +27,17 @@
             this.foodSourcesByOrder = new Queue<EatenFoodSource>(this.maxEatenFoodSourceInMemory + 1);
             this.totalVariety = 0;
 
-            AddForgottenFoods();
+            this.AddForgottenFoods();
         }
 
         public Pawn Pawn => this.pawn;
 
-        public int TotalVariety => totalVariety;
+        public int TotalVariety => this.totalVariety;
 
         public IEnumerable<EatenFoodSource> EatenFoodSourcesByOrder => this.foodSourcesByOrder;
 
         public EatenFoodSource mostRecentEatenFoodSource;
-        public EatenFoodSource MostRecentEatenFoodSource => mostRecentEatenFoodSource;
+        public EatenFoodSource MostRecentEatenFoodSource => this.mostRecentEatenFoodSource;
 
         public IEnumerable<(EatenFoodSource, FoodSourceInfoForPawn)> GetEatenFoodSourcesInfoForPawnInOrderOfIngestion()
         {
@@ -46,7 +46,7 @@
 
         private void AddForgottenFoods()
         {
-            int varietyExpectation = VarietyExpectation.GetVarietyExpectation(pawn);
+            int varietyExpectation = VarietyExpectation.GetVarietyExpectation(this.pawn);
 
             for (int i = 0; i < varietyExpectation; i++)
             {
@@ -82,7 +82,7 @@
         {
             this.AddFoodSourceToMemory(foodSource);
 
-            if (this.foodSourcesByOrder.Count > maxEatenFoodSourceInMemory)
+            if (this.foodSourcesByOrder.Count > this.maxEatenFoodSourceInMemory)
             {
                 this.RemoveOldestFoodSourceFromMemory();
             }
@@ -107,6 +107,11 @@
 
             foreach (EatenFoodSource foodSource in this.foodSourcesByOrder)
             {
+                if (foodSource.ThingLabel == null && !foodSource.IsForgotton)
+                {
+                    continue;
+                }
+
                 this.AddFoodSourceToCount(foodSource);
             }
         }
@@ -158,6 +163,7 @@
 
         private void RemoveOldestFoodSourceFromMemory()
         {
+
             EatenFoodSource oldestFoodSource = this.foodSourcesByOrder.Dequeue();
             string oldestFoodSourceKey = oldestFoodSource.GetFoodSourceKey();
             FoodSourceInfoForPawn foodSourceInfoForPawn = this.foodSourcesInfoForPawn[oldestFoodSourceKey];
@@ -178,10 +184,8 @@
 
         public void ExposeData()
         {
-            Scribe_Values.Look<int>(ref this.totalVariety, "totalVariety");
             Scribe_References.Look<Pawn>(ref this.pawn, "pawn");
             Scribe_References.Look<EatenFoodSource>(ref this.mostRecentEatenFoodSource, "mostRecentEatenFoodSource", saveDestroyedThings: true);
-            Scribe_Collections.Look<string, FoodSourceInfoForPawn>(ref this.foodSourcesInfoForPawn, "foodSourcesInfoForPawn", keyLookMode: LookMode.Value, valueLookMode: LookMode.Deep);
             Scribe_Values.Look<int>(ref this.maxEatenFoodSourceInMemory, "maxEatenFoodSourceInMemory");
 
             if (Scribe.mode == LoadSaveMode.Saving)
@@ -196,8 +200,15 @@
                 Scribe_Collections.Look(ref tempList, "foodSourcesByOrder", LookMode.Reference);
                 if (tempList != null)
                 {
-                    foodSourcesByOrder = new Queue<EatenFoodSource>(tempList);
+                    this.foodSourcesByOrder = new Queue<EatenFoodSource>(tempList);
                 }
+            }
+
+            if (Scribe.mode == LoadSaveMode.PostLoadInit)
+            {
+                this.foodSourcesInfoForPawn = new Dictionary<string, FoodSourceInfoForPawn>(this.maxEatenFoodSourceInMemory + 1);
+
+                this.ReCount();
             }
         }
 
@@ -206,37 +217,37 @@
             private EatenFoodSource foodSource;
             public EatenFoodSource FoodSource
             {
-                get => foodSource;
-                set => foodSource = value;
+                get => this.foodSource;
+                set => this.foodSource = value;
             }
 
             private int countInMemory;
             public int CountInMemory
             {
-                get => countInMemory;
-                set => countInMemory = value;
+                get => this.countInMemory;
+                set => this.countInMemory = value;
             }
 
             private bool hasVarietyValueForPawn;
             public bool HasVarietyValueForPawn
             {
-                get => hasVarietyValueForPawn;
-                set => hasVarietyValueForPawn = value;
+                get => this.hasVarietyValueForPawn;
+                set => this.hasVarietyValueForPawn = value;
             }
 
             private NoVarietyReason noVarietyReason;
             public NoVarietyReason NoVarietyReason
             {
-                get => noVarietyReason;
-                set => noVarietyReason = value;
+                get => this.noVarietyReason;
+                set => this.noVarietyReason = value;
             }
 
             public void ExposeData()
             {
-                Scribe_References.Look(ref foodSource, "foodSource", saveDestroyedThings: true);
-                Scribe_Values.Look(ref countInMemory, "countInMemory");
-                Scribe_Values.Look(ref hasVarietyValueForPawn, "hasVarietyValueForPawn");
-                Scribe_Values.Look(ref noVarietyReason, "noVarietyReason", NoVarietyReason.NA);
+                Scribe_References.Look(ref this.foodSource, "foodSource", saveDestroyedThings: true);
+                Scribe_Values.Look(ref this.countInMemory, "countInMemory");
+                Scribe_Values.Look(ref this.hasVarietyValueForPawn, "hasVarietyValueForPawn");
+                Scribe_Values.Look(ref this.noVarietyReason, "noVarietyReason", NoVarietyReason.NA);
             }
         }
     }

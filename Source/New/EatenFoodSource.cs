@@ -9,7 +9,7 @@
 
     public class EatenFoodSource : IExposable, ILoadReferenceable
     {
-        public static EatenFoodSource ForgottenEatenFoodSource = new EatenFoodSource() { IsForgotton = true };
+        public static EatenFoodSource ForgottenEatenFoodSource = new EatenFoodSource() { IsForgotton = true, uniqueId = "EatenFoodSource_ForgottenFood" };
 
         public EatenFoodSource()
         {
