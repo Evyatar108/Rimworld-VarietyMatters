@@ -1,5 +1,6 @@
 ﻿namespace VarietyMatters.New
 {
+    using System;
     using System.Collections.Generic;
     using Verse;
 
@@ -9,6 +10,11 @@
 
         public static void Init(IEnumerable<EatenFoodSource> eatenFoodSources)
         {
+            if (eatenFoodSources == null)
+            {
+                throw new ArgumentNullException(nameof(eatenFoodSources));
+            }
+
             foreach (EatenFoodSource eatenFoodSource in eatenFoodSources)
             {
                 if (eatenFoodSource.Thing != null)
@@ -20,6 +26,11 @@
 
         public static EatenFoodSource CreateOrGetFoodSourceFromThing(Thing foodSourceThing)
         {
+            if (foodSourceThing == null)
+            {
+                throw new ArgumentNullException(nameof(foodSourceThing));
+            }
+
             if (!foodSources.TryGetValue(foodSourceThing, out EatenFoodSource foodSource))
             {
                 foodSource = new EatenFoodSource(foodSourceThing);
@@ -27,6 +38,11 @@
             }
 
             return foodSource;
+        }
+
+        public static EatenFoodSource GetForgottenFoodSource()
+        {
+            return EatenFoodSource.ForgottenEatenFoodSource;
         }
     }
 }

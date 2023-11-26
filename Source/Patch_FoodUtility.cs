@@ -37,7 +37,7 @@
 
             switch (ModSettings_VarietyMatters.foodTrackingType)
             {
-                case FoodTrackingType.ByMealAndIngredients:
+                case FoodTrackingType.ByMealNamesAndIngredients:
                     if (mostRecentFoodSource.ThingLabel != foodSource.def.label)
                     {
                         __result += 60f;
@@ -57,7 +57,7 @@
                         }
                     }
                     break;
-                case FoodTrackingType.ByIngredients:
+                case FoodTrackingType.ByMealIngredientsCombination:
                     if (mostRecentFoodSource.ThingLabel != foodSource.def.label)
                     {
                         __result += 60f;
@@ -77,7 +77,7 @@
                         }
                     }
                     break;
-                case FoodTrackingType.ByMeal:
+                case FoodTrackingType.ByMealNames:
                     if (mostRecentFoodSource.ThingLabel != foodSource.def.label)
                     {
                         __result += 60f;

@@ -1,12 +1,29 @@
 ﻿namespace VarietyMatters.New
 {
     using RimWorld;
+    using System;
     using Verse;
 
     public static class VarietyProvider
     {
         public static bool DoesFoodHasVarietyValueForPawn(Pawn pawn, EatenFoodSource foodSource, out NoVarietyReason noVarietyReason)
         {
+            if (pawn == null)
+            {
+                throw new ArgumentNullException(nameof(pawn));
+            }
+
+            if (foodSource == null)
+            {
+                throw new ArgumentNullException(nameof(foodSource));
+            }
+
+            if (foodSource.IsForgotton)
+            {
+                noVarietyReason = NoVarietyReason.NA;
+                return true;
+            }
+
             if (foodSource.IsRotten)
             {
                 noVarietyReason = NoVarietyReason.Rotten;
@@ -41,7 +58,7 @@
             }
 
             if (foodSource.IsHumanlikeCorpseOrHumanlikeMeatOrIngredient
-                && !pawn.story.traits.HasTrait(TraitDefOf.Cannibal)
+                && pawn.story?.traits?.HasTrait(TraitDefOf.Cannibal) != true
                 && (pawn.Ideo == null
                     || (!pawn.Ideo.HasPrecept(PreceptDefOf.Cannibalism_Preferred)
                         && !pawn.Ideo.HasPrecept(PreceptDefOf.Cannibalism_RequiredRavenous)
@@ -59,29 +76,30 @@
                 case FoodPreferability.DesperateOnly:
                 case FoodPreferability.DesperateOnlyForHumanlikes:
                 case FoodPreferability.RawBad:
-                    return IsBadFoodAcceptableByPawn(foodSource, out noVarietyReason);
+                    return IsBadFoodAcceptableByPawn(pawn, foodSource, out noVarietyReason);
                 case FoodPreferability.MealTerrible:
                 case FoodPreferability.MealAwful:
+                    noVarietyReason = NoVarietyReason.DisgustingMeal;
+                    return false;
                 case FoodPreferability.RawTasty:
                 case FoodPreferability.MealSimple:
                 case FoodPreferability.MealLavish:
                 case FoodPreferability.MealFine:
                     return IsMealAcceptableByPawn(foodSource, pawn, out noVarietyReason);
                 default:
-                    throw new System.Exception($"Unsupported food preferability: {foodSource.FoodPreferability}");
+                    throw new Exception($"Unsupported food preferability: {foodSource.FoodPreferability}");
             }
         }
 
-        private static bool IsBadFoodAcceptableByPawn(EatenFoodSource foodSource, out NoVarietyReason noVarietyReason)
+        private static bool IsBadFoodAcceptableByPawn(Pawn pawn, EatenFoodSource foodSource, out NoVarietyReason noVarietyReason)
         {
+            if (IsChemicalFood(foodSource.ThingDef))
+            {
+                return IsChemicalFoodAcceptableByPawn(pawn, foodSource, out noVarietyReason);
+            }
+
             if (foodSource.MeatSourceCategory == MeatSourceCategory.Insect)
             {
-                if (foodSource.ThingDef.ingestible.joyKind != null)
-                {
-                    noVarietyReason = NoVarietyReason.NA;
-                    return true;
-                }
-
                 noVarietyReason = NoVarietyReason.InsectMeat;
                 return false;
             }
@@ -90,10 +108,32 @@
             return false;
         }
 
+        private static bool IsChemicalFood(ThingDef ingredientOrMealDef)
+        {
+            return ingredientOrMealDef?.ingestible?.joyKind?.defName == "Chemical";
+        }
+
+        private static bool IsChemicalFoodAcceptableByPawn(Pawn pawn, EatenFoodSource foodSource, out NoVarietyReason noVarietyReason)
+        {
+            if (pawn.IsTeetotaler())
+            {
+                noVarietyReason = NoVarietyReason.HasChemicals;
+                return false;
+            }
+
+            noVarietyReason = NoVarietyReason.NA;
+            return true;
+        }
+
         private static bool IsMealAcceptableByPawn(EatenFoodSource foodSource, Pawn pawn, out NoVarietyReason noVarietyReason)
         {
             foreach (ThingDef ingredientDef in foodSource.IngredientsDefs)
             {
+                if (IsChemicalFood(ingredientDef))
+                {
+                    return IsChemicalFoodAcceptableByPawn(pawn, foodSource, out noVarietyReason);
+                }
+
                 if (ingredientDef.IsFungus && !pawn.Ideo.HasPrecept(DefOf_VarietyMatters.FungusEating_Preferred))
                 {
                     noVarietyReason = NoVarietyReason.Fungus;

@@ -21,7 +21,7 @@
 		[HarmonyPrefix]
 		private static void GetChef(Pawn pawn)
 		{
-			if (ModSettings_VarietyMatters.foodTrackingType != New.FoodTrackingType.ByMeal && ModSettings_VarietyMatters.preferVariety)
+			if (ModSettings_VarietyMatters.foodTrackingType != New.FoodTrackingType.ByMealNames && ModSettings_VarietyMatters.preferVariety)
 			{
 				VarietyCooking.Chef = pawn;
 			}
@@ -33,7 +33,7 @@
 		private static bool BestVariety_AllowMix(ref bool __result, List<Thing> availableThings, Bill bill, List<ThingCount> chosen, IntVec3 rootCell)
 		{
 			bool result;
-			if (ModSettings_VarietyMatters.foodTrackingType == New.FoodTrackingType.ByMeal || !ModSettings_VarietyMatters.preferVariety)
+			if (ModSettings_VarietyMatters.foodTrackingType == New.FoodTrackingType.ByMealNames || !ModSettings_VarietyMatters.preferVariety)
 			{
 				result = true;
 			}
@@ -102,7 +102,7 @@
 		private static void BestVariety_NoMix(List<Thing> availableThings, Bill bill, IntVec3 rootCell, ref bool alreadySorted)
 		{
 			bool flag;
-			if (ModSettings_VarietyMatters.foodTrackingType != New.FoodTrackingType.ByMeal && ModSettings_VarietyMatters.preferVariety && bill.recipe.workSkill == SkillDefOf.Cooking)
+			if (ModSettings_VarietyMatters.foodTrackingType != New.FoodTrackingType.ByMealNames && ModSettings_VarietyMatters.preferVariety && bill.recipe.workSkill == SkillDefOf.Cooking)
 			{
 				ThingDef producedThingDef = bill.recipe.ProducedThingDef;
 				if (((producedThingDef != null) ? producedThingDef.ingestible : null) != null)
@@ -127,7 +127,7 @@
 		private static void ChosenVariety_NoMix(bool __result, Bill bill, List<ThingCount> chosen, bool alreadySorted)
 		{
 			bool flag;
-			if (__result && alreadySorted && ModSettings_VarietyMatters.foodTrackingType != New.FoodTrackingType.ByMeal && ModSettings_VarietyMatters.preferVariety && bill.recipe.workSkill == SkillDefOf.Cooking)
+			if (__result && alreadySorted && ModSettings_VarietyMatters.foodTrackingType != New.FoodTrackingType.ByMealNames && ModSettings_VarietyMatters.preferVariety && bill.recipe.workSkill == SkillDefOf.Cooking)
 			{
 				ThingDef producedThingDef = bill.recipe.ProducedThingDef;
 				if (((producedThingDef != null) ? producedThingDef.ingestible : null) != null)

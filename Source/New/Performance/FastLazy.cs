@@ -47,6 +47,11 @@
             Scribe_Values.Look(ref this.isValueCreated, "isValueCreated");
         }
 
+        public override string ToString()
+        {
+            return this.Value.ToString();
+        }
+
         public static implicit operator T(FastLazy<T> lazy)
         {
             return lazy.Value;

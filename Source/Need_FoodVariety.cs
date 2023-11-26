@@ -23,51 +23,53 @@
                     return MenuVarietyLevel.NA;
                 }
 
-                if (this.CurLevel <= 0.1538f) // 15.38% or less
+                var levelByPercentage = this.CurLevel * 2;
+
+                if (levelByPercentage <= 0.1538f) // 15.38% or less
                 {
                     return MenuVarietyLevel.Barren;
                 }
-                if (this.CurLevel <= 0.3077f) // Up to 30.77%
+                if (levelByPercentage <= 0.3077f) // Up to 30.77%
                 {
                     return MenuVarietyLevel.Empty;
                 }
-                if (this.CurLevel <= 0.4615f) // Up to 46.15%
+                if (levelByPercentage <= 0.4615f) // Up to 46.15%
                 {
                     return MenuVarietyLevel.Poor;
                 }
-                if (this.CurLevel <= 0.6154f) // Up to 61.54%
+                if (levelByPercentage <= 0.6154f) // Up to 61.54%
                 {
                     return MenuVarietyLevel.Scarce;
                 }
-                if (this.CurLevel <= 0.7692f) // Up to 76.92%
+                if (levelByPercentage <= 0.7692f) // Up to 76.92%
                 {
                     return MenuVarietyLevel.Limited;
                 }
-                if (this.CurLevel <= 0.9231f) // Up to 92.31%
+                if (levelByPercentage <= 0.9231f) // Up to 92.31%
                 {
                     return MenuVarietyLevel.BelowAverage;
                 }
-                if (this.CurLevel <= 1.0769f) // Up to 107.69%
+                if (levelByPercentage <= 1.0769f) // Up to 107.69%
                 {
                     return MenuVarietyLevel.Average;
                 }
-                if (this.CurLevel <= 1.2308f) // Up to 123.08%
+                if (levelByPercentage <= 1.2308f) // Up to 123.08%
                 {
                     return MenuVarietyLevel.AboveAverage;
                 }
-                if (this.CurLevel <= 1.3846f) // Up to 138.46%
+                if (levelByPercentage <= 1.3846f) // Up to 138.46%
                 {
                     return MenuVarietyLevel.Good;
                 }
-                if (this.CurLevel <= 1.5385f) // Up to 153.85%
+                if (levelByPercentage <= 1.5385f) // Up to 153.85%
                 {
                     return MenuVarietyLevel.Great;
                 }
-                if (this.CurLevel <= 1.6923f) // Up to 169.23%
+                if (levelByPercentage <= 1.6923f) // Up to 169.23%
                 {
                     return MenuVarietyLevel.Excellent;
                 }
-                if (this.CurLevel <= 1.8462f) // Up to 184.62%
+                if (levelByPercentage <= 1.8462f) // Up to 184.62%
                 {
                     return MenuVarietyLevel.Exceptional;
                 }
@@ -190,20 +192,22 @@
 
         private string GetEatenFoodSourcesDescription(DietTracker dietTracker)
         {
-            IEnumerable<FoodSourceInfoForPawn> foodSourcesInfoForPawn = dietTracker.GetEatenFoodSourcesInfoForPawnInOrderOfIngestion().Reverse();
+            IEnumerable<(EatenFoodSource, FoodSourceInfoForPawn)> foodSourcesInfoForPawn = dietTracker.GetEatenFoodSourcesInfoForPawnInOrderOfIngestion().Reverse();
             Dictionary<FoodSourceInfoForPawn, int> appearancesOfFoodSources = new Dictionary<FoodSourceInfoForPawn, int>();
             StringBuilder stringBuilder = new StringBuilder(", the most recent ones were:\n");
 
             int i = 0;
             int maxViewableRecentMeals = 7;
-            foreach (FoodSourceInfoForPawn foodSourceInfoForPawn in foodSourcesInfoForPawn)
+            foreach ((EatenFoodSource eatenFoodSource, FoodSourceInfoForPawn foodSourceInfoForPawn) in foodSourcesInfoForPawn)
             {
                 if (i >= maxViewableRecentMeals)
                 {
                     break;
                 }
 
-                stringBuilder.Append("\n");
+                stringBuilder.AppendLine();
+
+                bool isForgotten = eatenFoodSource.IsForgotton;
 
                 if (!appearancesOfFoodSources.TryGetValue(foodSourceInfoForPawn, out int count))
                 {
@@ -216,21 +220,32 @@
                 int timesAlreadyIngestedSoFar = foodSourceInfoForPawn.CountInMemory - count + 1;
                 string apperanceString = $"Appearance {timesAlreadyIngestedSoFar} out of {foodSourceInfoForPawn.CountInMemory}";
 
-                string foodInfo = GenText.CapitalizeFirst(foodSourceInfoForPawn.FoodSource.ToString(ModSettings_VarietyMatters.foodTrackingType));
+                string foodKey = eatenFoodSource.GetFoodSourceKey();
 
-                int seed = (foodInfo, timesAlreadyIngestedSoFar).GetHashCode();
+                string foodInfo = GenText.CapitalizeFirst(eatenFoodSource.ToString());
+
+                int seed = (foodKey, timesAlreadyIngestedSoFar).GetHashCode();
 
                 string varietyInfo = foodSourceInfoForPawn.HasVarietyValueForPawn
-                    ? GetVarietyInfoBasedOnIngestionCount(timesAlreadyIngestedSoFar, seed)
+                    ? isForgotten ? GetVarietyInfoForForgotten(seed) : GetVarietyInfoBasedOnIngestionCount(timesAlreadyIngestedSoFar, seed)
                     : GetVarietyInfoBasedOnNoVarietyReason(foodSourceInfoForPawn, seed);
 
-                stringBuilder
-                    .Append(" ◊  ").AppendLine(foodInfo)
-                    .Append("✧ ").AppendLine(varietyInfo);
+                stringBuilder.Append(" ◊  ").Append(foodInfo);
 
-                if (foodSourceInfoForPawn.CountInMemory > 1)
+                stringBuilder.AppendLine();
+
+                stringBuilder.Append("✧ ").AppendLine(varietyInfo);
+
+                if (!isForgotten && foodSourceInfoForPawn.CountInMemory > 1)
                 {
-                    stringBuilder.Append("☆ ").AppendLine(apperanceString);
+                    stringBuilder.Append("☆ ").Append("Appearance ").Append(timesAlreadyIngestedSoFar).Append(" out of ").Append(foodSourceInfoForPawn.CountInMemory);
+
+                    if (eatenFoodSource.HasMealType)
+                    {
+                        stringBuilder.Append(" by type");
+                    }
+
+                    stringBuilder.AppendLine();
                 }
 
                 i++;
@@ -239,6 +254,10 @@
             return stringBuilder.ToString();
         }
 
+        private string GetVarietyInfoForForgotten(int seed)
+        {
+            return RandChooseForgottenFoodStrings(seed);
+        }
 
         private string GetVarietyInfoBasedOnIngestionCount(int timesAlreadyIngestedSoFar, int seed)
         {
@@ -250,6 +269,33 @@
             {
                 return this.RandChooseHasVarietyStrings(seed);
             }
+        }
+
+        private string RandChooseForgottenFoodStrings(int seed)
+        {
+            return this.RandChoose(
+                seed,
+                "(Has Variety) There's variety in my meals, but I can't recall the specifics.",
+                "(Has Variety) I remember enjoying a variety, though the details escape me.",
+                "(Has Variety) There was something different about this meal, but what was it?",
+                "(Has Variety) I know there's been variety lately, but the details are fuzzy.",
+                "(Has Variety) Variety's there, but the details are as clear as a foggy morning.",
+                "(Has Variety) I recall different foods, but the specifics are just out of reach.",
+                "(Has Variety) There's a sense of variety, but the exact meals are a blur.",
+                "(Has Variety) I remember being excited by different dishes, yet can't recall them.",
+                "(Has Variety) The details are lost, but I'm sure there was a good mix of foods.",
+                "(Has Variety) Variety's been good, though I can't quite remember the meals.",
+                "(Has Variety) Different meals for sure, but it's like trying to remember a dream.",
+                "(Has Variety) A variety of tastes, yet the memories are elusive.",
+                "(Has Variety) I know I enjoyed the variety, but the details are hazy.",
+                "(Has Variety) There was diversity on my plate, but the details slipped away.",
+                "(Has Variety) I remember enjoying the variety, but the meals themselves are forgotten.",
+                "(Has Variety) Definitely a variety, but it's like a forgotten melody.",
+                "(Has Variety) Each meal was different, I think, but I can't pin down the details.",
+                "(Has Variety) Variety was there, but the specifics have faded away.",
+                "(Has Variety) The feeling of variety is there, but the meals are a distant memory.",
+                "(Has Variety) I recall the joy of varied meals, but not what they were."
+            );
         }
 
         private string RandChooseNoVarietyStrings(int seed)
@@ -265,7 +311,18 @@
                 "(No Variety) The same dish over and over? My taste buds are bored.",
                 "(No Variety) Variety is the spice of life, but this is just bland repetition.",
                 "(No Variety) A meal repeated is a meal unappreciated. Yearning for a change.",
-                "(No Variety) Are we stuck in a culinary Groundhog Day? Time for something new.");
+                "(No Variety) Are we stuck in a culinary Groundhog Day? Time for something new.",
+                "(No Variety) Again the same? It's like my taste buds are on a treadmill.",
+                "(No Variety) This lack of diversity in food is really starting to get to me.",
+                "(No Variety) Meal deja vu? A little variety wouldn't hurt!",
+                "(No Variety) The definition of insanity is eating the same meal over and over.",
+                "(No Variety) I feel like a robot with these repetitive meals. Craving some spontaneity.",
+                "(No Variety) My culinary journey seems to be walking in circles.",
+                "(No Variety) It's high time we added some new flavors to this repetitive menu.",
+                "(No Variety) Variety is the missing ingredient in these repetitive meals.",
+                "(No Variety) Another day, the same meal. It's becoming predictably boring.",
+                "(No Variety) Is our chef stuck in a loop? Time to switch things up!"
+                );
         }
 
         private string RandChooseHasVarietyStrings(int seed)
@@ -281,7 +338,17 @@
                 "(Has Variety) This meal breaks the routine, in the best way possible.",
                 "(Has Variety) A welcome change! It's great to have different options.",
                 "(Has Variety) This new taste is a delightful surprise. I'm glad for the variety.",
-                "(Has Variety) It's a joy to have something other than the usual. Variety matters!");
+                "(Has Variety) It's a joy to have something other than the usual. Variety matters!",
+                "(Has Variety) What a refreshing lineup of dishes! This really livens up the meal.",
+                "(Has Variety) A culinary adventure on my plate! This is exciting.",
+                "(Has Variety) Such an array of choices! This is what dining should be like.",
+                "(Has Variety) Every bite is a new experience. Loving this variety!",
+                "(Has Variety) This is a feast for the senses! So glad for the change.",
+                "(Has Variety) A smorgasbord of flavors! This is how to keep meals interesting.",
+                "(Has Variety) So many options, it's hard to choose. But that's a good problem!",
+                "(Has Variety) Each meal is a delightful surprise now. This variety is wonderful.",
+                "(Has Variety) The richness of choices here is amazing. Every meal is a discovery.",
+                "(Has Variety) Gone are the days of boring meals. This variety is a game changer!");
         }
 
         private string GetVarietyInfoBasedOnNoVarietyReason(FoodSourceInfoForPawn foodSourceInfoForPawn, int seed)
@@ -298,6 +365,8 @@
                     return RandChooseRawOrRawlikeFoodStrings(seed);
                 case NoVarietyReason.Fungus:
                     return RandChooseFungusStrings(seed);
+                case NoVarietyReason.HasChemicals:
+                    return RandChooseChemicalStrings(seed);
                 case NoVarietyReason.UnacceptableByVegetarians:
                     return RandChooseUnacceptableByVegetariansStrings(seed);
                 case NoVarietyReason.UnacceptableByCarnivores:
@@ -352,6 +421,19 @@
                 "(No Variety) Just fungus? It's monotonous and lacks the essence of a varied meal.",
                 "(No Variety) Fungus all the time? That's not exactly a feast of variety.",
                 "(No Variety) A diet heavy in fungus isn't what I'd call varied. It's pretty one-note.");
+        }
+
+        private string RandChooseChemicalStrings(int seed)
+        {
+            return this.RandChoose(seed,
+                "(No Variety) Drugs in my food? That's a health hazard I'm not willing to take.",
+                "(No Variety) I try to keep it natural. These drugs just don't sit right with me.",
+                "(No Variety) Eating this feels like a science experiment gone wrong. No, thank you.",
+                "(No Variety) My body isn't a lab for drug testing. I'll pass on this.",
+                "(No Variety) Drugs in my meal? That's a line I won't cross for the sake of variety.",
+                "(No Variety) I prefer my food free of additives. Drugs are a big no-no for me.",
+                "(No Variety) It's hard to enjoy a meal when you know it's laced with drugs."
+            );
         }
 
         private string RandChooseUnacceptableByVegetariansStrings(int seed)

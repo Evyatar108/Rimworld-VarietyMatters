@@ -1,10 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ModMetaData>
-  <name>Variety Matters Improved Redux</name>
+  <name>Variety Matters Redux</name>
   <author>Evyatar108</author>
   <packageId>Evyatar108.VarietyMattersImprovedRedux</packageId>
-  <description>This is a fork of: https://steamcommunity.com/sharedfiles/filedetails/?id=2918473100 \br I fixed a bug which blocked mechs from cooking and also added additional options to control variety for slaves and prisoners.\br Pawns now have a need to eat a variety of ingredients. Pawns have an expected number of ingredient varieties based on their expectation level. Consistently exceeding or failing to meet their expectation will result in positive or negative moods.
-	</description>
+  <description>Pawns now have a new need: variety in their diet. This mod introduces a unique gameplay dynamic where pawns require different types of food to stay mentally healthy and happy. Instead of just eating for survival, pawns will now seek out a diverse range of meals to satisfy their craving for variety. This new need adds an engaging layer of complexity to the colony's food management.
+  </description>
   <supportedVersions>
     <li>1.4</li>
   </supportedVersions>

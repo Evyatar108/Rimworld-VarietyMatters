@@ -1,7 +1,7 @@
 ﻿namespace VarietyMatters
 {
+    using System;
     using System.Collections.Generic;
-    using System.Diagnostics;
     using System.Linq;
     using VarietyMatters.New;
     using Verse;
@@ -18,6 +18,11 @@
 		// Token: 0x06000041 RID: 65 RVA: 0x000048BC File Offset: 0x00002ABC
 		public static DietTracker GetVarietyRecord(Pawn trackedPawn)
 		{
+			if (trackedPawn == null)
+			{
+				throw new ArgumentNullException(nameof(trackedPawn));
+			}
+
             DietTracker tracker;
 			if (!VarietyRecord.varietyRecord.TryGetValue(trackedPawn, out tracker))
 			{
@@ -29,6 +34,11 @@
 
 		private static DietTracker AddVarietyRecord(Pawn pawn)
 		{
+            if (pawn == null)
+            {
+                throw new ArgumentNullException(nameof(pawn));
+            }
+
             var tracker = new DietTracker(pawn);
             VarietyRecord.varietyRecord.Add(pawn, tracker);
             VarietyRecord.trackedPawns.Add(pawn);
@@ -40,6 +50,16 @@
 		// Token: 0x06000042 RID: 66 RVA: 0x000048E8 File Offset: 0x00002AE8
 		public static void UpdateVarietyRecord(Pawn trackedPawn, Thing foodSourceThing)
 		{
+            if (trackedPawn == null)
+            {
+                throw new ArgumentNullException(nameof(trackedPawn));
+            }
+
+            if (foodSourceThing == null)
+            {
+                throw new ArgumentNullException(nameof(foodSourceThing));
+            }
+
             if (!VarietyRecord.varietyRecord.TryGetValue(trackedPawn, out var tracker))
 			{
 				tracker = AddVarietyRecord(trackedPawn);

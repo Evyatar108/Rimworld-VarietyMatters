@@ -11,5 +11,7 @@
         UnacceptableByVegetarians,
         UnacceptableByCarnivores,
         IsOrHasVenetratedAnimalMeat,
+        HasChemicals,
+        DisgustingMeal, 
     }
 }

@@ -33,12 +33,13 @@
 		// Token: 0x0600000F RID: 15 RVA: 0x00002520 File Offset: 0x00000720
 		public override void ExposeData()
 		{
-			Scribe_Values.Look<FoodTrackingType>(ref ModSettings_VarietyMatters.foodTrackingType, "foodTrackingType", FoodTrackingType.ByMealAndIngredients, false);
+			Scribe_Values.Look<FoodTrackingType>(ref ModSettings_VarietyMatters.foodTrackingType, "foodTrackingType", FoodTrackingType.ByMealNamesAndIngredients, false);
+			Scribe_Values.Look<bool>(ref ModSettings_VarietyMatters.clusterSimilarMealsTogether, "clusterSimilarMealsTogether", true, false);
 			Scribe_Values.Look<bool>(ref ModSettings_VarietyMatters.halveVarietyMoodImpact, "halveVarietyMoodImpact", false, false);
             Scribe_Values.Look<bool>(ref ModSettings_VarietyMatters.stackByIngredients, "stackByIngredients", true, false);
 			Scribe_Values.Look<bool>(ref ModSettings_VarietyMatters.moreVarietyMemory, "moreVarietyMemory", false, false);
-			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.extremelyLowVariety, "extremelyLowVariety", 2, false);
-			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.veryLowVariety, "veryLowVariety", 4, false);
+			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.extremelyLowVariety, "extremelyLowVariety", 4, false);
+			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.veryLowVariety, "veryLowVariety", 5, false);
 			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.lowVariety, "lowVariety", 6, false);
 			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.moderateVariety, "moderateVariety", 8, false);
 			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.highVariety, "highVariety", 10, false);
@@ -49,7 +50,6 @@
             Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.slaveExpectedVarietyPercentage, "slaveExpectedVarietyPercentage", 65, false);
             Scribe_Values.Look<bool>(ref ModSettings_VarietyMatters.prisonersHaveVarietyNeed, "prisonersHaveVarietyNeed", true, false);
             Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.prisonerExpectedVarietyPercentage, "prisonerExpectedVarietyPercentage", 50, false);
-            Scribe_Values.Look<bool>(ref ModSettings_VarietyMatters.mealUpdateDisplayed, "mealupdateDisplayed", false, false);
 			Scribe_Values.Look<bool>(ref ModSettings_VarietyMatters.preferVariety, "preferVariety", true, false);
 			Scribe_Values.Look<bool>(ref ModSettings_VarietyMatters.preferSpoiling, "preferSpoiling", true, false);
 			Scribe_Collections.Look<string, bool>(ref ModSettings_VarietyMatters.raceVariety, "raceVariety", (LookMode)1, (LookMode)1, ref ModSettings_VarietyMatters.raceKeys, ref ModSettings_VarietyMatters.raceValues, true);
@@ -57,8 +57,9 @@
             base.ExposeData();
 		}
 
-		// Token: 0x0400000D RID: 13
-		public static FoodTrackingType foodTrackingType = FoodTrackingType.ByMealAndIngredients;
+		public static FoodTrackingType foodTrackingType = FoodTrackingType.ByMealNamesAndIngredients;
+
+		public static bool clusterSimilarMealsTogether = true;
 
 		public static bool halveVarietyMoodImpact = false;
 
@@ -67,16 +68,16 @@
 
 		public static bool moreVarietyMemory = false;
 
-		public static float memoryMultiplier => moreVarietyMemory ? 3f : 2.25f;
+		public static float memoryMultiplier => moreVarietyMemory ? 2.75f : 2.25f;
 
 		// Token: 0x04000011 RID: 17
 		public static int numIngredients = 3;
 
 		// Token: 0x04000015 RID: 21
-		public static int extremelyLowVariety = 2;
+		public static int extremelyLowVariety = 4;
 
 		// Token: 0x04000016 RID: 22
-		public static int veryLowVariety = 4;
+		public static int veryLowVariety = 5;
 
 		// Token: 0x04000017 RID: 23
 		public static int lowVariety = 6;
@@ -104,9 +105,6 @@
 
 		// Token: 0x0400001D RID: 29
 		public static bool preferSpoiling = true;
-
-		// Token: 0x0400001E RID: 30
-		public static bool mealUpdateDisplayed = false;
 
 		// Token: 0x0400001F RID: 31
 		public static Dictionary<string, bool> raceVariety = new Dictionary<string, bool>();

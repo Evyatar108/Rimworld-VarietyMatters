@@ -26,6 +26,8 @@
             this.foodSourcesInfoForPawn = new Dictionary<string, FoodSourceInfoForPawn>(this.maxEatenFoodSourceInMemory + 1);
             this.foodSourcesByOrder = new Queue<EatenFoodSource>(this.maxEatenFoodSourceInMemory + 1);
             this.totalVariety = 0;
+
+            AddForgottenFoods();
         }
 
         public Pawn Pawn => this.pawn;
@@ -37,13 +39,30 @@
         public EatenFoodSource mostRecentEatenFoodSource;
         public EatenFoodSource MostRecentEatenFoodSource => mostRecentEatenFoodSource;
 
-        public IEnumerable<FoodSourceInfoForPawn> GetEatenFoodSourcesInfoForPawnInOrderOfIngestion()
+        public IEnumerable<(EatenFoodSource, FoodSourceInfoForPawn)> GetEatenFoodSourcesInfoForPawnInOrderOfIngestion()
         {
-            return this.foodSourcesByOrder.Select(x => this.foodSourcesInfoForPawn[x.GetFoodSourceKey(ModSettings_VarietyMatters.foodTrackingType)]);
+            return this.foodSourcesByOrder.Select(x => (x, this.foodSourcesInfoForPawn[x.GetFoodSourceKey()]));
+        }
+
+        private void AddForgottenFoods()
+        {
+            int varietyExpectation = VarietyExpectation.GetVarietyExpectation(pawn);
+
+            for (int i = 0; i < varietyExpectation; i++)
+            {
+                var foodSource = FoodSourceFactory.GetForgottenFoodSource();
+
+                this.AddFoodSourceToMemory(foodSource);
+            }
         }
 
         private static int GetMaxEatenFoodSourceInMemory(Pawn pawn)
         {
+            if (pawn == null)
+            {
+                throw new ArgumentNullException(nameof(pawn));
+            }
+
             float memoryMultiplier = ModSettings_VarietyMatters.memoryMultiplier;
             int varietyExpectation = VarietyExpectation.GetVarietyExpectation(pawn);
             return (int)(varietyExpectation * memoryMultiplier);
@@ -55,7 +74,7 @@
 
             while (this.foodSourcesByOrder.Count > this.maxEatenFoodSourceInMemory)
             {
-                this.RemoveLastFoodSourceFromMemory();
+                this.RemoveOldestFoodSourceFromMemory();
             }
         }
 
@@ -65,8 +84,19 @@
 
             if (this.foodSourcesByOrder.Count > maxEatenFoodSourceInMemory)
             {
-                this.RemoveLastFoodSourceFromMemory();
+                this.RemoveOldestFoodSourceFromMemory();
             }
+
+            if (!foodSource.IsForgotton
+                && this.OldestFoodSourceIsForgotten())
+            {
+                this.RemoveOldestFoodSourceFromMemory();
+            }
+        }
+
+        private bool OldestFoodSourceIsForgotten()
+        {
+            return this.foodSourcesByOrder.Peek().IsForgotton;
         }
 
         public void ReCount()
@@ -81,11 +111,6 @@
             }
         }
 
-        public void ForgetOldestMeal()
-        {
-
-        }
-
         private void AddFoodSourceToMemory(EatenFoodSource foodSource)
         {
             this.foodSourcesByOrder.Enqueue(foodSource);
@@ -96,11 +121,16 @@
 
         private void AddFoodSourceToCount(EatenFoodSource foodSource)
         {
-            string foodSourceKey = foodSource.GetFoodSourceKey(ModSettings_VarietyMatters.foodTrackingType);
+            string foodSourceKey = foodSource.GetFoodSourceKey();
 
             if (this.foodSourcesInfoForPawn.TryGetValue(foodSourceKey, out FoodSourceInfoForPawn foodSourceInfoForPawn))
             {
                 foodSourceInfoForPawn.CountInMemory++;
+
+                if (foodSource.IsForgotton)
+                {
+                    this.totalVariety++;
+                }
             }
             else
             {
@@ -126,10 +156,10 @@
             }
         }
 
-        private void RemoveLastFoodSourceFromMemory()
+        private void RemoveOldestFoodSourceFromMemory()
         {
             EatenFoodSource oldestFoodSource = this.foodSourcesByOrder.Dequeue();
-            string oldestFoodSourceKey = oldestFoodSource.GetFoodSourceKey(ModSettings_VarietyMatters.foodTrackingType);
+            string oldestFoodSourceKey = oldestFoodSource.GetFoodSourceKey();
             FoodSourceInfoForPawn foodSourceInfoForPawn = this.foodSourcesInfoForPawn[oldestFoodSourceKey];
             foodSourceInfoForPawn.CountInMemory--;
             if (foodSourceInfoForPawn.CountInMemory == 0)
@@ -139,6 +169,10 @@
                 {
                     this.totalVariety--;
                 }
+            }
+            else if (foodSourceInfoForPawn.FoodSource.IsForgotton)
+            {
+                this.totalVariety--;
             }
         }
 

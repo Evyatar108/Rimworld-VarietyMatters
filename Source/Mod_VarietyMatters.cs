@@ -43,47 +43,65 @@
 			listing_Standard.Label("Variety Tracking Options:", -1f, null);
 
 			var previousFoodTrackingType = ModSettings_VarietyMatters.foodTrackingType;
+			var previousClusterSimilarMealsTogether = ModSettings_VarietyMatters.clusterSimilarMealsTogether;
 
-			bool flag = listing_Standard.RadioButton("     Track meals and ingredients: ", ModSettings_VarietyMatters.foodTrackingType == FoodTrackingType.ByMealAndIngredients, 0f, null, null);
-			if (flag)
+			bool trackByMealNamesAndTheirIngredients = listing_Standard.RadioButton("     Track meal names and their ingredients (Easy): ", ModSettings_VarietyMatters.foodTrackingType == FoodTrackingType.ByMealNamesAndIngredients, 0f, null, null);
+			if (trackByMealNamesAndTheirIngredients)
 			{
-				ModSettings_VarietyMatters.foodTrackingType = FoodTrackingType.ByMealAndIngredients;
+				ModSettings_VarietyMatters.foodTrackingType = FoodTrackingType.ByMealNamesAndIngredients;
 			}
 
-			bool flag2 = listing_Standard.RadioButton("     Track ingredients only: ", ModSettings_VarietyMatters.foodTrackingType == FoodTrackingType.ByIngredients, 0f, null, null);
-			if (flag2)
+			bool trackByMealIngredients = listing_Standard.RadioButton("     Track meal ingredients only (Normal): ", ModSettings_VarietyMatters.foodTrackingType == FoodTrackingType.ByMealIngredientsCombination, 0f, null, null);
+			if (trackByMealIngredients)
 			{
-				ModSettings_VarietyMatters.foodTrackingType = FoodTrackingType.ByIngredients;
+				ModSettings_VarietyMatters.foodTrackingType = FoodTrackingType.ByMealIngredientsCombination;
 			}
 
-			bool flag3 = listing_Standard.RadioButton("     Track meals only: ", ModSettings_VarietyMatters.foodTrackingType == FoodTrackingType.ByMeal, 0f, null, null);
-			if (flag3)
+            bool trackByMealNames = listing_Standard.RadioButton("     Track meals names only (Hard): ", ModSettings_VarietyMatters.foodTrackingType == FoodTrackingType.ByMealNames, 0f, null, null);
+			if (trackByMealNames)
 			{
-				ModSettings_VarietyMatters.foodTrackingType = FoodTrackingType.ByMeal;
+				ModSettings_VarietyMatters.foodTrackingType = FoodTrackingType.ByMealNames;
 			}
-
-			if (previousFoodTrackingType != ModSettings_VarietyMatters.foodTrackingType)
-			{
-                foreach (DietTracker dietTracker in VarietyRecord.pawnRecords)
-				{
-					dietTracker.ReCount();
-
-                    VarietyAdjuster.AdjustVarietyLevel(dietTracker);
-                }
-            }
 
 			listing_Standard.Label("Other Options:", -1f, null);
-			bool flag4 = ModSettings_VarietyMatters.foodTrackingType == FoodTrackingType.ByIngredients || ModSettings_VarietyMatters.foodTrackingType == FoodTrackingType.ByMealAndIngredients;
+			bool flag4 = ModSettings_VarietyMatters.foodTrackingType != FoodTrackingType.ByMealNames;
             if (flag4)
 			{
 				listing_Standard.CheckboxLabeled("     Cooks use different ingredients: ", ref ModSettings_VarietyMatters.preferVariety, null, 0f, 1f);
 				listing_Standard.CheckboxLabeled("     Cooks prefer spoiling ingredients: ", ref ModSettings_VarietyMatters.preferSpoiling, null, 0f, 1f);
 				listing_Standard.CheckboxLabeled("     Stack meals by ingredients: ", ref ModSettings_VarietyMatters.stackByIngredients, null, 0f, 1f);
+				if (ModSettings_VarietyMatters.foodTrackingType != FoodTrackingType.ByMealIngredientsCombination)
+				{
+					listing_Standard.CheckboxLabeled("     Count different quality meals as the same meal type: ", ref ModSettings_VarietyMatters.clusterSimilarMealsTogether, null, 0f, 1f);
+				}
+				else
+				{
+					ModSettings_VarietyMatters.clusterSimilarMealsTogether = false;
+                }
+
+				listing_Standard.Label("     ^For example, Fine and Lavish meals will counted as one type", -1f, null);
 
 				string label = "     Ingredients When Stacking (vanilla = 3):";
 				string text = ModSettings_VarietyMatters.numIngredients.ToString();
 				this.LabeledIntEntry(listing_Standard.GetRect(24f, 1f), label, ref ModSettings_VarietyMatters.numIngredients, ref text, 1, 1, 1, 10);
 			}
+
+            if (ModSettings_VarietyMatters.foodTrackingType != previousFoodTrackingType
+				|| ModSettings_VarietyMatters.clusterSimilarMealsTogether != previousClusterSimilarMealsTogether)
+            {
+                foreach (DietTracker dietTracker in VarietyRecord.pawnRecords)
+                {
+                    dietTracker.ReCount();
+
+                    VarietyAdjuster.AdjustVarietyLevel(dietTracker);
+                }
+            }
+
+            if (ModSettings_VarietyMatters.foodTrackingType != previousFoodTrackingType
+				&& ModSettings_VarietyMatters.foodTrackingType != FoodTrackingType.ByMealIngredientsCombination)
+			{
+                ModSettings_VarietyMatters.clusterSimilarMealsTogether = true;
+            }
 
             listing_Standard.GapLine(12f);
 			bool flag5 = listing_Standard.ButtonTextLabeled("Expectation Level Base Varieties:", "Reset", 0, null, null);
@@ -101,10 +119,10 @@
                 ModSettings_VarietyMatters.prisonersHaveVarietyNeed = false;
             }
             listing_Standard.Gap(8f);
-			string label2 = "     Extremely Low (default 2):";
+			string label2 = "     Extremely Low (default 4):";
 			string text2 = ModSettings_VarietyMatters.extremelyLowVariety.ToString();
 			this.LabeledIntEntry(listing_Standard.GetRect(24f, 1f), label2, ref ModSettings_VarietyMatters.extremelyLowVariety, ref text2, 1, 5, 1, 50);
-			string label3 = "     Very Low (default 4):";
+			string label3 = "     Very Low (default 5):";
 			string text3 = ModSettings_VarietyMatters.veryLowVariety.ToString();
 			this.LabeledIntEntry(listing_Standard.GetRect(24f, 1f), label3, ref ModSettings_VarietyMatters.veryLowVariety, ref text3, 1, 5, 1, 50);
 			string label4 = "     Low (default 6):";
@@ -131,7 +149,7 @@
 			{
 				string labelDivideSlaveVariety = "     Slave expected variety (default 65%):";
 				string textDivideSlaveVariety = ModSettings_VarietyMatters.slaveExpectedVarietyPercentage.ToString();
-				this.LabeledIntEntry(listing_Standard.GetRect(24f, 1f), labelDivideSlaveVariety, ref ModSettings_VarietyMatters.slaveExpectedVarietyPercentage, ref textDivideSlaveVariety, 1, 5, 1, 50);
+				this.LabeledIntEntry(listing_Standard.GetRect(24f, 1f), labelDivideSlaveVariety, ref ModSettings_VarietyMatters.slaveExpectedVarietyPercentage, ref textDivideSlaveVariety, 1, 5, 1, 100);
 			}
 
             string labelPrisonersHaveVarietyNeed = "     Prisoners have variety need (default true):";
@@ -141,12 +159,12 @@
             {
                 string labelDividePrisonerVariety = "     Prisoner expected variety (default 50%):";
                 string textDividePrisonerVariety = ModSettings_VarietyMatters.prisonerExpectedVarietyPercentage.ToString();
-                this.LabeledIntEntry(listing_Standard.GetRect(24f, 1f), labelDividePrisonerVariety, ref ModSettings_VarietyMatters.prisonerExpectedVarietyPercentage, ref textDividePrisonerVariety, 1, 5, 1, 50);
+                this.LabeledIntEntry(listing_Standard.GetRect(24f, 1f), labelDividePrisonerVariety, ref ModSettings_VarietyMatters.prisonerExpectedVarietyPercentage, ref textDividePrisonerVariety, 1, 5, 1, 100);
             }
 
             listing_Standard.GapLine(12f);
 			listing_Standard.Label("Optional Variety Expectation Adjustments Factors:", -1f, null);
-            listing_Standard.CheckboxLabeled("     Halve variety mood effect: ", ref ModSettings_VarietyMatters.halveVarietyMoodImpact, null, 0f, 1f);
+            listing_Standard.CheckboxLabeled("     Reduce variety mood effect: ", ref ModSettings_VarietyMatters.halveVarietyMoodImpact, null, 0f, 1f);
             listing_Standard.CheckboxLabeled("     Longer variety meals memory for pawns (Easier): ", ref ModSettings_VarietyMatters.moreVarietyMemory, null, 0f, 1f);
             listing_Standard.End();
             Widgets.EndScrollView();

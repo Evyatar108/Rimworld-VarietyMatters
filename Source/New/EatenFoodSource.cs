@@ -9,200 +9,268 @@
 
     public class EatenFoodSource : IExposable, ILoadReferenceable
     {
+        public static EatenFoodSource ForgottenEatenFoodSource = new EatenFoodSource() { IsForgotton = true };
+
         public EatenFoodSource()
         {
+            FastLazy<string> rottenString = new FastLazy<string>(() => this.IsRotten ? "Rotten " : string.Empty);
+
+            FastLazy<string> ingredientsString = new FastLazy<string>(() => this.IngredientsDefs.Count > 0 ? string.Join(", ", this.IngredientsDefs.Select(x => x.label)) : "Unknown");
+
+            this.MealType = new FastLazy<string>(() => this.GetMealType());
+
+            this.MealTypeAsString = new FastLazy<string>(() => $"{rottenString}{this.MealType}");
+
+            this.MealAsString = new FastLazy<string>(() => $"{rottenString}{this.ThingLabel}");
+
+            this.MealNameAndTypeAsString = new FastLazy<string>(() => $"{rottenString}{this.ThingLabel} (type: {this.MealTypeAsString})");
+
+            this.IngredientsAsString = new FastLazy<string>(() => $"{rottenString}meal, ingredients: {ingredientsString}");
+
+            this.MealTypeAndIngredientsAsString = new FastLazy<string>(() => $"{this.MealTypeAsString}, ingredients: {ingredientsString}");
+
+            this.MealAndIngredientsAsString = new FastLazy<string>(() => $"{this.MealAsString}, ingredients: {ingredientsString}");
+
+            this.MealNameAndTypeAndIngredientsAsString = new FastLazy<string>(() => $"{this.MealNameAndTypeAsString}, ingredients: {ingredientsString}");
+
+            this.HasMealType = new FastLazy<bool>(() => !this.isForgotton && this.ThingLabel != this.MealType);
         }
 
         public EatenFoodSource(Thing foodSourceThing)
+            : this()
         {
             this.Thing = foodSourceThing;
 
-            this.InitPropertiesWithThing(foodSourceThing);
-        }
+            this.IsForgotton = false;
 
-        private void InitPropertiesWithThing(Thing foodSourceThing)
-        {
             this.uniqueId = "EatenFoodSource_" + foodSourceThing.GetUniqueLoadID();
 
-            IngredientsDefs = ThingCompUtility.TryGetComp<CompIngredients>(foodSourceThing)?.ingredients?.ToList() ?? new List<ThingDef>();
-            IngredientsDefs.SortBy(x => x.label);
+            this.ThingDef = foodSourceThing.def;
+            this.ThingLabel = foodSourceThing.Label;
 
-            IsRotten = RottableUtility.IsNotFresh(foodSourceThing);
-            IsAcceptableToCarnivores = new FastLazy<bool>(() => FoodUtility.AcceptableCarnivore(foodSourceThing));
-            IsAcceptableToVegetarians = new FastLazy<bool>(() => FoodUtility.AcceptableVegetarian(foodSourceThing));
-            IsHumanlikeCorpseOrHumanlikeMeatOrIngredient = new FastLazy<bool>(() => FoodUtility.IsHumanlikeCorpseOrHumanlikeMeatOrIngredient(foodSourceThing));
-            MeatSourceCategory = new FastLazy<MeatSourceCategory>(() => FoodUtility.GetMeatSourceCategory(foodSourceThing.def));
-            FoodPreferability = foodSourceThing.def.ingestible.preferability;
+            this.IngredientsDefs = ThingCompUtility.TryGetComp<CompIngredients>(foodSourceThing)?.ingredients?.ToList() ?? new List<ThingDef>();
+            this.IngredientsDefs.SortBy(x => x.label);
 
-            IsFungus = foodSourceThing.def.IsFungus;
+            this.IsRotten = RottableUtility.IsNotFresh(foodSourceThing);
+            this.IsAcceptableToCarnivores = new FastLazy<bool>(() => FoodUtility.AcceptableCarnivore(foodSourceThing));
+            this.IsAcceptableToVegetarians = new FastLazy<bool>(() => FoodUtility.AcceptableVegetarian(foodSourceThing));
+            this.IsHumanlikeCorpseOrHumanlikeMeatOrIngredient = new FastLazy<bool>(() => FoodUtility.IsHumanlikeCorpseOrHumanlikeMeatOrIngredient(foodSourceThing));
+            this.MeatSourceCategory = new FastLazy<MeatSourceCategory>(() => FoodUtility.GetMeatSourceCategory(foodSourceThing.def));
+            this.FoodPreferability = foodSourceThing.def.ingestible.preferability;
 
-            string rottenString = IsRotten ? "Rotten " : string.Empty;
-            string ingredientsString = IngredientsDefs.Count > 0 ? string.Join(", ", IngredientsDefs.Select(x => x.label)) : "Unknown";
-
-            MealAsString = $"{rottenString}{foodSourceThing.def.label}";
-
-            IngredientsAsString = new FastLazy<string>(() => $"{rottenString}meal, ingredients: {ingredientsString}");
-
-            MealAndIngredientsAsString = new FastLazy<string>(() => $"{MealAsString}, ingredients: {ingredientsString}");
+            this.IsFungus = foodSourceThing.def.IsFungus;
         }
 
         private Thing thing;
         public Thing Thing
         {
-            get => thing;
-            private set => thing = value;
+            get => this.thing;
+            private set => this.thing = value;
         }
 
         private ThingDef thingDef;
         public ThingDef ThingDef
         {
-            get => thingDef;
-            private set => thingDef = value;
+            get => this.thingDef;
+            private set => this.thingDef = value;
         }
 
         private string thingLabel;
         public string ThingLabel
         {
-            get => thingLabel;
-            private set => thingLabel = value;
+            get => this.thingLabel;
+            private set => this.thingLabel = value;
         }
 
         private FoodPreferability foodPreferability;
         public FoodPreferability FoodPreferability
         {
-            get => foodPreferability;
-            private set => foodPreferability = value;
+            get => this.foodPreferability;
+            private set => this.foodPreferability = value;
         }
 
         private List<ThingDef> ingredients;
         public List<ThingDef> IngredientsDefs
         {
-            get => ingredients;
-            private set => ingredients = value;
+            get => this.ingredients;
+            private set => this.ingredients = value;
+        }
+
+        private bool isForgotton;
+        public bool IsForgotton
+        {
+            get => this.isForgotton;
+            private set => this.isForgotton = value;
         }
 
         private bool isRotten;
         public bool IsRotten
         {
-            get => isRotten;
-            private set => isRotten = value;
+            get => this.isRotten;
+            private set => this.isRotten = value;
         }
 
         private FastLazy<bool> isAcceptableToCarnivores;
         public FastLazy<bool> IsAcceptableToCarnivores
         {
-            get => isAcceptableToCarnivores;
-            private set => isAcceptableToCarnivores = value;
+            get => this.isAcceptableToCarnivores;
+            private set => this.isAcceptableToCarnivores = value;
         }
 
         private FastLazy<bool> isAcceptableToVegetarians;
         public FastLazy<bool> IsAcceptableToVegetarians
         {
-            get => isAcceptableToVegetarians;
-            private set => isAcceptableToVegetarians = value;
+            get => this.isAcceptableToVegetarians;
+            private set => this.isAcceptableToVegetarians = value;
         }
 
         private FastLazy<bool> isHumanlikeCorpseOrHumanlikeMeatOrIngredient;
         public FastLazy<bool> IsHumanlikeCorpseOrHumanlikeMeatOrIngredient
         {
-            get => isHumanlikeCorpseOrHumanlikeMeatOrIngredient;
-            private set => isHumanlikeCorpseOrHumanlikeMeatOrIngredient = value;
-        }
-
-        private FastLazy<bool> isInsectMeat;
-        public FastLazy<bool> IsInsectMeat
-        {
-            get => isInsectMeat;
-            private set => isInsectMeat = value;
+            get => this.isHumanlikeCorpseOrHumanlikeMeatOrIngredient;
+            private set => this.isHumanlikeCorpseOrHumanlikeMeatOrIngredient = value;
         }
 
         private FastLazy<MeatSourceCategory> meatSourceCategory;
         public FastLazy<MeatSourceCategory> MeatSourceCategory
         {
-            get => meatSourceCategory;
-            private set => meatSourceCategory = value;
+            get => this.meatSourceCategory;
+            private set => this.meatSourceCategory = value;
         }
 
         private bool isFungus;
         public bool IsFungus
         {
-            get => isFungus;
-            private set => isFungus = value;
+            get => this.isFungus;
+            private set => this.isFungus = value;
         }
 
-        private FastLazy<string> ingredientsAsString;
-        public FastLazy<string> IngredientsAsString
-        {
-            get => ingredientsAsString;
-            private set => ingredientsAsString = value;
-        }
+        public FastLazy<string> IngredientsAsString { get; }
 
-        private FastLazy<string> mealAndIngredientsAsString;
-        public FastLazy<string> MealAndIngredientsAsString
-        {
-            get => mealAndIngredientsAsString;
-            private set => mealAndIngredientsAsString = value;
-        }
+        public FastLazy<string> MealAndIngredientsAsString { get; }
 
-        private string mealAsString;
-        public string MealAsString
-        {
-            get => mealAsString;
-            private set => mealAsString = value;
-        }
+        public FastLazy<string> MealTypeAndIngredientsAsString { get; }
+
+        public FastLazy<string> MealNameAndTypeAndIngredientsAsString { get; }
+
+        public FastLazy<string> MealAsString { get; }
+
+        public FastLazy<string> MealNameAndTypeAsString { get; }
+
+        public FastLazy<string> MealType { get; }
+
+        public FastLazy<string> MealTypeAsString { get; }
+
+        public FastLazy<bool> HasMealType { get; }
 
         public void ExposeData()
         {
-            Scribe_Defs.Look(ref thingDef, "thingDef");
-            Scribe_Values.Look(ref thingLabel, "thingLabel");
-            Scribe_Values.Look(ref foodPreferability, "foodPreferability");
-            Scribe_Collections.Look(ref ingredients, "ingredients", LookMode.Def);
-            Scribe_Values.Look(ref isRotten, "isRotten");
-            Scribe_Deep.Look(ref isAcceptableToCarnivores, "isAcceptableToCarnivores");
-            Scribe_Deep.Look(ref isAcceptableToVegetarians, "isAcceptableToVegetarians");
-            Scribe_Deep.Look(ref isHumanlikeCorpseOrHumanlikeMeatOrIngredient, "isHumanlikeCorpseOrHumanlikeMeatOrIngredient");
-            Scribe_Deep.Look(ref isInsectMeat, "isInsectMeat");
-            Scribe_Deep.Look(ref meatSourceCategory, "meatSourceCategory");
-            Scribe_Values.Look(ref isFungus, "isFungus");
-            Scribe_Deep.Look(ref ingredientsAsString, "ingredientsAsString");
-            Scribe_Deep.Look(ref mealAndIngredientsAsString, "mealAndIngredientsAsString");
-            Scribe_Values.Look(ref mealAsString, "mealAsString");
-            Scribe_Values.Look(ref uniqueId, "uniqueId");
+            Scribe_Defs.Look(ref this.thingDef, "thingDef");
+            Scribe_Values.Look(ref this.thingLabel, "thingLabel");
+            Scribe_Values.Look(ref this.isForgotton, "isForgotton");
+            Scribe_Values.Look(ref this.foodPreferability, "foodPreferability");
+            Scribe_Collections.Look(ref this.ingredients, "ingredients", LookMode.Def);
+            Scribe_Values.Look(ref this.isRotten, "isRotten");
+            Scribe_Deep.Look(ref this.isAcceptableToCarnivores, "isAcceptableToCarnivores");
+            Scribe_Deep.Look(ref this.isAcceptableToVegetarians, "isAcceptableToVegetarians");
+            Scribe_Deep.Look(ref this.isHumanlikeCorpseOrHumanlikeMeatOrIngredient, "isHumanlikeCorpseOrHumanlikeMeatOrIngredient");
+            Scribe_Deep.Look(ref this.meatSourceCategory, "meatSourceCategory");
+            Scribe_Values.Look(ref this.isFungus, "isFungus");
+            Scribe_Values.Look(ref this.uniqueId, "uniqueId");
         }
 
-        public string GetFoodSourceKey(FoodTrackingType foodTrackingType)
+        public string GetFoodSourceKey()
         {
-            switch (foodTrackingType)
+            if (this.IsForgotton)
             {
-                case FoodTrackingType.ByMeal:
-                    return MealAsString;
-                case FoodTrackingType.ByIngredients:
-                    return IngredientsAsString;
-                case FoodTrackingType.ByMealAndIngredients:
-                    return MealAndIngredientsAsString;
-                default:
-                    throw new Exception($"Not valid FoodTrackingType: {foodTrackingType}");
+                return "Forgotten meal";
+            }
+
+            if (!ModSettings_VarietyMatters.clusterSimilarMealsTogether || !this.HasMealType)
+            {
+                switch (ModSettings_VarietyMatters.foodTrackingType)
+                {
+                    case FoodTrackingType.ByMealNames:
+                        return this.MealAsString;
+                    case FoodTrackingType.ByMealIngredientsCombination:
+                        return this.IngredientsAsString;
+                    case FoodTrackingType.ByMealNamesAndIngredients:
+                        if (this.IngredientsDefs.Count > 0)
+                        {
+                            return this.MealAndIngredientsAsString;
+                        }
+                        else
+                        {
+                            return this.MealAsString;
+                        }
+                    default:
+                        throw new Exception($"Not valid FoodTrackingType: {ModSettings_VarietyMatters.foodTrackingType}");
+                }
+            }
+            else
+            {
+                switch (ModSettings_VarietyMatters.foodTrackingType)
+                {
+                    case FoodTrackingType.ByMealNames:
+                        return this.MealTypeAsString;
+                    case FoodTrackingType.ByMealIngredientsCombination:
+                        return this.IngredientsAsString;
+                    case FoodTrackingType.ByMealNamesAndIngredients:
+                        return this.MealTypeAndIngredientsAsString;
+                    default:
+                        throw new Exception($"Not valid FoodTrackingType: {ModSettings_VarietyMatters.foodTrackingType}");
+                }
             }
         }
 
-        public string ToString(FoodTrackingType foodTrackingType)
+        public override string ToString()
         {
-            switch (foodTrackingType)
+            if (this.IsForgotton)
             {
-                case FoodTrackingType.ByMeal:
-                    return MealAsString;
-                case FoodTrackingType.ByIngredients:
-                case FoodTrackingType.ByMealAndIngredients:
-                    if (IngredientsDefs.Count > 0)
-                    {
-                        return MealAndIngredientsAsString;
-                    }
-                    else
-                    {
-                        return MealAsString;
-                    }
-                default:
-                    throw new Exception($"Not valid FoodTrackingType: {foodTrackingType}");
+                return "Forgotten meal";
+            }
+
+            if (!ModSettings_VarietyMatters.clusterSimilarMealsTogether || !this.HasMealType)
+            {
+                switch (ModSettings_VarietyMatters.foodTrackingType)
+                {
+                    case FoodTrackingType.ByMealNames:
+                        return this.MealAsString;
+                    case FoodTrackingType.ByMealIngredientsCombination:
+                        return this.IngredientsAsString;
+                    case FoodTrackingType.ByMealNamesAndIngredients:
+                        if (this.IngredientsDefs.Count > 0)
+                        {
+                            return this.MealAndIngredientsAsString;
+                        }
+                        else
+                        {
+                            return this.MealAsString;
+                        }
+                    default:
+                        throw new Exception($"Not valid FoodTrackingType: {ModSettings_VarietyMatters.foodTrackingType}");
+                }
+            }
+            else
+            {
+                switch (ModSettings_VarietyMatters.foodTrackingType)
+                {
+                    case FoodTrackingType.ByMealNames:
+                        return this.MealNameAndTypeAsString;
+                    case FoodTrackingType.ByMealIngredientsCombination:
+                        return this.IngredientsAsString;
+                    case FoodTrackingType.ByMealNamesAndIngredients:
+                        if (this.IngredientsDefs.Count > 0)
+                        {
+                            return this.MealNameAndTypeAndIngredientsAsString;
+                        }
+                        else
+                        {
+                            return this.MealNameAndTypeAsString;
+                        }
+                    default:
+                        throw new Exception($"Not valid FoodTrackingType: {ModSettings_VarietyMatters.foodTrackingType}");
+                }
             }
         }
 
@@ -211,6 +279,24 @@
         public string GetUniqueLoadID()
         {
             return this.uniqueId;
+        }
+
+        private string GetMealType()
+        {
+            if (this.foodPreferability < FoodPreferability.MealSimple)
+            {
+                // It's not a meal, return the same type as the name of the meal.
+                return this.ThingLabel;
+            }
+
+            var mealLabelWithoutQualifiers = MealQualifiers.RemoveMealQualifiersFromMealLabel(this.ThingLabel);
+
+            if (mealLabelWithoutQualifiers == "meal")
+            {
+                return "regular meal";
+            }
+
+            return mealLabelWithoutQualifiers;
         }
     }
 }

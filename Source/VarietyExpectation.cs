@@ -8,6 +8,11 @@
 	{
 		public static int GetVarietyExpectation(Pawn ingester)
 		{
+            if (ingester == null)
+            {
+                throw new ArgumentNullException(nameof(ingester));
+            }
+
 			ExpectationDef expectationDef = ExpectationsUtility.CurrentExpectationFor(ingester);
             int expectedVariety;
 
@@ -46,7 +51,7 @@
                 expectedVariety = Math.Max(1, expectedVariety * ModSettings_VarietyMatters.prisonerExpectedVarietyPercentage / 100);
             }
 
-            if (ingester.story.traits.HasTrait(TraitDef.Named("Gourmand")))
+            if (ingester?.story?.traits?.HasTrait(TraitDef.Named("Gourmand")) == true)
             {
                 expectedVariety = expectedVariety * 5 / 4; // *1.25, 25%+
             }
