@@ -2,6 +2,7 @@
 {
     using HarmonyLib;
     using RimWorld;
+    using System.Collections.Generic;
     using VarietyMatters.New;
     using Verse;
 
@@ -32,57 +33,13 @@
 				return;
 			}
 
-			EatenFoodSource mostRecentFoodSource = VarietyRecord.GetVarietyRecord(eater).MostRecentEatenFoodSource.Source;
-			CompIngredients compIngredients = ThingCompUtility.TryGetComp<CompIngredients>(foodSource);
+            HashSet<string> keysOfFoodSourcesWithVariety = dietTracker.KeysOfFoodSourcesWithVariety;
 
-            switch (ModSettings_VarietyMatters.foodTrackingType)
+            string newFoodSourceKey = FoodSourceFactory.CreateOrGetFoodSourceFromThing(foodSource).GetFoodSourceKey();
+
+            if (!keysOfFoodSourcesWithVariety.Contains(newFoodSourceKey))
             {
-                case FoodTrackingType.ByMealNamesAndIngredientsCombination:
-                    if (mostRecentFoodSource.ThingLabel != foodSource.def.label)
-                    {
-                        __result += 60f;
-                    }
-                    else
-                    {
-                        if (compIngredients != null)
-                        {
-                            for (int i = 0; i < compIngredients.ingredients.Count; i++)
-                            {
-                                if (!mostRecentFoodSource.IngredientsDefs.Contains(compIngredients.ingredients[i]))
-                                {
-                                    __result += 60f;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                    break;
-                case FoodTrackingType.ByIngredientsCombination:
-                    if (mostRecentFoodSource.ThingLabel != foodSource.def.label)
-                    {
-                        __result += 60f;
-                    }
-                    else
-                    {
-                        if (compIngredients != null)
-                        {
-                            for (int i = 0; i < compIngredients.ingredients.Count; i++)
-                            {
-                                if (!mostRecentFoodSource.IngredientsDefs.Contains(compIngredients.ingredients[i]))
-                                {
-                                    __result += 60f;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                    break;
-                case FoodTrackingType.ByMealNames:
-                    if (mostRecentFoodSource.ThingLabel != foodSource.def.label)
-                    {
-                        __result += 60f;
-                    }
-                    break;
+                __result += 60f;
             }
         }
     }

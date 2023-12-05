@@ -26,6 +26,7 @@
             this.foodsVarietyInfos = new Dictionary<string, FoodVarietyInfo>(this.maxEatenFoodSourceInMemory + 1);
             this.foodsNoVarietyReasons = new Dictionary<EatenFoodByPawn, NoVarietyReason>(this.maxEatenFoodSourceInMemory + 1);
             this.foodSourcesByOrderV2 = new Queue<EatenFoodByPawn>(this.maxEatenFoodSourceInMemory + 1);
+            this.KeysOfFoodSourcesWithVariety = new HashSet<string>();
             this.totalVariety = 0;
 
             this.AddForgottenFoods();
@@ -40,6 +41,8 @@
         public EatenFoodByPawn mostRecentEatenFoodSourceV2;
 
         public EatenFoodByPawn MostRecentEatenFoodSource => this.mostRecentEatenFoodSourceV2;
+
+        public HashSet<string> KeysOfFoodSourcesWithVariety { get; private set; }
 
         public IEnumerable<(EatenFoodSource, FoodVarietyInfo, NoVarietyReason?)> GetFoodVarietyInfoForPawnInIngestionOrder()
         {
@@ -105,6 +108,11 @@
             {
                 this.RemoveOldestFoodSourceFromMemory();
             }
+        }
+
+        public EatenFoodByPawn OldestFoodSource()
+        {
+            return this.foodSourcesByOrderV2.Peek();
         }
 
         private bool OldestFoodSourceIsForgotten()
@@ -174,6 +182,7 @@
                 };
 
                 this.totalVariety++;
+                this.KeysOfFoodSourcesWithVariety.Add(foodSourceKey);
             }
         }
 
@@ -189,6 +198,7 @@
                 {
                     this.foodsVarietyInfos.Remove(oldestFoodSourceKey);
                     this.totalVariety--;
+                    this.KeysOfFoodSourcesWithVariety.Remove(oldestFoodSourceKey);
                 }
                 else if (foodSourceInfoForPawn.FoodSources[0].IsForgotten)
                 {
@@ -241,6 +251,7 @@
             {
                 this.foodsVarietyInfos = new Dictionary<string, FoodVarietyInfo>(this.maxEatenFoodSourceInMemory + 1);
                 this.foodsNoVarietyReasons = new Dictionary<EatenFoodByPawn, NoVarietyReason>(this.maxEatenFoodSourceInMemory + 1);
+                this.KeysOfFoodSourcesWithVariety = new HashSet<string>();
 
                 this.ReCount();
             }

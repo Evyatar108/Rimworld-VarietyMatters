@@ -5,5 +5,8 @@
         ByMealNames,
         ByIngredientsCombination,
         ByMealNamesAndIngredientsCombination,
+        // TODO
+        // ByMealNamesAndAtLeastOneIngredient,
+        // ByMealNamesAndAllIngredients,
     }
 }
