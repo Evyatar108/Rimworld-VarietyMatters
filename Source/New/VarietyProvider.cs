@@ -171,7 +171,7 @@
 
         private static bool IsBadFoodAcceptableByPawn(Pawn pawn, EatenFoodSource foodSource, FastLazy<bool> hasNegativeMoodImpact, out NoVarietyReason noVarietyReason)
         {
-            if (foodSource.MeatSourceCategory == MeatSourceCategory.Insect && hasNegativeMoodImpact.Value)
+            if (IsInsectMeatPawnDoesntLike(pawn, foodSource.MeatSourceCategory, foodSource.ThingDef))
             {
                 noVarietyReason = NoVarietyReason.InsectMeat;
                 return false;
@@ -190,6 +190,13 @@
 
             noVarietyReason = NoVarietyReason.RawOrRawlikeFood;
             return false;
+        }
+
+        private static bool IsInsectMeatPawnDoesntLike(Pawn pawn, MeatSourceCategory meatSourceCategory, ThingDef thingDef)
+        {
+            return meatSourceCategory == MeatSourceCategory.Insect
+                && thingDef.ingestible.joyKind == null
+                && (!ModsConfig.IdeologyActive || pawn.Ideo?.HasPrecept(DefOf_VarietyMatters.InsectMeatEating_Despised_Classic) == true);
         }
 
         private static bool IsChemicalFood(ThingDef ingredientOrMealDef)
@@ -241,8 +248,7 @@
                     return false;
                 }
 
-                if (FoodUtility.GetMeatSourceCategory(ingredientDef) == MeatSourceCategory.Insect
-                    && foodSource.ThingDef.ingestible.joyKind == null)
+                if (IsInsectMeatPawnDoesntLike(pawn, FoodUtility.GetMeatSourceCategory(ingredientDef), ingredientDef))
                 {
                     noVarietyReason = NoVarietyReason.InsectMeat;
                     return false;

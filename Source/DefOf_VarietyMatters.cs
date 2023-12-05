@@ -26,6 +26,9 @@
         [MayRequireIdeology]
         public static PreceptDef NutrientPasteEating_Disgusting;
 
+        [MayRequireIdeology]
+        public static PreceptDef InsectMeatEating_Despised_Classic;
+
         public static ThingDef MealNutrientPaste;
     }
 }
