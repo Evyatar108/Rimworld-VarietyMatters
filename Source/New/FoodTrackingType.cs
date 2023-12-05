@@ -3,7 +3,7 @@
     public enum FoodTrackingType
     {
         ByMealNames,
-        ByMealIngredientsCombination,
-        ByMealNamesAndIngredients,
+        ByIngredientsCombination,
+        ByMealNamesAndIngredientsCombination,
     }
 }

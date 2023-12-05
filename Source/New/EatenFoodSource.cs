@@ -9,7 +9,7 @@
 
     public class EatenFoodSource : IExposable, ILoadReferenceable
     {
-        public static EatenFoodSource ForgottenEatenFoodSource = new EatenFoodSource() { IsForgotton = true, uniqueId = "EatenFoodSource_ForgottenFood", ThingLabel = "Forgotten food", ingredients = new List<ThingDef>() };
+        public static EatenFoodSource ForgottenEatenFoodSource = new EatenFoodSource() { IsForgotten = true, uniqueId = "EatenFoodSource_ForgottenFood", ThingLabel = "Forgotten food", ingredients = new List<ThingDef>() };
 
         public EatenFoodSource()
         {
@@ -33,7 +33,7 @@
 
             this.MealNameAndTypeAndIngredientsAsString = new FastLazy<string>(() => $"{this.MealNameAndTypeAsString}, ingredients: {ingredientsString}");
 
-            this.HasMealType = new FastLazy<bool>(() => !this.isForgotton && this.ThingLabel != this.MealType);
+            this.HasMealType = new FastLazy<bool>(() => !this.isForgotten && this.ThingLabel != this.MealType);
         }
 
         public EatenFoodSource(Thing foodSourceThing)
@@ -46,7 +46,7 @@
 
             this.Thing = foodSourceThing;
 
-            this.IsForgotton = false;
+            this.IsForgotten = false;
 
             this.uniqueId = "EatenFoodSource_" + foodSourceThing.GetUniqueLoadID();
 
@@ -112,11 +112,11 @@
             private set => this.ingredients = value;
         }
 
-        private bool isForgotton;
-        public bool IsForgotton
+        private bool isForgotten;
+        public bool IsForgotten
         {
-            get => this.isForgotton;
-            private set => this.isForgotton = value;
+            get => this.isForgotten;
+            private set => this.isForgotten = value;
         }
 
         private bool isRotten;
@@ -183,7 +183,7 @@
         {
             Scribe_Defs.Look(ref this.thingDef, "thingDef");
             Scribe_Values.Look(ref this.thingLabel, "thingLabel");
-            Scribe_Values.Look(ref this.isForgotton, "isForgotton");
+            Scribe_Values.Look(ref this.isForgotten, "isForgotton");
             Scribe_Values.Look(ref this.foodPreferability, "foodPreferability");
             Scribe_Collections.Look(ref this.ingredients, "ingredients", LookMode.Def);
             Scribe_Values.Look(ref this.isRotten, "isRotten");
@@ -196,7 +196,7 @@
 
             if (Scribe.mode == LoadSaveMode.PostLoadInit)
             {
-                if (this.thingLabel == null && !this.isForgotton)
+                if (this.thingLabel == null && !this.isForgotten)
                 {
                     Log.Warning("EatenFoodSource:: Loaded EatenFoodSource with null thingLabel");
                 }
@@ -205,7 +205,7 @@
 
         public string GetFoodSourceKey()
         {
-            if (this.IsForgotton)
+            if (this.IsForgotten)
             {
                 return "Forgotten meal";
             }
@@ -216,9 +216,9 @@
                 {
                     case FoodTrackingType.ByMealNames:
                         return this.MealAsString;
-                    case FoodTrackingType.ByMealIngredientsCombination:
+                    case FoodTrackingType.ByIngredientsCombination:
                         return this.IngredientsAsString;
-                    case FoodTrackingType.ByMealNamesAndIngredients:
+                    case FoodTrackingType.ByMealNamesAndIngredientsCombination:
                         if (this.IngredientsDefs.Count > 0)
                         {
                             return this.MealAndIngredientsAsString;
@@ -237,9 +237,9 @@
                 {
                     case FoodTrackingType.ByMealNames:
                         return this.MealTypeAsString;
-                    case FoodTrackingType.ByMealIngredientsCombination:
+                    case FoodTrackingType.ByIngredientsCombination:
                         return this.IngredientsAsString;
-                    case FoodTrackingType.ByMealNamesAndIngredients:
+                    case FoodTrackingType.ByMealNamesAndIngredientsCombination:
                         return this.MealTypeAndIngredientsAsString;
                     default:
                         throw new Exception($"Not valid FoodTrackingType: {ModSettings_VarietyMatters.foodTrackingType}");
@@ -249,7 +249,7 @@
 
         public override string ToString()
         {
-            if (this.IsForgotton)
+            if (this.IsForgotten)
             {
                 return "Forgotten meal";
             }
@@ -260,9 +260,9 @@
                 {
                     case FoodTrackingType.ByMealNames:
                         return this.MealAsString;
-                    case FoodTrackingType.ByMealIngredientsCombination:
+                    case FoodTrackingType.ByIngredientsCombination:
                         return this.IngredientsAsString;
-                    case FoodTrackingType.ByMealNamesAndIngredients:
+                    case FoodTrackingType.ByMealNamesAndIngredientsCombination:
                         if (this.IngredientsDefs.Count > 0)
                         {
                             return this.MealAndIngredientsAsString;
@@ -281,9 +281,9 @@
                 {
                     case FoodTrackingType.ByMealNames:
                         return this.MealNameAndTypeAsString;
-                    case FoodTrackingType.ByMealIngredientsCombination:
+                    case FoodTrackingType.ByIngredientsCombination:
                         return this.IngredientsAsString;
-                    case FoodTrackingType.ByMealNamesAndIngredients:
+                    case FoodTrackingType.ByMealNamesAndIngredientsCombination:
                         if (this.IngredientsDefs.Count > 0)
                         {
                             return this.MealNameAndTypeAndIngredientsAsString;

@@ -128,7 +128,7 @@
 
             if (Scribe.mode == LoadSaveMode.Saving)
 			{
-                eatenFoodSources = varietyRecord?.Values?.SelectMany(x => x.EatenFoodSourcesByOrder)?.Distinct(EatenFoodSourceEqualityComparer.Instance)?.ToList() ?? new List<EatenFoodSource>();
+				eatenFoodSources = varietyRecord?.Values?.SelectMany(x => x.EatenFoodSourcesByOrder)?.Select(x => x.Source).Distinct(EatenFoodSourceEqualityComparer.Instance)?.ToList() ?? new List<EatenFoodSource>();
 			}
 
 			Scribe_Collections.Look<EatenFoodSource>(ref eatenFoodSources, "eatenFoodSources", LookMode.Deep);

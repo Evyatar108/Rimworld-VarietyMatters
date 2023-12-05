@@ -32,6 +32,11 @@
 		<Exec Command="if $(ConfigurationName) == Debugger call &quot;C:\Program Files (x86)\Mono\bin\pdb2mdb.bat&quot; $(TargetDir)$(TargetName)$(TargetExt)" />
 	</Target>
 	<ItemGroup>
+	  <Compile Remove="New\Clusters\**" />
+	  <EmbeddedResource Remove="New\Clusters\**" />
+	  <None Remove="New\Clusters\**" />
+	</ItemGroup>
+	<ItemGroup>
 		<PackageReference Include="Krafs.Publicizer" Version="2.2.1">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

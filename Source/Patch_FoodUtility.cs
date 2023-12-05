@@ -32,12 +32,12 @@
 				return;
 			}
 
-			EatenFoodSource mostRecentFoodSource = VarietyRecord.GetVarietyRecord(eater).MostRecentEatenFoodSource;
+			EatenFoodSource mostRecentFoodSource = VarietyRecord.GetVarietyRecord(eater).MostRecentEatenFoodSource.Source;
 			CompIngredients compIngredients = ThingCompUtility.TryGetComp<CompIngredients>(foodSource);
 
             switch (ModSettings_VarietyMatters.foodTrackingType)
             {
-                case FoodTrackingType.ByMealNamesAndIngredients:
+                case FoodTrackingType.ByMealNamesAndIngredientsCombination:
                     if (mostRecentFoodSource.ThingLabel != foodSource.def.label)
                     {
                         __result += 60f;
@@ -57,7 +57,7 @@
                         }
                     }
                     break;
-                case FoodTrackingType.ByMealIngredientsCombination:
+                case FoodTrackingType.ByIngredientsCombination:
                     if (mostRecentFoodSource.ThingLabel != foodSource.def.label)
                     {
                         __result += 60f;

@@ -45,16 +45,16 @@
 			var previousFoodTrackingType = ModSettings_VarietyMatters.foodTrackingType;
 			var previousClusterSimilarMealsTogether = ModSettings_VarietyMatters.clusterSimilarMealsTogether;
 
-			bool trackByMealNamesAndTheirIngredients = listing_Standard.RadioButton("     Track meal names and their ingredients (Easy): ", ModSettings_VarietyMatters.foodTrackingType == FoodTrackingType.ByMealNamesAndIngredients, 0f, null, null);
+			bool trackByMealNamesAndTheirIngredients = listing_Standard.RadioButton("     Track meal names and their ingredients (Easy): ", ModSettings_VarietyMatters.foodTrackingType == FoodTrackingType.ByMealNamesAndIngredientsCombination, 0f, null, null);
 			if (trackByMealNamesAndTheirIngredients)
 			{
-				ModSettings_VarietyMatters.foodTrackingType = FoodTrackingType.ByMealNamesAndIngredients;
+				ModSettings_VarietyMatters.foodTrackingType = FoodTrackingType.ByMealNamesAndIngredientsCombination;
 			}
 
-			bool trackByMealIngredients = listing_Standard.RadioButton("     Track meal ingredients only (Normal): ", ModSettings_VarietyMatters.foodTrackingType == FoodTrackingType.ByMealIngredientsCombination, 0f, null, null);
+			bool trackByMealIngredients = listing_Standard.RadioButton("     Track meal ingredients only (Normal): ", ModSettings_VarietyMatters.foodTrackingType == FoodTrackingType.ByIngredientsCombination, 0f, null, null);
 			if (trackByMealIngredients)
 			{
-				ModSettings_VarietyMatters.foodTrackingType = FoodTrackingType.ByMealIngredientsCombination;
+				ModSettings_VarietyMatters.foodTrackingType = FoodTrackingType.ByIngredientsCombination;
 			}
 
             bool trackByMealNames = listing_Standard.RadioButton("     Track meals names only (Hard): ", ModSettings_VarietyMatters.foodTrackingType == FoodTrackingType.ByMealNames, 0f, null, null);
@@ -70,7 +70,7 @@
 				listing_Standard.CheckboxLabeled("     Cooks use different ingredients: ", ref ModSettings_VarietyMatters.preferVariety, null, 0f, 1f);
 				listing_Standard.CheckboxLabeled("     Cooks prefer spoiling ingredients: ", ref ModSettings_VarietyMatters.preferSpoiling, null, 0f, 1f);
 				listing_Standard.CheckboxLabeled("     Stack meals by ingredients: ", ref ModSettings_VarietyMatters.stackByIngredients, null, 0f, 1f);
-				if (ModSettings_VarietyMatters.foodTrackingType != FoodTrackingType.ByMealIngredientsCombination)
+				if (ModSettings_VarietyMatters.foodTrackingType != FoodTrackingType.ByIngredientsCombination)
 				{
 					listing_Standard.CheckboxLabeled("     Count different quality meals as the same meal type: ", ref ModSettings_VarietyMatters.clusterSimilarMealsTogether, null, 0f, 1f);
 				}
@@ -98,7 +98,7 @@
             }
 
             if (ModSettings_VarietyMatters.foodTrackingType != previousFoodTrackingType
-				&& ModSettings_VarietyMatters.foodTrackingType != FoodTrackingType.ByMealIngredientsCombination)
+				&& ModSettings_VarietyMatters.foodTrackingType != FoodTrackingType.ByIngredientsCombination)
 			{
                 ModSettings_VarietyMatters.clusterSimilarMealsTogether = true;
             }

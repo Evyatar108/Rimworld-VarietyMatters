@@ -7,11 +7,12 @@
 
     public static class VarietyProvider
     {
-        public static bool DoesFoodHasVarietyValueForPawn(Pawn pawn, EatenFoodSource foodSource, out NoVarietyReason noVarietyReason)
+        public static bool DoesFoodHasVarietyValueForPawn(Pawn pawn, EatenFoodByPawn eatenFoodByPawn, out NoVarietyReason noVarietyReason)
         {
+            EatenFoodSource foodSource = eatenFoodByPawn.Source;
             ValidateInputs(pawn, foodSource);
 
-            if (foodSource.IsForgotton)
+            if (foodSource.IsForgotten)
             {
                 noVarietyReason = NoVarietyReason.NA;
                 return true;
@@ -23,7 +24,7 @@
                 return false;
             }
 
-            if (pawn.Ideo != null && !IsFoodIdeologicallyAcceptable(pawn, foodSource, out noVarietyReason))
+            if (pawn.Ideo != null && !IsFoodIdeologicallyAcceptable(pawn, eatenFoodByPawn, out noVarietyReason))
             {
                 return false;
             }
@@ -34,7 +35,7 @@
                 return false;
             }
 
-            return CheckFoodPreferability(pawn, foodSource, out noVarietyReason);
+            return CheckFoodPreferability(pawn, eatenFoodByPawn, out noVarietyReason);
         }
 
         private static void ValidateInputs(Pawn pawn, EatenFoodSource foodSource)
@@ -43,9 +44,11 @@
             if (foodSource == null) throw new ArgumentNullException(nameof(foodSource));
         }
 
-        private static bool IsFoodIdeologicallyAcceptable(Pawn pawn, EatenFoodSource foodSource, out NoVarietyReason noVarietyReason)
+        private static bool IsFoodIdeologicallyAcceptable(Pawn pawn, EatenFoodByPawn eatenFood, out NoVarietyReason noVarietyReason)
         {
-            if (foodSource.Thing != null && FoodUtility.IsVeneratedAnimalMeatOrCorpseOrHasIngredients(foodSource.Thing, pawn))
+            var foodSource = eatenFood.Source;
+
+            if (eatenFood.IsVeneratedAnimalMeatOrCorpseOrHasIngredients)
             {
                 noVarietyReason = NoVarietyReason.IsOrHasVeneratedAnimalMeat;
                 return false;
@@ -78,9 +81,10 @@
             return foodSource.IsHumanlikeCorpseOrHumanlikeMeatOrIngredient && !IsCannibal(pawn);
         }
 
-        private static bool CheckFoodPreferability(Pawn pawn, EatenFoodSource foodSource, out NoVarietyReason noVarietyReason)
+        private static bool CheckFoodPreferability(Pawn pawn, EatenFoodByPawn eatenFood, out NoVarietyReason noVarietyReason)
         {
-            FastLazy<bool> hasNegativeMoodImpact = new FastLazy<bool>(() => HasNegativeMoodImpact(pawn, foodSource));
+            EatenFoodSource foodSource = eatenFood.Source;
+            FastLazy<bool> hasNegativeMoodImpact = new FastLazy<bool>(() => HasNegativeMoodImpact(eatenFood));
             switch (foodSource.FoodPreferability) 
             {
                 case FoodPreferability.Undefined:
@@ -270,14 +274,9 @@
             return !ModsConfig.IdeologyActive || pawn.Ideo?.HasPrecept(DefOf_VarietyMatters.FungusEating_Despised) == true;
         }
 
-        private static bool HasNegativeMoodImpact(Pawn pawn, EatenFoodSource eatenFoodSource)
+        private static bool HasNegativeMoodImpact(EatenFoodByPawn eatenFoodSource)
         {
-            if (eatenFoodSource.Thing != null)
-            {
-                return FoodUtility.MoodFromIngesting(pawn, eatenFoodSource.Thing, eatenFoodSource.ThingDef) < 0;
-            }
-
-            return false;
+            return eatenFoodSource.MoodFromIngesting < 0;
         }
     }
 }

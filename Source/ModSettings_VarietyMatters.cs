@@ -33,7 +33,7 @@
 		// Token: 0x0600000F RID: 15 RVA: 0x00002520 File Offset: 0x00000720
 		public override void ExposeData()
 		{
-			Scribe_Values.Look<FoodTrackingType>(ref ModSettings_VarietyMatters.foodTrackingType, "foodTrackingType", FoodTrackingType.ByMealNamesAndIngredients, false);
+			Scribe_Values.Look<FoodTrackingType>(ref ModSettings_VarietyMatters.foodTrackingType, "foodTrackingType", FoodTrackingType.ByMealNamesAndIngredientsCombination, false);
 			Scribe_Values.Look<bool>(ref ModSettings_VarietyMatters.clusterSimilarMealsTogether, "clusterSimilarMealsTogether", true, false);
 			Scribe_Values.Look<bool>(ref ModSettings_VarietyMatters.halveVarietyMoodImpact, "halveVarietyMoodImpact", false, false);
             Scribe_Values.Look<bool>(ref ModSettings_VarietyMatters.stackByIngredients, "stackByIngredients", true, false);
@@ -57,7 +57,7 @@
             base.ExposeData();
 		}
 
-		public static FoodTrackingType foodTrackingType = FoodTrackingType.ByMealNamesAndIngredients;
+		public static FoodTrackingType foodTrackingType = FoodTrackingType.ByMealNamesAndIngredientsCombination;
 
 		public static bool clusterSimilarMealsTogether = true;
 
