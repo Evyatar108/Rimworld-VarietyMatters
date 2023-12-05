@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Patch>
+
+    <Operation Class="PatchOperationReplace">
+        <xpath>/Defs/ThingDef[defName="VCE_SimpleDessert"]/ingestible/preferability</xpath>
+        <value>
+            <preferability>MealSimple</preferability>
+        </value>
+    </Operation>
+
+    <Operation Class="PatchOperationReplace">
+        <xpath>/Defs/ThingDef[defName="VCE_FineDessert"]/ingestible/preferability</xpath>
+        <value>
+            <preferability>MealFine</preferability>
+        </value>
+    </Operation>
+
+    <Operation Class="PatchOperationReplace">
+        <xpath>/Defs/ThingDef[defName="VCE_LavishDessert"]/ingestible/preferability</xpath>
+        <value>
+            <preferability>MealLavish</preferability>
+        </value>
+    </Operation>
+
+    <!-- Assuming Gourmet Dessert is equivalent to Lavish -->
+    <Operation Class="PatchOperationReplace">
+        <xpath>/Defs/ThingDef[defName="VCE_GourmetDessert"]/ingestible/preferability</xpath>
+        <value>
+            <preferability>MealLavish</preferability>
+        </value>
+    </Operation>
+
+        <Operation Class="PatchOperationReplace">
+        <xpath>/Defs/ThingDef[defName="VCE_CannedMeat"]/ingestible/preferability</xpath>
+        <value>
+            <preferability>MealSimple</preferability>
+        </value>
+    </Operation>
+
+    <Operation Class="PatchOperationReplace">
+        <xpath>/Defs/ThingDef[defName="VCE_CannedProduce"]/ingestible/preferability</xpath>
+        <value>
+            <preferability>MealSimple</preferability>
+        </value>
+    </Operation>
+
+    <Operation Class="PatchOperationReplace">
+        <xpath>/Defs/ThingDef[defName="VCE_CannedFruit"]/ingestible/preferability</xpath>
+        <value>
+            <preferability>MealFine</preferability>
+        </value>
+    </Operation>
+
+    <Operation Class="PatchOperationReplace">
+        <xpath>/Defs/ThingDef[defName="VCE_CannedAP"]/ingestible/preferability</xpath>
+        <value>
+            <preferability>MealAwful</preferability>
+        </value>
+    </Operation>
+
+    <Operation Class="PatchOperationReplace">
+        <xpath>/Defs/ThingDef[defName="VCE_CannedFish"]/ingestible/preferability</xpath>
+        <value>
+            <preferability>MealSimple</preferability>
+        </value>
+    </Operation>
+
+    <Operation Class="PatchOperationReplace">
+        <xpath>/Defs/ThingDef[defName="VCE_DeepFriedBigMeat"]/ingestible/preferability</xpath>
+        <value>
+            <preferability>MealFine</preferability>
+        </value>
+    </Operation>
+
+    <Operation Class="PatchOperationReplace">
+        <xpath>/Defs/ThingDef[defName="VCE_DeepFriedVegetables"]/ingestible/preferability</xpath>
+        <value>
+            <preferability>MealFine</preferability>
+        </value>
+    </Operation>
+
+    <Operation Class="PatchOperationReplace">
+        <xpath>/Defs/ThingDef[defName="VCE_DeepFriedFish"]/ingestible/preferability</xpath>
+        <value>
+            <preferability>MealFine</preferability>
+        </value>
+    </Operation>
+
+</Patch>
