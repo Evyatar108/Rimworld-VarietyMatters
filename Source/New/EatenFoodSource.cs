@@ -198,7 +198,7 @@
             {
                 if (this.thingLabel == null && !this.isForgotton)
                 {
-                    Log.Warning("Loaded EatenFoodSource with null thingLabel");
+                    Log.Warning("EatenFoodSource:: Loaded EatenFoodSource with null thingLabel");
                 }
             }
         }

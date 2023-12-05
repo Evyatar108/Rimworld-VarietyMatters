@@ -238,7 +238,7 @@
 		// Token: 0x06000016 RID: 22 RVA: 0x00002F68 File Offset: 0x00001168
 		public override string SettingsCategory()
 		{
-			return "VarietyMatters";
+			return "Variety Matters Redux";
 		}
 
 		// Token: 0x04000023 RID: 35

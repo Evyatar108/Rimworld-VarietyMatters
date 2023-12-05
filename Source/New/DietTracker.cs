@@ -108,7 +108,7 @@
             {
                 if (foodSource.ThingLabel == null && !foodSource.IsForgotton)
                 {
-                    Log.Warning("Found food source with null thing label");
+                    Log.Warning("DietTracker:: Found food source with null thing label while recounting");
                     continue;
                 }
 
@@ -131,6 +131,7 @@
             if (this.foodSourcesInfoForPawn.TryGetValue(foodSourceKey, out FoodSourceInfoForPawn foodSourceInfoForPawn))
             {
                 foodSourceInfoForPawn.CountInMemory++;
+                foodSourceInfoForPawn.FoodSources.Add(foodSource);
 
                 if (foodSource.IsForgotton)
                 {
@@ -143,12 +144,12 @@
                 
                 if (!hasVarietyValueForPawn && noVarietyReason != NoVarietyReason.NA)
                 {
-                    Log.Warning("Variety reason mismatch");
+                    Log.Warning("DietTracker:: Variety reason mismatch");
                 }
 
                 this.foodSourcesInfoForPawn[foodSourceKey] = new FoodSourceInfoForPawn
                 {
-                    FoodSource = foodSource,
+                    FoodSources = new List<EatenFoodSource> { foodSource },
                     CountInMemory = 1,
                     HasVarietyValueForPawn = hasVarietyValueForPawn,
                     NoVarietyReason = noVarietyReason,
@@ -167,6 +168,7 @@
             string oldestFoodSourceKey = oldestFoodSource.GetFoodSourceKey();
             FoodSourceInfoForPawn foodSourceInfoForPawn = this.foodSourcesInfoForPawn[oldestFoodSourceKey];
             foodSourceInfoForPawn.CountInMemory--;
+            foodSourceInfoForPawn.FoodSources.Remove(oldestFoodSource);
             if (foodSourceInfoForPawn.CountInMemory == 0)
             {
                 this.foodSourcesInfoForPawn.Remove(oldestFoodSourceKey);
@@ -175,7 +177,7 @@
                     this.totalVariety--;
                 }
             }
-            else if (foodSourceInfoForPawn.FoodSource.IsForgotton)
+            else if (foodSourceInfoForPawn.FoodSources[0].IsForgotton)
             {
                 this.totalVariety--;
             }
@@ -199,7 +201,7 @@
                 Scribe_Collections.Look(ref tempList, "foodSourcesByOrder", LookMode.Reference);
                 if (tempList != null)
                 {
-                    this.foodSourcesByOrder = new Queue<EatenFoodSource>(tempList.Where(x => x.ThingLabel != null || x.IsForgotton));
+                    this.foodSourcesByOrder = new Queue<EatenFoodSource>(tempList.Where(x => IsEatenFoodSourceValid(x)));
                 }
             }
 
@@ -211,43 +213,43 @@
             }
         }
 
-        public class FoodSourceInfoForPawn :  IExposable
+        private bool IsEatenFoodSourceValid(EatenFoodSource eatenFoodSource)
         {
-            private EatenFoodSource foodSource;
-            public EatenFoodSource FoodSource
+            if (eatenFoodSource == null)
             {
-                get => this.foodSource;
-                set => this.foodSource = value;
+                Log.Warning("DietTracker:: Loaded a null eaten food source.");
+                return false;
             }
 
-            private int countInMemory;
-            public int CountInMemory
+            if (eatenFoodSource.IsForgotton)
             {
-                get => this.countInMemory;
-                set => this.countInMemory = value;
+                return true;
             }
 
-            private bool hasVarietyValueForPawn;
-            public bool HasVarietyValueForPawn
+            if (eatenFoodSource.ThingLabel == null)
             {
-                get => this.hasVarietyValueForPawn;
-                set => this.hasVarietyValueForPawn = value;
+                Log.Warning("DietTracker:: Loaded a eaten food source with a null thing label");
+                return false;
             }
 
-            private NoVarietyReason noVarietyReason;
-            public NoVarietyReason NoVarietyReason
+            if (eatenFoodSource.ThingDef == null)
             {
-                get => this.noVarietyReason;
-                set => this.noVarietyReason = value;
+                Log.Warning("DietTracker:: Loaded a eaten food source with a null thing def");
+                return false;
             }
 
-            public void ExposeData()
-            {
-                Scribe_References.Look(ref this.foodSource, "foodSource", saveDestroyedThings: true);
-                Scribe_Values.Look(ref this.countInMemory, "countInMemory");
-                Scribe_Values.Look(ref this.hasVarietyValueForPawn, "hasVarietyValueForPawn");
-                Scribe_Values.Look(ref this.noVarietyReason, "noVarietyReason", NoVarietyReason.NA);
-            }
+            return true;
+        }
+
+        public class FoodSourceInfoForPawn
+        {
+            public List<EatenFoodSource> FoodSources { get; set; }
+
+            public int CountInMemory { get; set; }
+
+            public bool HasVarietyValueForPawn { get; set; }
+
+            public NoVarietyReason NoVarietyReason { get; set; }
         }
     }
 }

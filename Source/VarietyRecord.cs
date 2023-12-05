@@ -94,13 +94,13 @@
 			{
 				foreach (Pawn pawn in VarietyRecord.varietyRecord.Keys)
 				{
-					bool dead = pawn.Dead;
-					if (dead)
+					if (pawn.Dead)
 					{
 						VarietyRecord.RemoveTrackedPawn(pawn);
 					}
 				}
 			}
+
 			CompVariety.FoodsAvailable();
 			base.FinalizeInit();
 		}
@@ -128,7 +128,7 @@
 
             if (Scribe.mode == LoadSaveMode.Saving)
 			{
-                eatenFoodSources = varietyRecord?.Values?.SelectMany(x => x.EatenFoodSourcesByOrder)?.Distinct(new EatenFoodSourceEqualityComparer())?.ToList() ?? new List<EatenFoodSource>();
+                eatenFoodSources = varietyRecord?.Values?.SelectMany(x => x.EatenFoodSourcesByOrder)?.Distinct(EatenFoodSourceEqualityComparer.Instance)?.ToList() ?? new List<EatenFoodSource>();
 			}
 
 			Scribe_Collections.Look<EatenFoodSource>(ref eatenFoodSources, "eatenFoodSources", LookMode.Deep);
@@ -150,9 +150,9 @@
 
 		private static List<EatenFoodSource> eatenFoodSources;
 
-
         private class EatenFoodSourceEqualityComparer : IEqualityComparer<EatenFoodSource>
         {
+			public readonly static EatenFoodSourceEqualityComparer Instance = new EatenFoodSourceEqualityComparer();
             public bool Equals(EatenFoodSource x, EatenFoodSource y)
             {
 				return x.GetUniqueLoadID() == y.GetUniqueLoadID();

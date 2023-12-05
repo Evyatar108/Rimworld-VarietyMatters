@@ -342,7 +342,7 @@
                 "(Has Variety) What a refreshing lineup of dishes! This really livens up the meal.",
                 "(Has Variety) A culinary adventure on my plate! This is exciting.",
                 "(Has Variety) Such an array of choices! This is what dining should be like.",
-                "(Has Variety) Every bite is a new experience. Loving this variety!",
+                "(Has Variety) Every taste is a new experience. Loving this variety!",
                 "(Has Variety) This is a feast for the senses! So glad for the change.",
                 "(Has Variety) A smorgasbord of flavors! This is how to keep meals interesting.",
                 "(Has Variety) So many options, it's hard to choose. But that's a good problem!",
@@ -371,8 +371,8 @@
                     return this.RandChooseUnacceptableByVegetariansStrings(seed);
                 case NoVarietyReason.UnacceptableByCarnivores:
                     return this.RandChooseUnacceptableByCarnivoresStrings(seed);
-                case NoVarietyReason.IsOrHasVenetratedAnimalMeat:
-                    return this.RandChooseIsOrHasVenetratedAnimalMeatStrings(seed);
+                case NoVarietyReason.IsOrHasVeneratedAnimalMeat:
+                    return this.RandChooseIsOrHasVeneratedAnimalMeatStrings(seed);
                 case NoVarietyReason.DisgustingMeal:
                     return this.RandChooseDisgustingMealStrings(seed);
                 default:
@@ -483,7 +483,7 @@
                 "(No Variety) All plants and no meat? That's not what a carnivore's diet should be.");
         }
 
-        private string RandChooseIsOrHasVenetratedAnimalMeatStrings(int seed)
+        private string RandChooseIsOrHasVeneratedAnimalMeatStrings(int seed)
         {
             return this.RandChoose(
                 seed,

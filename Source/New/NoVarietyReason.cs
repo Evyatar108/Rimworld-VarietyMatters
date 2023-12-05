@@ -10,7 +10,7 @@
         Fungus,
         UnacceptableByVegetarians,
         UnacceptableByCarnivores,
-        IsOrHasVenetratedAnimalMeat,
+        IsOrHasVeneratedAnimalMeat,
         HasChemicals,
         DisgustingMeal, 
     }

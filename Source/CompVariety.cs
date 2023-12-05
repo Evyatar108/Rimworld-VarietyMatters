@@ -20,16 +20,24 @@
 		// Token: 0x06000007 RID: 7 RVA: 0x0000211C File Offset: 0x0000031C
 		public override void PostIngested(Pawn ingester)
 		{
-			if (!WildManUtility.NonHumanlikeOrWildMan(ingester) && (ingester.IsColonist || ingester.IsPrisoner || ingester.IsSlave))
+			try
 			{
-				Pawn_NeedsTracker needs = ingester.needs;
-                Need_FoodVariety need = needs?.TryGetNeed(DefOf_VarietyMatters.FoodVariety) as Need_FoodVariety;
-
-                if (need != null && !need.Disabled)
+				if (!WildManUtility.NonHumanlikeOrWildMan(ingester) && (ingester.IsColonist || ingester.IsPrisoner || ingester.IsSlave))
 				{
-                    VarietyRecord.UpdateVarietyRecord(ingester, this.parent);
-                }
+					Pawn_NeedsTracker needs = ingester.needs;
+					Need_FoodVariety need = needs?.TryGetNeed(DefOf_VarietyMatters.FoodVariety) as Need_FoodVariety;
+
+					if (need != null && !need.Disabled)
+					{
+						VarietyRecord.UpdateVarietyRecord(ingester, this.parent);
+					}
+				}
 			}
+			catch (Exception e)
+			{
+				string error = e.ToString();
+				Log.ErrorOnce(error, error.GetHashCode());
+            }
 		}
 
 		// Token: 0x06000008 RID: 8 RVA: 0x00002174 File Offset: 0x00000374

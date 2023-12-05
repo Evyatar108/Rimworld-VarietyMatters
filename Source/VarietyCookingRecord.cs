@@ -58,7 +58,7 @@
 		// Token: 0x0600003A RID: 58 RVA: 0x000045AC File Offset: 0x000027AC
 		public override void ExposeData()
 		{
-			Scribe_Collections.Look<string>(ref this.recentlyCooked, "RecentlyCooked", (LookMode)1, Array.Empty<object>());
+			Scribe_Collections.Look<string>(ref this.recentlyCooked, "RecentlyCooked", LookMode.Value, Array.Empty<object>());
 			base.ExposeData();
 		}
 	}

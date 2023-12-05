@@ -1,6 +1,7 @@
 ﻿namespace VarietyMatters
 {
     using RimWorld;
+    using Verse;
 
     // Token: 0x02000007 RID: 7
     [DefOf]
@@ -17,9 +18,14 @@
 
 		// Token: 0x04000003 RID: 3
 		[MayRequireIdeology]
-		public static PreceptDef FungusEating_Preferred;
+		public static PreceptDef FungusEating_Despised;
 
         [MayRequireIdeology]
         public static PreceptDef Cannibalism_Acceptable;
+
+        [MayRequireIdeology]
+        public static PreceptDef NutrientPasteEating_Disgusting;
+
+        public static ThingDef MealNutrientPaste;
     }
 }
