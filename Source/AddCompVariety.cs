@@ -20,6 +20,7 @@
 					allDefsListForReading[i].comps.Add(item);
 				}
 			}
+
 			ModSettings_VarietyMatters.GenerateRaces();
 		}
 	}

@@ -22,14 +22,15 @@
 
 			DietTracker dietTracker = VarietyRecord.GetVarietyRecord(eater);
 			if (dietTracker?.MostRecentEatenFoodSource == null
-				|| ThingCompUtility.TryGetComp<CompVariety>(foodSource) == null
+				|| foodSource.def.ingestible == null
+                || ThingCompUtility.TryGetComp<CompVariety>(foodSource) == null
 				|| eater.needs.TryGetNeed<Need_FoodVariety>() == null
 				|| eater.needs.TryGetNeed<Need_FoodVariety>().Disabled
 				|| FoodUtility.Starving(eater)
 				|| eater.health.hediffSet.HasHediff(HediffDefOf.FoodPoisoning, true)
 				|| HealthAIUtility.ShouldSeekMedicalRest(eater)
 				|| FoodUtility.WillGiveNegativeThoughts(foodSource, eater))
-			{
+            {
 				return;
 			}
 

@@ -14,6 +14,9 @@
         private int totalVariety;
         private Queue<EatenFoodByPawn> foodSourcesByOrderV2;
 
+        private List<EatenFoodSource> tempList;
+        private List<EatenFoodByPawn> tempListV2;
+
         public DietTracker()
         {
         }
@@ -125,6 +128,7 @@
             this.totalVariety = 0;
 
             this.foodsVarietyInfos.Clear();
+            this.KeysOfFoodSourcesWithVariety.Clear();
 
             foreach (EatenFoodByPawn foodSource in this.foodSourcesByOrderV2)
             {
@@ -213,47 +217,46 @@
 
         public void ExposeData()
         {
-            Scribe_References.Look<Pawn>(ref this.pawn, "pawn");
+            Scribe_References.Look<Pawn>(ref this.pawn, "pawn", saveDestroyedThings: true);
             EatenFoodSource tempMostRecentEatenFoodSource = null; ;
             Scribe_Values.Look<int>(ref this.maxEatenFoodSourceInMemory, "maxEatenFoodSourceInMemory");
 
             if (Scribe.mode == LoadSaveMode.Saving)
             {
-                List<EatenFoodByPawn> tempList = this.foodSourcesByOrderV2.ToList();
-                Scribe_Collections.Look(ref tempList, "foodSourcesByOrderV2", LookMode.Deep);
+                tempListV2 = this.foodSourcesByOrderV2.ToList();
+                Scribe_Collections.Look(ref tempListV2, "foodSourcesByOrderV2", LookMode.Deep);
                 Scribe_Deep.Look<EatenFoodByPawn>(ref this.mostRecentEatenFoodSourceV2, "mostRecentEatenFoodSourceV2");
             }
-
-            if (Scribe.mode != LoadSaveMode.Saving)
+            else
             {
-                Scribe_References.Look<EatenFoodSource>(ref tempMostRecentEatenFoodSource, "mostRecentEatenFoodSource", saveDestroyedThings: true);
+                Scribe_References.Look<EatenFoodSource>(ref tempMostRecentEatenFoodSource, "mostRecentEatenFoodSource");
                 Scribe_Deep.Look<EatenFoodByPawn>(ref this.mostRecentEatenFoodSourceV2, "mostRecentEatenFoodSourceV2");
                 if (this.mostRecentEatenFoodSourceV2 == null && tempMostRecentEatenFoodSource != null)
                 {
                     this.mostRecentEatenFoodSourceV2 = new EatenFoodByPawn(this.pawn, tempMostRecentEatenFoodSource);
                 }
 
-                List<EatenFoodSource> tempList = null;
-                List<EatenFoodByPawn> tempListV2 = null;
                 Scribe_Collections.Look(ref tempList, "foodSourcesByOrder", LookMode.Reference);
                 Scribe_Collections.Look(ref tempListV2, "foodSourcesByOrderV2", LookMode.Deep);
-                if (tempList != null)
-                {
-                    this.foodSourcesByOrderV2 = new Queue<EatenFoodByPawn>(tempList.Where(x => IsEatenFoodSourceValid(x)).Select(x => new EatenFoodByPawn(this.pawn, x)));
-                }
-                else if (tempListV2 != null)
-                {
-                    this.foodSourcesByOrderV2 = new Queue<EatenFoodByPawn>(tempListV2.Where(x => IsEatenFoodSourceByPawnValid(x)));
-                }
-            }
 
-            if (Scribe.mode == LoadSaveMode.PostLoadInit)
-            {
-                this.foodsVarietyInfos = new Dictionary<string, FoodVarietyInfo>(this.maxEatenFoodSourceInMemory + 1);
-                this.foodsNoVarietyReasons = new Dictionary<EatenFoodByPawn, NoVarietyReason>(this.maxEatenFoodSourceInMemory + 1);
-                this.KeysOfFoodSourcesWithVariety = new HashSet<string>();
+                if (Scribe.mode == LoadSaveMode.PostLoadInit)
+                {
+                    if (tempList != null)
+                    {
+                        this.foodSourcesByOrderV2 = new Queue<EatenFoodByPawn>(tempList.Where(x => IsEatenFoodSourceValid(x)).Select(x => new EatenFoodByPawn(this.pawn, x)));
+                    }
 
-                this.ReCount();
+                    if (tempListV2 != null)
+                    {
+                        this.foodSourcesByOrderV2 = new Queue<EatenFoodByPawn>(tempListV2.Where(x => IsEatenFoodSourceByPawnValid(x)));
+                    }
+
+                    this.foodsVarietyInfos = new Dictionary<string, FoodVarietyInfo>(this.maxEatenFoodSourceInMemory + 1);
+                    this.foodsNoVarietyReasons = new Dictionary<EatenFoodByPawn, NoVarietyReason>(this.maxEatenFoodSourceInMemory + 1);
+                    this.KeysOfFoodSourcesWithVariety = new HashSet<string>();
+
+                    this.ReCount();
+                }
             }
         }
 
@@ -267,7 +270,7 @@
 
             if (eatenFoodSourceByPawn.Pawn == null)
             {
-                Log.Warning("DietTracker:: Loaded eaten food source by pawn with null pawn.");
+                Log.Warning($"DietTracker:: Loaded eaten food source by pawn with null pawn.");
                 return false;
             }
 

@@ -22,22 +22,19 @@
 		{
 			try
 			{
-				if (!WildManUtility.NonHumanlikeOrWildMan(ingester) && (ingester.IsColonist || ingester.IsPrisoner || ingester.IsSlave))
-				{
-					Pawn_NeedsTracker needs = ingester.needs;
-					Need_FoodVariety need = needs?.TryGetNeed(DefOf_VarietyMatters.FoodVariety) as Need_FoodVariety;
+				Pawn_NeedsTracker needs = ingester.needs;
+				Need_FoodVariety need = needs?.TryGetNeed(DefOf_VarietyMatters.FoodVariety) as Need_FoodVariety;
 
-					if (need != null && !need.Disabled)
-					{
-						VarietyRecord.UpdateVarietyRecord(ingester, this.parent);
-					}
+				if (need != null && !need.Disabled)
+				{
+					VarietyRecord.UpdateVarietyRecord(ingester, this.parent);
 				}
 			}
 			catch (Exception e)
 			{
 				string error = e.ToString();
 				Log.ErrorOnce(error, error.GetHashCode());
-            }
+			}
 		}
 
 		// Token: 0x06000008 RID: 8 RVA: 0x00002174 File Offset: 0x00000374

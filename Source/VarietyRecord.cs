@@ -12,9 +12,6 @@
 		// Token: 0x06000040 RID: 64 RVA: 0x000048A8 File Offset: 0x00002AA8
 		public VarietyRecord(Game game)
 		{
-			VarietyRecord.varietyRecord = new Dictionary<Pawn, DietTracker>();
-			trackedPawns = new List<Pawn>();
-			pawnRecords = new List<DietTracker>();
 		}
 
 		// Token: 0x06000041 RID: 65 RVA: 0x000048BC File Offset: 0x00002ABC
@@ -26,7 +23,7 @@
 			}
 
             DietTracker tracker;
-			if (!VarietyRecord.varietyRecord.TryGetValue(trackedPawn, out tracker))
+			if (!VarietyRecord.DietRecord.TryGetValue(trackedPawn, out tracker))
 			{
 				tracker = AddVarietyRecord(trackedPawn);
 			}
@@ -42,9 +39,9 @@
             }
 
             var tracker = new DietTracker(pawn);
-            VarietyRecord.varietyRecord.Add(pawn, tracker);
-            VarietyRecord.trackedPawns.Add(pawn);
-            VarietyRecord.pawnRecords.Add(tracker);
+            VarietyRecord.DietRecord.Add(pawn, tracker);
+            VarietyRecord.TrackedPawns.Add(pawn);
+            VarietyRecord.PawnRecords.Add(tracker);
 
 			return tracker;
         }
@@ -62,14 +59,23 @@
                 throw new ArgumentNullException(nameof(foodSourceThing));
             }
 
-            if (!VarietyRecord.varietyRecord.TryGetValue(trackedPawn, out var tracker))
+            if (!VarietyRecord.DietRecord.TryGetValue(trackedPawn, out var tracker))
 			{
 				tracker = AddVarietyRecord(trackedPawn);
 			}
 
             EatenFoodSource foodSource = FoodSourceFactory.CreateOrGetFoodSourceFromThing(foodSourceThing);
 
-			tracker.UpdateMaxFoodInMemory();
+            string newFoodSourceKey = foodSource.GetFoodSourceKey();
+
+            if (ModSettings_VarietyMatters.foodDrugsAreOnlyInMemoryOnce &&
+				foodSource.DrugCategory != RimWorld.DrugCategory.None
+				&& tracker.KeysOfFoodSourcesWithVariety.Contains(newFoodSourceKey))
+            {
+				return;
+            }
+
+            tracker.UpdateMaxFoodInMemory();
 
 			tracker.AddFoodSource(foodSource);
 
@@ -79,20 +85,20 @@
 		// Token: 0x06000043 RID: 67 RVA: 0x0000493C File Offset: 0x00002B3C
 		public static void RemoveTrackedPawn(Pawn trackedPawn)
 		{
-			if (VarietyRecord.varietyRecord.TryGetValue(trackedPawn, out var tracker))
+			if (VarietyRecord.DietRecord.TryGetValue(trackedPawn, out var tracker))
 			{
-				VarietyRecord.varietyRecord.Remove(trackedPawn);
-				VarietyRecord.trackedPawns.Remove(trackedPawn);
-				VarietyRecord.pawnRecords.Remove(tracker);
+				VarietyRecord.DietRecord.Remove(trackedPawn);
+				VarietyRecord.TrackedPawns.Remove(trackedPawn);
+				VarietyRecord.PawnRecords.Remove(tracker);
 			}
 		}
 
 		// Token: 0x06000044 RID: 68 RVA: 0x00004968 File Offset: 0x00002B68
 		public override void FinalizeInit()
 		{
-			if (VarietyRecord.varietyRecord != null)
+			if (VarietyRecord.DietRecord != null)
 			{
-				foreach (Pawn pawn in VarietyRecord.varietyRecord.Keys)
+				foreach (Pawn pawn in VarietyRecord.DietRecord.Keys)
 				{
 					if (pawn.Dead)
 					{
@@ -109,29 +115,14 @@
 		public override void ExposeData()
 		{
 			base.ExposeData();
-			Scribe_Collections.Look<Pawn, DietTracker>(ref VarietyRecord.varietyRecord, "VarietyRecordV2", LookMode.Reference, LookMode.Deep, ref trackedPawns, ref pawnRecords, logNullErrors: true);
-
-            if (varietyRecord == null)
-            {
-                varietyRecord = new Dictionary<Pawn, DietTracker>();
-            }
-
-            if (trackedPawns == null)
-            {
-                trackedPawns = new List<Pawn>();
-            }
-
-            if (pawnRecords == null)
-            {
-                pawnRecords = new List<DietTracker>();
-            }
+			Scribe_Collections.Look<Pawn, DietTracker>(ref VarietyRecord.dietRecord, "VarietyRecordV2", LookMode.Reference, LookMode.Deep, ref trackedPawns, ref pawnRecords, logNullErrors: true);
 
             if (Scribe.mode == LoadSaveMode.Saving)
 			{
-				eatenFoodSources = varietyRecord?.Values?.SelectMany(x => x.EatenFoodSourcesByOrder)?.Select(x => x.Source).Distinct(EatenFoodSourceEqualityComparer.Instance)?.ToList() ?? new List<EatenFoodSource>();
+				eatenFoodSources = DietRecord?.Values?.SelectMany(x => x.EatenFoodSourcesByOrder)?.Select(x => x.Source).Distinct(EatenFoodSourceEqualityComparer.Instance)?.ToList() ?? new List<EatenFoodSource>();
 			}
 
-			Scribe_Collections.Look<EatenFoodSource>(ref eatenFoodSources, "eatenFoodSources", LookMode.Deep);
+			Scribe_Collections.Look<EatenFoodSource>(ref eatenFoodSources, saveDestroyedThings: true, "eatenFoodSources", LookMode.Deep);
 
             if (Scribe.mode == LoadSaveMode.PostLoadInit && eatenFoodSources != null)
 			{
@@ -139,14 +130,54 @@
             }
 		}
 
-		// Token: 0x04000030 RID: 48
-		public static List<DietTracker> pawnRecords = new List<DietTracker>();
+        public static List<DietTracker> PawnRecords
+		{
+			get
+			{
+				if (pawnRecords == null)
+				{
+					pawnRecords = new List<DietTracker>();
+				}
 
-		// Token: 0x04000031 RID: 49
+				return pawnRecords;
+			}
+
+			set => pawnRecords = value;
+		}
+
+        public static List<Pawn> TrackedPawns
+        {
+            get
+            {
+                if (trackedPawns == null)
+                {
+                    trackedPawns = new List<Pawn>();
+                }
+
+                return trackedPawns;
+            }
+
+            set => trackedPawns = value;
+        }
+
+        public static Dictionary<Pawn, DietTracker> DietRecord 
+        {
+            get
+            {
+                if (dietRecord == null)
+                {
+                    dietRecord = new Dictionary<Pawn, DietTracker>();
+                }
+
+                return dietRecord;
+            }
+
+            set => dietRecord = value;
+        }
+
+        public static List<DietTracker> pawnRecords = new List<DietTracker>();
 		private static List<Pawn> trackedPawns = new List<Pawn>();
-
-		// Token: 0x04000032 RID: 50
-		private static Dictionary<Pawn, DietTracker> varietyRecord = new Dictionary<Pawn, DietTracker>();
+		private static Dictionary<Pawn, DietTracker> dietRecord = new Dictionary<Pawn, DietTracker>();
 
 		private static List<EatenFoodSource> eatenFoodSources;
 

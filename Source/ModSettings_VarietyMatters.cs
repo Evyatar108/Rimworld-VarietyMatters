@@ -1,7 +1,9 @@
 ﻿namespace VarietyMatters
 {
+    using RimWorld;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Security.Cryptography;
     using VarietyMatters.New;
     using Verse;
 
@@ -11,29 +13,52 @@
 		// Token: 0x0600000E RID: 14 RVA: 0x00002444 File Offset: 0x00000644
 		public static void GenerateRaces()
 		{
-			bool flag = ModSettings_VarietyMatters.raceVariety == null;
-			if (flag)
+			if (ModSettings_VarietyMatters.raceVariety == null)
 			{
-				ModSettings_VarietyMatters.raceVariety = new Dictionary<string, bool>();
+				ModSettings_VarietyMatters.raceVariety = new Dictionary<string, RaceSetting>();
+            }
+
+			var oldRaceVariety = ModSettings_VarietyMatters.raceVariety;
+
+            ModSettings_VarietyMatters.raceVariety = new Dictionary<string, RaceSetting>();
+
+            var humanlikeDefs = DefDatabase<ThingDef>
+				.AllDefsListForReading
+				.Where(def => def.race != null && def.race.intelligence == Intelligence.Humanlike);
+
+			foreach (ThingDef thingDef in humanlikeDefs)
+            {
+                string key = GetRaceKey(thingDef);
+
+				RaceSetting raceSetting;
+				if (!oldRaceVariety.TryGetValue(key, out raceSetting))
+				{
+					raceSetting = new RaceSetting { name = thingDef.label ?? "null", modName = thingDef.modContentPack?.Name ?? "null", isVarietyEnabled = true };
+				}
+
+				ModSettings_VarietyMatters.raceVariety.Add(key, raceSetting);
 			}
-			foreach (ThingDef thingDef in from def in DefDatabase<ThingDef>.AllDefsListForReading.Where(delegate(ThingDef def)
+
+			ModSettings_VarietyMatters.raceValues = ModSettings_VarietyMatters.raceVariety.Values.ToList();
+			ModSettings_VarietyMatters.raceKeys = ModSettings_VarietyMatters.raceVariety.Keys.ToList();
+        }
+
+		public static string GetRaceKey(ThingDef thingDef)
+		{
+			if (thingDef.modContentPack?.Name == null)
 			{
-				RaceProperties race = def.race;
-				return race != null && race.intelligence == Intelligence.Humanlike && !ModSettings_VarietyMatters.raceVariety.Keys.Contains(def.label);
-			})
-			orderby def.label
-			select def)
-			{
-				ModSettings_VarietyMatters.raceVariety.Add(thingDef.label, true);
+				return thingDef.label;
 			}
-			ModSettings_VarietyMatters.curRaces = ModSettings_VarietyMatters.raceVariety.Keys.ToList<string>();
-			ModSettings_VarietyMatters.curRaces.Sort();
-		}
+
+			return thingDef.modContentPack.Name + "-" + thingDef.label;
+        }
 
 		// Token: 0x0600000F RID: 15 RVA: 0x00002520 File Offset: 0x00000720
 		public override void ExposeData()
 		{
 			Scribe_Values.Look<FoodTrackingType>(ref ModSettings_VarietyMatters.foodTrackingType, "foodTrackingType", FoodTrackingType.ByMealNamesAndIngredientsCombination, false);
+			Scribe_Values.Look<bool>(ref ModSettings_VarietyMatters.nonControlledPawnsHaveVarietyNeed, "nonControlledPawnsHaveVarietyNeed", true, false);
+			Scribe_Values.Look<bool>(ref ModSettings_VarietyMatters.foodDrugsAreOnlyInMemoryOnce, "foodDrugsAreOnlyInMemoryOnce", true, false);
 			Scribe_Values.Look<bool>(ref ModSettings_VarietyMatters.clusterSimilarMealsTogether, "clusterSimilarMealsTogether", true, false);
 			Scribe_Values.Look<bool>(ref ModSettings_VarietyMatters.halveVarietyMoodImpact, "halveVarietyMoodImpact", false, false);
             Scribe_Values.Look<bool>(ref ModSettings_VarietyMatters.stackByIngredients, "stackByIngredients", true, false);
@@ -52,7 +77,7 @@
             Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.prisonerExpectedVarietyPercentage, "prisonerExpectedVarietyPercentage", 50, false);
 			Scribe_Values.Look<bool>(ref ModSettings_VarietyMatters.preferVariety, "preferVariety", true, false);
 			Scribe_Values.Look<bool>(ref ModSettings_VarietyMatters.preferSpoiling, "preferSpoiling", true, false);
-			Scribe_Collections.Look<string, bool>(ref ModSettings_VarietyMatters.raceVariety, "raceVariety", (LookMode)1, (LookMode)1, ref ModSettings_VarietyMatters.raceKeys, ref ModSettings_VarietyMatters.raceValues, true);
+			Scribe_Collections.Look<string, RaceSetting>(ref ModSettings_VarietyMatters.raceVariety, "raceVarietyV2", LookMode.Value, LookMode.Deep, ref ModSettings_VarietyMatters.raceKeys, ref ModSettings_VarietyMatters.raceValues, true);
 
             base.ExposeData();
 		}
@@ -65,6 +90,10 @@
 
 		// Token: 0x04000010 RID: 16
 		public static bool stackByIngredients = true;
+
+		public static bool nonControlledPawnsHaveVarietyNeed = true;
+
+		public static bool foodDrugsAreOnlyInMemoryOnce = true;
 
 		public static bool moreVarietyMemory = false;
 
@@ -107,15 +136,12 @@
 		public static bool preferSpoiling = true;
 
 		// Token: 0x0400001F RID: 31
-		public static Dictionary<string, bool> raceVariety = new Dictionary<string, bool>();
+		public static Dictionary<string, RaceSetting> raceVariety = new Dictionary<string, RaceSetting>();
 
 		// Token: 0x04000020 RID: 32
 		public static List<string> raceKeys = new List<string>();
 
 		// Token: 0x04000021 RID: 33
-		public static List<bool> raceValues = new List<bool>();
-
-		// Token: 0x04000022 RID: 34
-		public static List<string> curRaces = new List<string>();
+		public static List<RaceSetting> raceValues = new List<RaceSetting>();
     }
 }

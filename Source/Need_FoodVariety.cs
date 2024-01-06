@@ -121,7 +121,13 @@
                     return true;
                 }
 
-                bool isRaceWithVariety = ModSettings_VarietyMatters.raceVariety.ContainsKey(this.pawn.def.label) && ModSettings_VarietyMatters.raceVariety[this.pawn.def.label];
+                if (!this.pawn.Faction.IsPlayer && !ModSettings_VarietyMatters.nonControlledPawnsHaveVarietyNeed)
+                {
+                    return true;
+                }
+
+                string raceKey = ModSettings_VarietyMatters.GetRaceKey(this.pawn.def);
+                bool isRaceWithVariety = ModSettings_VarietyMatters.raceVariety.TryGetValue(raceKey, out var settings) && settings.isVarietyEnabled;
 				return !isRaceWithVariety;
 			}
 		}
@@ -217,7 +223,7 @@
             StringBuilder stringBuilder = new StringBuilder(", the most recent ones were:\n");
 
             int i = 0;
-            int maxViewableRecentMeals = 7;
+            int maxViewableRecentMeals = 5;
             foreach ((EatenFoodSource eatenFoodSource, FoodVarietyInfo foodVarietyInfo, NoVarietyReason? noVarietyReason) in foodsVarietyInfoInIngestionOrder)
             {
                 if (foodVarietyInfo == null && noVarietyReason == null)

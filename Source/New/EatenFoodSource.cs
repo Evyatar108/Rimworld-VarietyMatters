@@ -21,9 +21,11 @@
 
             this.MealTypeAsString = new FastLazy<string>(() => $"{rottenString}{this.MealType}");
 
-            this.MealAsString = new FastLazy<string>(() => $"{rottenString}{this.ThingLabel}");
+            this.NormalizedThingName = new FastLazy<string>(() => MealQualifiers.RemoveMealCountQualifiersFromMealLabel(this.ThingLabel));
 
-            this.MealNameAndTypeAsString = new FastLazy<string>(() => $"{rottenString}{this.ThingLabel} (type: {this.MealTypeAsString})");
+            this.MealAsString = new FastLazy<string>(() => $"{rottenString}{this.NormalizedThingName}");
+
+            this.MealNameAndTypeAsString = new FastLazy<string>(() => $"{rottenString}{this.NormalizedThingName} (type: {this.MealTypeAsString})");
 
             this.IngredientsAsString = new FastLazy<string>(() => $"{rottenString}meal, ingredients: {ingredientsString}");
 
@@ -33,7 +35,7 @@
 
             this.MealNameAndTypeAndIngredientsAsString = new FastLazy<string>(() => $"{this.MealNameAndTypeAsString}, ingredients: {ingredientsString}");
 
-            this.HasMealType = new FastLazy<bool>(() => !this.isForgotten && this.ThingLabel != this.MealType);
+            this.HasMealType = new FastLazy<bool>(() => !this.isForgotten && this.NormalizedThingName != this.MealType);
         }
 
         public EatenFoodSource(Thing foodSourceThing)
@@ -73,6 +75,7 @@
             this.IsHumanlikeCorpseOrHumanlikeMeatOrIngredient = new FastLazy<bool>(() => FoodUtility.IsHumanlikeCorpseOrHumanlikeMeatOrIngredient(foodSourceThing));
             this.MeatSourceCategory = new FastLazy<MeatSourceCategory>(() => FoodUtility.GetMeatSourceCategory(foodSourceThing.def));
             this.FoodPreferability = foodSourceThing.def.ingestible.preferability;
+            this.DrugCategory = foodSourceThing.def.ingestible.drugCategory;
 
             this.IsFungus = foodSourceThing.def.IsFungus;
         }
@@ -103,6 +106,13 @@
         {
             get => this.foodPreferability;
             private set => this.foodPreferability = value;
+        }
+
+        private DrugCategory drugCategory;
+        public DrugCategory DrugCategory
+        {
+            get => this.drugCategory;
+            private set => this.drugCategory = value;
         }
 
         private List<ThingDef> ingredients;
@@ -178,6 +188,8 @@
         public FastLazy<string> MealTypeAsString { get; }
 
         public FastLazy<bool> HasMealType { get; }
+
+        public FastLazy<string> NormalizedThingName { get; }
 
         public void ExposeData()
         {
@@ -310,7 +322,7 @@
             if (this.foodPreferability < FoodPreferability.MealSimple)
             {
                 // It's not a meal, return the same type as the name of the meal.
-                return this.ThingLabel;
+                return MealQualifiers.RemoveMealCountQualifiersFromMealLabel(this.ThingLabel);
             }
 
             var mealLabelWithoutQualifiers = MealQualifiers.RemoveMealQualifiersFromMealLabel(this.ThingLabel);
