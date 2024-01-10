@@ -99,6 +99,16 @@
         public void AddFoodSource(EatenFoodSource eatenFoodSource)
         {
             var eatenFoodbyPawn = new EatenFoodByPawn(this.pawn, eatenFoodSource);
+
+            if (ModSettings_VarietyMatters.foodDrugsAreOnlyInMemoryOnce &&
+                eatenFoodbyPawn.Source.DrugCategory != RimWorld.DrugCategory.None
+                && this.KeysOfFoodSourcesWithVariety.Contains(eatenFoodbyPawn.Source.GetFoodSourceKey()))
+            {
+                this.RemoveFoodFromQueueAndCountBasedOnKey(eatenFoodbyPawn.Source.GetFoodSourceKey());
+                this.AddFoodSourceToMemory(eatenFoodbyPawn);
+                return;
+            }
+
             this.AddFoodSourceToMemory(eatenFoodbyPawn);
 
             if (this.foodSourcesByOrderV2.Count > this.maxEatenFoodSourceInMemory)
@@ -190,28 +200,51 @@
             }
         }
 
+        private void RemoveFoodFromQueueAndCountBasedOnKey(string key)
+        {
+            var newQueue = new Queue<EatenFoodByPawn>();
+            foreach (EatenFoodByPawn eatenFoodSource in this.foodSourcesByOrderV2)
+            {
+                if (eatenFoodSource.Source.GetFoodSourceKey() == key)
+                {
+                    this.RemoveFoodFromCount(eatenFoodSource);
+                }
+                else
+                {
+                    newQueue.Enqueue(eatenFoodSource);
+                }
+            }
+
+            this.foodSourcesByOrderV2 = newQueue;
+        }
+
         private void RemoveOldestFoodSourceFromMemory()
         {
             EatenFoodByPawn oldestEatenFood = this.foodSourcesByOrderV2.Dequeue();
-            string oldestFoodSourceKey = oldestEatenFood.Source.GetFoodSourceKey();
-            if (this.foodsVarietyInfos.TryGetValue(oldestFoodSourceKey, out FoodVarietyInfo foodSourceInfoForPawn))
+            this.RemoveFoodFromCount(oldestEatenFood);
+        }
+
+        private void RemoveFoodFromCount(EatenFoodByPawn eatenFoodSource)
+        {
+            string key = eatenFoodSource.Source.GetFoodSourceKey();
+            if (this.foodsVarietyInfos.TryGetValue(key, out FoodVarietyInfo foodSourceInfoForPawn))
             {
                 foodSourceInfoForPawn.CountInMemory--;
-                foodSourceInfoForPawn.FoodSources.Remove(oldestEatenFood.Source);
+                foodSourceInfoForPawn.FoodSources.Remove(eatenFoodSource.Source);
                 if (foodSourceInfoForPawn.CountInMemory == 0)
                 {
-                    this.foodsVarietyInfos.Remove(oldestFoodSourceKey);
+                    this.foodsVarietyInfos.Remove(key);
                     this.totalVariety--;
-                    this.KeysOfFoodSourcesWithVariety.Remove(oldestFoodSourceKey);
+                    this.KeysOfFoodSourcesWithVariety.Remove(key);
                 }
                 else if (foodSourceInfoForPawn.FoodSources[0].IsForgotten)
                 {
                     this.totalVariety--;
                 }
             }
-            else 
+            else
             {
-                this.foodsNoVarietyReasons.Remove(oldestEatenFood);
+                this.foodsNoVarietyReasons.Remove(eatenFoodSource);
             }
         }
 

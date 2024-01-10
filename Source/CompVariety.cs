@@ -40,6 +40,11 @@
 		// Token: 0x06000008 RID: 8 RVA: 0x00002174 File Offset: 0x00000374
 		public override bool AllowStackWith(Thing other)
 		{
+			if (this.parent.def.label == "kibble")
+			{
+				return true;
+			}
+
 			if (ModSettings_VarietyMatters.foodTrackingType != New.FoodTrackingType.ByMealNames && ModSettings_VarietyMatters.stackByIngredients)
 			{
 				CompIngredients parentIngredients = this.parent.GetComp<CompIngredients>();

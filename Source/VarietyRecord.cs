@@ -68,13 +68,6 @@
 
             string newFoodSourceKey = foodSource.GetFoodSourceKey();
 
-            if (ModSettings_VarietyMatters.foodDrugsAreOnlyInMemoryOnce &&
-				foodSource.DrugCategory != RimWorld.DrugCategory.None
-				&& tracker.KeysOfFoodSourcesWithVariety.Contains(newFoodSourceKey))
-            {
-				return;
-            }
-
             tracker.UpdateMaxFoodInMemory();
 
 			tracker.AddFoodSource(foodSource);

@@ -45,12 +45,7 @@
 
 		public static string GetRaceKey(ThingDef thingDef)
 		{
-			if (thingDef.modContentPack?.Name == null)
-			{
-				return thingDef.label;
-			}
-
-			return thingDef.modContentPack.Name + "-" + thingDef.label;
+			return thingDef.modContentPack.Name + "-" + thingDef.defName;
         }
 
 		// Token: 0x0600000F RID: 15 RVA: 0x00002520 File Offset: 0x00000720

@@ -12,8 +12,8 @@
 		// Token: 0x06000021 RID: 33 RVA: 0x00003540 File Offset: 0x00001740
 		public static void Prefix(CompIngredients __instance, Thing otherStack, ref List<ThingDef> __state)
 		{
-			bool flag = ModSettings_VarietyMatters.foodTrackingType == New.FoodTrackingType.ByMealNames || ModSettings_VarietyMatters.numIngredients <= 3 || __instance.ingredients.Count == 0;
-			if (!flag)
+			bool flag = ModSettings_VarietyMatters.foodTrackingType == New.FoodTrackingType.ByMealNames || ModSettings_VarietyMatters.numIngredients <= 3 || __instance.ingredients.Count == 0 || __instance.parent.def.label == "kibble";
+            if (!flag)
 			{
 				__state = ThingCompUtility.TryGetComp<CompIngredients>(otherStack).ingredients;
 				for (int i = 0; i < __instance.ingredients.Count; i++)
@@ -30,7 +30,7 @@
 		public static void Postfix(ref CompIngredients __instance, ref List<ThingDef> __state)
 		{
 			bool ignoreIngredients = ModSettings_VarietyMatters.foodTrackingType == New.FoodTrackingType.ByMealNames;
-			if (!ignoreIngredients)
+			if (!ignoreIngredients && __instance.parent.def.label != "kibble")
 			{
 				int num = __instance.ingredients.Count;
 				if (num < ModSettings_VarietyMatters.numIngredients && __state != null && __state.Count > num)
