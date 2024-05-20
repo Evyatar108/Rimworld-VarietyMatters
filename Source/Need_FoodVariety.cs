@@ -105,7 +105,7 @@
 		{
 			get
 			{
-				bool doesNotHaveVarietyNeed = this.pawn.Dead || !TraitDef_ModExtension.NeedsVariety(this.pawn) || this.pawn.needs.food == null || this.pawn.needs.mood == null;
+				bool doesNotHaveVarietyNeed = this.pawn.Dead || !TraitDef_ModExtension.NeedsVariety(this.pawn) || this.pawn.needs?.food == null || this.pawn.needs?.mood == null;
 				if (doesNotHaveVarietyNeed)
 				{
 					return true;
@@ -121,13 +121,13 @@
                     return true;
                 }
 
-                if (!this.pawn.Faction.IsPlayer && !ModSettings_VarietyMatters.nonControlledPawnsHaveVarietyNeed)
+                if (!this.pawn.Faction?.IsPlayer == true && !ModSettings_VarietyMatters.nonControlledPawnsHaveVarietyNeed)
                 {
                     return true;
                 }
 
                 string raceKey = ModSettings_VarietyMatters.GetRaceKey(this.pawn.def);
-                bool isRaceWithVariety = ModSettings_VarietyMatters.raceVariety.TryGetValue(raceKey, out var settings) && settings.isVarietyEnabled;
+                bool isRaceWithVariety = ModSettings_VarietyMatters.raceVariety.TryGetValue(raceKey, out var settings) && settings?.isVarietyEnabled == true;
 				return !isRaceWithVariety;
 			}
 		}

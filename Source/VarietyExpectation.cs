@@ -33,7 +33,7 @@
                 case var _ when expectationDef == ExpectationDefOf.High:
                     expectedVariety = ModSettings_VarietyMatters.highVariety;
                     break;
-                case var _ when expectationDef == ExpectationDefOf.SkyHigh:
+                case var _ when expectationDef == DefOf_VarietyMatters.SkyHigh:
                     expectedVariety = ModSettings_VarietyMatters.skyHighVariety;
                     break;
                 default:

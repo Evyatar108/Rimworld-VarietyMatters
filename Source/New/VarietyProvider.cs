@@ -161,7 +161,7 @@
 
         private static bool IsCannibal(Pawn pawn)
         {
-            return pawn.story?.traits?.HasTrait(TraitDefOf.Cannibal) == true ||
+            return pawn.story?.traits?.HasTrait(DefOf_VarietyMatters.Cannibal) == true ||
                    (pawn.Ideo != null && pawn.Ideo.HasAnyCannibalismPrecept());
         }
 

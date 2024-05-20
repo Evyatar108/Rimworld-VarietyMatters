@@ -115,7 +115,7 @@
 				eatenFoodSources = DietRecord?.Values?.SelectMany(x => x.EatenFoodSourcesByOrder)?.Select(x => x.Source).Distinct(EatenFoodSourceEqualityComparer.Instance)?.ToList() ?? new List<EatenFoodSource>();
 			}
 
-			Scribe_Collections.Look<EatenFoodSource>(ref eatenFoodSources, saveDestroyedThings: true, "eatenFoodSources", LookMode.Deep);
+			Scribe_Collections.Look<EatenFoodSource>(ref eatenFoodSources, label: "eatenFoodSources", saveDestroyedThings: true, LookMode.Deep);
 
             if (Scribe.mode == LoadSaveMode.PostLoadInit && eatenFoodSources != null)
 			{

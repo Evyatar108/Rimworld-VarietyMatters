@@ -30,5 +30,9 @@
         public static PreceptDef InsectMeatEating_Despised_Classic;
 
         public static ThingDef MealNutrientPaste;
+
+        public static ExpectationDef SkyHigh;
+
+        public static TraitDef Cannibal;
     }
 }
