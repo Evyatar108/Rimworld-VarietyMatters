@@ -40,7 +40,7 @@
 
             Rect rect = new Rect(10f, 0f, inRect.width * 0.5f, viewRect1.height*1.05f);
 			listing_Standard.Begin(rect);
-			listing_Standard.Label("Variety Tracking Options:", -1f, null);
+			listing_Standard.Label("Variety Tracking Options:", -1f);
 
 			var previousFoodTrackingType = ModSettings_VarietyMatters.foodTrackingType;
 			var previousClusterSimilarMealsTogether = ModSettings_VarietyMatters.clusterSimilarMealsTogether;
@@ -63,7 +63,7 @@
 				ModSettings_VarietyMatters.foodTrackingType = FoodTrackingType.ByMealNames;
 			}
 
-			listing_Standard.Label("Other Options:", -1f, null);
+			listing_Standard.Label("Other Options:", -1f);
 			listing_Standard.CheckboxLabeled("    Non controlled pawns also have variety need: ", ref ModSettings_VarietyMatters.nonControlledPawnsHaveVarietyNeed, null, 0f, 1f);
             listing_Standard.CheckboxLabeled("    Foods that are also drugs are stored in memory just once: ", ref ModSettings_VarietyMatters.foodDrugsAreOnlyInMemoryOnce, "Foods that also serve as drugs are stored in memory only once. This allows for a scheduled intake of these substances without diminishing variety, while still enjoying the benefits of having them considered as variety if the pawns likes them as food.", 0f, 1f);
 			bool flag4 = ModSettings_VarietyMatters.foodTrackingType != FoodTrackingType.ByMealNames;
@@ -81,7 +81,7 @@
 					ModSettings_VarietyMatters.clusterSimilarMealsTogether = false;
                 }
 
-				listing_Standard.Label("    ^For example, Fine and Lavish meals will counted as one type", -1f, null);
+				listing_Standard.Label("    ^For example, Fine and Lavish meals will counted as one type", -1f);
 
 				string label = "    Ingredients When Stacking (vanilla = 3):";
 				string text = ModSettings_VarietyMatters.numIngredients.ToString();
@@ -165,7 +165,7 @@
             }
 
             listing_Standard.GapLine(12f);
-			listing_Standard.Label("Optional Variety Expectation Adjustments Factors:", -1f, null);
+			listing_Standard.Label("Optional Variety Expectation Adjustments Factors:", -1f);
             listing_Standard.CheckboxLabeled("    Reduce variety mood effect: ", ref ModSettings_VarietyMatters.halveVarietyMoodImpact, null, 0f, 1f);
             listing_Standard.CheckboxLabeled("    Longer variety meals memory for pawns (Easier): ", ref ModSettings_VarietyMatters.moreVarietyMemory, null, 0f, 1f);
             listing_Standard.End();
