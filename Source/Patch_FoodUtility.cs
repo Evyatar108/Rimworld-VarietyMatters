@@ -20,28 +20,29 @@
 				return;
 			}
 
+			CompVariety compVariety = ThingCompUtility.TryGetComp<CompVariety>(foodSource);
 			DietTracker dietTracker = VarietyRecord.GetVarietyRecord(eater);
 			if (dietTracker?.MostRecentEatenFoodSource == null
 				|| foodSource.def.ingestible == null
-                || ThingCompUtility.TryGetComp<CompVariety>(foodSource) == null
+			             || compVariety == null
 				|| eater.needs.TryGetNeed<Need_FoodVariety>() == null
 				|| eater.needs.TryGetNeed<Need_FoodVariety>().Disabled
 				|| FoodUtility.Starving(eater)
 				|| eater.health.hediffSet.HasHediff(HediffDefOf.FoodPoisoning, true)
 				|| HealthAIUtility.ShouldSeekMedicalRest(eater)
 				|| FoodUtility.WillGiveNegativeThoughts(foodSource, eater))
-            {
+			{
 				return;
 			}
 
-            HashSet<string> keysOfFoodSourcesWithVariety = dietTracker.KeysOfFoodSourcesWithVariety;
+			         HashSet<string> keysOfFoodSourcesWithVariety = dietTracker.KeysOfFoodSourcesWithVariety;
 
-            string newFoodSourceKey = FoodSourceFactory.CreateOrGetFoodSourceFromThing(foodSource).GetFoodSourceKey();
+			         string newFoodSourceKey = compVariety.GetFoodSourceKey();
 
-            if (!keysOfFoodSourcesWithVariety.Contains(newFoodSourceKey))
-            {
-                __result += 60f;
-            }
+			         if (!keysOfFoodSourcesWithVariety.Contains(newFoodSourceKey))
+			         {
+			             __result += 60f;
+			         }
         }
     }
 }

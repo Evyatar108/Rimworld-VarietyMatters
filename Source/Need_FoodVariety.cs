@@ -203,68 +203,59 @@
 
         private string GetEatenFoodSourcesDescription(DietTracker dietTracker)
         {
-            IEnumerable<(EatenFoodSource eatenFoodSource, FoodVarietyInfo foodVarietyInfo, NoVarietyReason? noVarietyReason)> foodsVarietyInfoInIngestionOrder =
-                dietTracker.GetFoodVarietyInfoForPawnInIngestionOrder().Reverse();
-            Dictionary<int, int> totalAppearancesOfFoodSources = new Dictionary<int, int>();
-            Dictionary<int, int> appearancesOfFoodSourcesSoFar = new Dictionary<int, int>();
-            foreach ((EatenFoodSource eatenFoodSource, FoodVarietyInfo foodVarietyInfo, NoVarietyReason? noVarietyReason) in foodsVarietyInfoInIngestionOrder)
+            var foodsVarietyInfoInIngestionOrder = dietTracker.GetFoodVarietyInfoForPawnInIngestionOrder().ToList();
+            var totalAppearancesOfFoodSources = new Dictionary<int, int>();
+
+            foreach (var (eatenFoodSource, foodVarietyInfo, _) in foodsVarietyInfoInIngestionOrder)
             {
                 var key = GetEatenFoodSourceCountKey(eatenFoodSource, foodVarietyInfo);
-                if (!totalAppearancesOfFoodSources.TryGetValue(key, out var count))
+                if (!totalAppearancesOfFoodSources.ContainsKey(key))
                 {
-                    count = 0;
+                    totalAppearancesOfFoodSources[key] = 0;
                 }
-
-                totalAppearancesOfFoodSources[key] = count + 1;
-                appearancesOfFoodSourcesSoFar[key] = 0;
+                totalAppearancesOfFoodSources[key]++;
             }
 
-
-            StringBuilder stringBuilder = new StringBuilder(", the most recent ones were:\n");
-
-            int i = 0;
+            var stringBuilder = new StringBuilder(", the most recent ones were:\n");
+            var appearancesOfFoodSourcesSoFar = new Dictionary<int, int>();
             int maxViewableRecentMeals = 5;
-            foreach ((EatenFoodSource eatenFoodSource, FoodVarietyInfo foodVarietyInfo, NoVarietyReason? noVarietyReason) in foodsVarietyInfoInIngestionOrder)
+
+            for (int i = foodsVarietyInfoInIngestionOrder.Count - 1; i >= 0 && (foodsVarietyInfoInIngestionOrder.Count - 1 - i) < maxViewableRecentMeals; i--)
             {
+                var (eatenFoodSource, foodVarietyInfo, noVarietyReason) = foodsVarietyInfoInIngestionOrder[i];
+
                 if (foodVarietyInfo == null && noVarietyReason == null)
                 {
                     Log.Warning("Found eaten food source with null variety info and null no variety reason");
                     continue;
                 }
 
-                if (i >= maxViewableRecentMeals)
-                {
-                    break;
-                }
-
                 stringBuilder.AppendLine();
 
                 string foodKey = eatenFoodSource.GetFoodSourceKey();
-
                 int countKey = GetEatenFoodSourceCountKey(eatenFoodSource, foodVarietyInfo);
 
+                if (!appearancesOfFoodSourcesSoFar.ContainsKey(countKey))
+                {
+                    appearancesOfFoodSourcesSoFar[countKey] = 0;
+                }
                 appearancesOfFoodSourcesSoFar[countKey]++;
 
-                int timesAlreadyIngestedSoFar = totalAppearancesOfFoodSources[countKey] - appearancesOfFoodSourcesSoFar[countKey] + 1;
-
+                int timesAlreadyIngestedSoFar = appearancesOfFoodSourcesSoFar[countKey];
                 string foodInfo = GenText.CapitalizeFirst(eatenFoodSource.ToString());
-
                 int seed = (foodKey, timesAlreadyIngestedSoFar).GetHashCode();
 
                 string varietyInfo = foodVarietyInfo != null
-                    ? (eatenFoodSource.IsForgotten ? this.GetVarietyInfoForForgotten(seed) : this.GetVarietyInfoBasedOnIngestionCount(timesAlreadyIngestedSoFar, seed))
-                    : this.GetVarietyInfoBasedOnNoVarietyReason(noVarietyReason.Value, seed);
+                    ? (eatenFoodSource.IsForgotten ? GetVarietyInfoForForgotten(seed) : GetVarietyInfoBasedOnIngestionCount(timesAlreadyIngestedSoFar, seed))
+                    : GetVarietyInfoBasedOnNoVarietyReason(noVarietyReason.Value, seed);
 
                 stringBuilder.Append(" ◊  ").Append(foodInfo);
-
                 stringBuilder.AppendLine();
-
                 stringBuilder.Append("✧ ").AppendLine(varietyInfo);
 
                 if (foodVarietyInfo != null && !eatenFoodSource.IsForgotten && foodVarietyInfo.CountInMemory > 1)
                 {
                     stringBuilder.Append("☆ ").Append("Appearance ").Append(timesAlreadyIngestedSoFar).Append(" out of ").Append(foodVarietyInfo.CountInMemory);
-
 
                     if (ModSettings_VarietyMatters.clusterSimilarMealsTogether && eatenFoodSource.HasMealType)
                     {
@@ -296,11 +287,8 @@
                                 break;
                         }
                     }
-
                     stringBuilder.AppendLine();
                 }
-
-                i++;
             }
 
             return stringBuilder.ToString();

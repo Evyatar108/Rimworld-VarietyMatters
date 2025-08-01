@@ -1,21 +1,25 @@
 ﻿namespace VarietyMatters
 {
     using System;
+    using System.Linq;
     using RimWorld;
     using Verse;
 
     // Token: 0x02000006 RID: 6
     public class CompVariety : ThingComp
-	{
-		// Token: 0x17000001 RID: 1
-		// (get) Token: 0x06000006 RID: 6 RVA: 0x0000210F File Offset: 0x0000030F
-		public CompProperties_Variety Props
-		{
-			get
-			{
-				return (CompProperties_Variety)this.props;
-			}
-		}
+  {
+        private string cachedIngredientsKey;
+        private string cachedFoodSourceKey;
+
+        // Token: 0x17000001 RID: 1
+        // (get) Token: 0x06000006 RID: 6 RVA: 0x0000210F File Offset: 0x0000030F
+        public CompProperties_Variety Props
+   {
+   get
+   {
+    return (CompProperties_Variety)this.props;
+   }
+  }
 
 		// Token: 0x06000007 RID: 7 RVA: 0x0000211C File Offset: 0x0000031C
 		public override void PostIngested(Pawn ingester)
@@ -33,48 +37,57 @@
 			catch (Exception e)
 			{
 				string error = e.ToString();
+				
 				Log.ErrorOnce(error, error.GetHashCode());
 			}
 		}
 
-		// Token: 0x06000008 RID: 8 RVA: 0x00002174 File Offset: 0x00000374
-		public override bool AllowStackWith(Thing other)
-		{
-			if (this.parent.def.label == "kibble")
-			{
-				return true;
-			}
+				   public string GetFoodSourceKey()
+				   {
+				       if (cachedFoodSourceKey == null)
+				       {
+				           cachedFoodSourceKey = new New.EatenFoodSource(parent).GetFoodSourceKey();
+				       }
+				       return cachedFoodSourceKey;
+				   }
 
-			if (ModSettings_VarietyMatters.foodTrackingType != New.FoodTrackingType.ByMealNames && ModSettings_VarietyMatters.stackByIngredients)
-			{
-				CompIngredients parentIngredients = this.parent.GetComp<CompIngredients>();
-				CompIngredients otherIngredients = ((ThingWithComps)other).GetComp<CompIngredients>();
-				bool nullIngredients = parentIngredients == null || otherIngredients == null;
-				if (nullIngredients)
-				{
-					return true;
-				}
-				bool emptyIngredients = parentIngredients.ingredients.Count == 0 && otherIngredients.ingredients.Count == 0;
-				if (emptyIngredients)
-				{
-					return true;
-				}
-				bool differentIngredientCount = parentIngredients.ingredients.Count != otherIngredients.ingredients.Count;
-				if (differentIngredientCount)
-				{
-					return false;
-				}
-				for (int i = 0; i < parentIngredients.ingredients.Count; i++)
-				{
-					bool doesNotHaveIngredient = !otherIngredients.ingredients.Contains(parentIngredients.ingredients[i]);
-					if (doesNotHaveIngredient)
-					{
-						return false;
-					}
-				}
-			}
-			return true;
-		}
+		// Token: 0x06000008 RID: 8 RVA: 0x00002174 File Offset: 0x00000374
+		      public string GetIngredientsKey()
+		      {
+		          if (cachedIngredientsKey == null)
+		          {
+		              CompIngredients ingredients = this.parent.GetComp<CompIngredients>();
+		              if (ingredients == null || ingredients.ingredients.Count == 0)
+		              {
+		                  cachedIngredientsKey = "";
+		              }
+		              else
+		              {
+		                  cachedIngredientsKey = string.Join(",", ingredients.ingredients.Select(x => x.defName).OrderBy(x => x));
+		              }
+		          }
+		          return cachedIngredientsKey;
+		      }
+
+		      public override bool AllowStackWith(Thing other)
+		      {
+		          if (this.parent.def.label == "kibble")
+		          {
+		              return true;
+		          }
+
+		          if (ModSettings_VarietyMatters.foodTrackingType != New.FoodTrackingType.ByMealNames && ModSettings_VarietyMatters.stackByIngredients)
+		          {
+		              CompVariety otherComp = other.TryGetComp<CompVariety>();
+		              if (otherComp == null)
+		              {
+		                  return true;
+		              }
+
+		              return this.GetIngredientsKey() == otherComp.GetIngredientsKey();
+		          }
+		          return true;
+		      }
 
 		// Token: 0x06000009 RID: 9 RVA: 0x0000226C File Offset: 0x0000046C
 		public static void FoodsAvailable()
