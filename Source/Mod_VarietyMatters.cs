@@ -6,6 +6,7 @@
     using RimWorld;
     using UnityEngine;
     using VarietyMatters.New;
+    using VarietyMatters.New.Performance;
     using Verse;
     using Verse.Sound;
 
@@ -89,14 +90,10 @@
 			}
 
             if (ModSettings_VarietyMatters.foodTrackingType != previousFoodTrackingType
-				|| ModSettings_VarietyMatters.clusterSimilarMealsTogether != previousClusterSimilarMealsTogether)
+    || ModSettings_VarietyMatters.clusterSimilarMealsTogether != previousClusterSimilarMealsTogether)
             {
-                foreach (DietTracker dietTracker in VarietyRecord.PawnRecords)
-                {
-                    dietTracker.ReCount();
-
-                    VarietyAdjuster.AdjustVarietyLevel(dietTracker);
-                }
+                // Use debounced recalculation to prevent UI freezing
+                DebouncedSettingsHandler.QueueRecalculation();
             }
 
             if (ModSettings_VarietyMatters.foodTrackingType != previousFoodTrackingType

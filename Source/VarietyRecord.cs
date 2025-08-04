@@ -2,7 +2,6 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Linq;
     using VarietyMatters.New;
     using Verse;
 
@@ -111,9 +110,9 @@
 			Scribe_Collections.Look<Pawn, DietTracker>(ref VarietyRecord.dietRecord, "VarietyRecordV2", LookMode.Reference, LookMode.Deep, ref trackedPawns, ref pawnRecords, logNullErrors: true);
 
             if (Scribe.mode == LoadSaveMode.Saving)
-			{
-				eatenFoodSources = DietRecord?.Values?.SelectMany(x => x.EatenFoodSourcesByOrder)?.Select(x => x.Source).Distinct(EatenFoodSourceEqualityComparer.Instance)?.ToList() ?? new List<EatenFoodSource>();
-			}
+   {
+    eatenFoodSources = GetDistinctEatenFoodSources();
+   }
 
 			Scribe_Collections.Look<EatenFoodSource>(ref eatenFoodSources, label: "eatenFoodSources", saveDestroyedThings: true, LookMode.Deep);
 
@@ -173,6 +172,38 @@
 		private static Dictionary<Pawn, DietTracker> dietRecord = new Dictionary<Pawn, DietTracker>();
 
 		private static List<EatenFoodSource> eatenFoodSources;
+
+		      /// <summary>
+		      /// Optimized method to get distinct eaten food sources without expensive LINQ chains
+		      /// </summary>
+		      private static List<EatenFoodSource> GetDistinctEatenFoodSources()
+		      {
+		          if (DietRecord?.Values == null)
+		              return new List<EatenFoodSource>();
+
+		          var seen = new HashSet<string>(); // Use string hash instead of object comparison
+		          var result = new List<EatenFoodSource>();
+
+		          foreach (var tracker in DietRecord.Values)
+		          {
+		              if (tracker?.EatenFoodSourcesByOrder == null)
+		                  continue;
+
+		              foreach (var eatenByPawn in tracker.EatenFoodSourcesByOrder)
+		              {
+		                  if (eatenByPawn?.Source == null)
+		                      continue;
+
+		                  string uniqueId = eatenByPawn.Source.GetUniqueLoadID();
+		                  if (seen.Add(uniqueId)) // HashSet.Add returns true if item was not already present
+		                  {
+		                      result.Add(eatenByPawn.Source);
+		                  }
+		              }
+		          }
+
+		          return result;
+		      }
 
         private class EatenFoodSourceEqualityComparer : IEqualityComparer<EatenFoodSource>
         {

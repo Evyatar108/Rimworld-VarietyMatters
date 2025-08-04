@@ -13,29 +13,8 @@
 
         public EatenFoodSource()
         {
-            FastLazy<string> rottenString = new FastLazy<string>(() => this.IsRotten ? "Rotten " : string.Empty);
-
-            FastLazy<string> ingredientsString = new FastLazy<string>(() => this.IngredientsDefs.Count > 0 ? string.Join(", ", this.IngredientsDefs.Select(x => x.label)) : "Unknown");
-
-            this.MealType = new FastLazy<string>(() => this.GetMealType());
-
-            this.MealTypeAsString = new FastLazy<string>(() => $"{rottenString}{this.MealType}");
-
-            this.NormalizedThingName = new FastLazy<string>(() => MealQualifiers.RemoveMealCountQualifiersFromMealLabel(this.ThingLabel));
-
-            this.MealAsString = new FastLazy<string>(() => $"{rottenString}{this.NormalizedThingName}");
-
-            this.MealNameAndTypeAsString = new FastLazy<string>(() => $"{rottenString}{this.NormalizedThingName} (type: {this.MealTypeAsString})");
-
-            this.IngredientsAsString = new FastLazy<string>(() => $"{rottenString}meal, ingredients: {ingredientsString}");
-
-            this.MealTypeAndIngredientsAsString = new FastLazy<string>(() => $"{this.MealTypeAsString}, ingredients: {ingredientsString}");
-
-            this.MealAndIngredientsAsString = new FastLazy<string>(() => $"{this.MealAsString}, ingredients: {ingredientsString}");
-
-            this.MealNameAndTypeAndIngredientsAsString = new FastLazy<string>(() => $"{this.MealNameAndTypeAsString}, ingredients: {ingredientsString}");
-
-            this.HasMealType = new FastLazy<bool>(() => !this.isForgotten && this.NormalizedThingName != this.MealType);
+            // Use consolidated food strings to reduce FastLazy object proliferation
+            consolidatedStrings = new FastLazy<ConsolidatedFoodStrings>(() => new ConsolidatedFoodStrings(this));
         }
 
         public EatenFoodSource(Thing foodSourceThing)
@@ -171,25 +150,19 @@
             private set => this.isFungus = value;
         }
 
-        public FastLazy<string> IngredientsAsString { get; }
+        // Consolidated string properties using single FastLazy object
+        private FastLazy<ConsolidatedFoodStrings> consolidatedStrings;
 
-        public FastLazy<string> MealAndIngredientsAsString { get; }
-
-        public FastLazy<string> MealTypeAndIngredientsAsString { get; }
-
-        public FastLazy<string> MealNameAndTypeAndIngredientsAsString { get; }
-
-        public FastLazy<string> MealAsString { get; }
-
-        public FastLazy<string> MealNameAndTypeAsString { get; }
-
-        public FastLazy<string> MealType { get; }
-
-        public FastLazy<string> MealTypeAsString { get; }
-
-        public FastLazy<bool> HasMealType { get; }
-
-        public FastLazy<string> NormalizedThingName { get; }
+        public string IngredientsAsString => consolidatedStrings.Value.IngredientsAsString;
+        public string MealAndIngredientsAsString => consolidatedStrings.Value.MealAndIngredientsAsString;
+        public string MealTypeAndIngredientsAsString => consolidatedStrings.Value.MealTypeAndIngredientsAsString;
+        public string MealNameAndTypeAndIngredientsAsString => consolidatedStrings.Value.MealNameAndTypeAndIngredientsAsString;
+        public string MealAsString => consolidatedStrings.Value.MealAsString;
+        public string MealNameAndTypeAsString => consolidatedStrings.Value.MealNameAndTypeAsString;
+        public string MealType => consolidatedStrings.Value.MealType;
+        public string MealTypeAsString => consolidatedStrings.Value.MealTypeAsString;
+        public bool HasMealType => consolidatedStrings.Value.HasMealType;
+        public string NormalizedThingName => consolidatedStrings.Value.NormalizedThingName;
 
         public void ExposeData()
         {
@@ -203,6 +176,7 @@
             Scribe_Deep.Look(ref this.isAcceptableToVegetarians, "isAcceptableToVegetarians");
             Scribe_Deep.Look(ref this.isHumanlikeCorpseOrHumanlikeMeatOrIngredient, "isHumanlikeCorpseOrHumanlikeMeatOrIngredient");
             Scribe_Deep.Look(ref this.meatSourceCategory, "meatSourceCategory");
+            Scribe_Deep.Look(ref this.consolidatedStrings, "consolidatedStrings");
             Scribe_Values.Look(ref this.isFungus, "isFungus");
             Scribe_Values.Look(ref this.uniqueId, "uniqueId");
 
@@ -317,22 +291,6 @@
             return this.uniqueId;
         }
 
-        private string GetMealType()
-        {
-            if (this.foodPreferability < FoodPreferability.MealSimple)
-            {
-                // It's not a meal, return the same type as the name of the meal.
-                return MealQualifiers.RemoveMealCountQualifiersFromMealLabel(this.ThingLabel);
-            }
-
-            var mealLabelWithoutQualifiers = MealQualifiers.RemoveMealQualifiersFromMealLabel(this.ThingLabel);
-
-            if (mealLabelWithoutQualifiers == "meal")
-            {
-                return "regular meal";
-            }
-
-            return mealLabelWithoutQualifiers;
-        }
+        // GetMealType method moved to ConsolidatedFoodStrings for better encapsulation
     }
 }

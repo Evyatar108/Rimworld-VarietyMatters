@@ -1,69 +1,87 @@
-# What Does This Mod Do?
+[img]https://imgur.com/PZEKJnd.png[/img]
+[h3] 2025-08-04 [/h3]
+[list]
+[*]Major performance improvements for large colonies! Cooking operations are now much faster, especially noticeable with diverse food varieties.
+[*]Fixed settings menu freezing - you can now adjust mod settings smoothly without lag.
+[*]Optimized memory usage to reduce game stuttering and improve overall responsiveness.
+[*]Enhanced cooking AI - chefs now select ingredients more efficiently while maintaining variety preferences.
+[*]Fixed a bug where ingredient spoilage preferences weren't working correctly during cooking.
+[/list]
+[h3] 2023-12-05 [/h3]
+[list]
+[*]Improved the food searching algorithm to locate items not currently stored in the pawn's recent meal memory to reduce micro-management. The new algorithm also has superior performance.
+[/list]
+[h3] 2023-12-04 [/h3]
+[list]
+[*]Variety presence is now affected by whether a pawn experiences a negative mood debuff from consuming the food. This enhancement ensures better compatibility with mods that introduce new foods, precepts, genes, or traits.
+[*]Lack of variety associated with Insect and Fungus meat is now contingent on whether the pawn holds the Despised precept for insect meat.
+[*] General bug fixes.
+[/list]
+[h3] 2023-11-23 [/h3]
+[list]
+[*]Better visualization of recent meals, their variety, and reasons for lack of variety.
+[*]Enhanced compatibility with popular cooking and food-related mods.
+[*]Reduced variety need for prisoners and slaves.
+[*]Improved performance.
+[*]Enabled variety need for Gourmand pawns with specific requirements and mood impacts.
+[*]Option to adjust the mood impact of the variety need.
+[*]New setting to treat all meal qualities (Simple, Fine, Lavish, Gourmet) as the same type for variety calculations, integrating seamlessly with mods like Vanilla Cooking Expanded. Enabled by default, can be toggled in settings.
+[*]Nutrient paste meals are now so unappetizing that they do not contribute to dietary variety, unless a pawn has the appropriate precepts.
+[/list]
 
-Pawns now have a variety need. Pawns satisfy the need by eating different varieties of foods. The tooltip for the variety need shows how many varieties a pawn needs for neutral (50%) variety, the number of current varieties remembered, and the varieties consumed in the pawn's last meal. 
 
-# What Counts as a Variety?
+[img]https://imgur.com/Y1esBQc.png[/img]
+Pawns now have a new need: variety in their diet. This mod introduces a unique gameplay dynamic where pawns require different types of food to stay mentally healthy and happy. Instead of just eating for survival, pawns will now seek out a diverse range of meals to satisfy their craving for variety. This new need adds an engaging layer of complexity to the colony's food management.
 
-To count as a variety, a food must provide nutrition. Thus, for example, ambrosia is a variety while other drugs are not. Second, a food must either provide joy or be at least raw tasty. Thus, beer, chocolate, berries, and cooked meat are varieties, raw meat is not. Unless your pawn happens to be a cannibal, in which case they will treat raw humanlike flesh (and corpses!) as a variety. Finally, rotten foods do not provide variety.
+[img]https://imgur.com/qn0EDiK.png[/img]
+[list]
+[*][b]Diverse Diet Requirement:[/b] Pawns will experience mood penalties if they repeatedly consume the same type of food. A varied diet is key to keeping their spirits high.
+[*][b]Enhanced Cooking Gameplay:[/b] Cooks in your colony are now more autonomous and will prepare meals with a variety of ingredients without the need for player micromanagement, ensuring a diverse diet for the pawns.
+[*][b]New Challenges and Strategies:[/b] Players will face new challenges in food procurement and meal planning, leading to more strategic gameplay when it comes to managing resources and keeping the colony thriving.
+[*][b]Detailed Needs Visualization:[/b] The mod includes a needs bar for each pawn. Hovering the mouse over this bar provides insights into their variety requirements, current satisfaction level, recent meals, and the diversity contribution of each meal.
+[/list]
 
-A food's variety is based on its display name (label), not its defName, so "apples" added by two different mods will only provide a single "apples" variety.
+By integrating this mod, you're not just adding a feature; you're enhancing the depth and realism of your colony's daily life. It encourages players to think more critically about their food sources and meal choices, turning the act of feeding your pawns into a more immersive and rewarding experience.
 
-The above rules always apply. However, there are three options for how to handle meals (foods that display ingredients):
 
-**_Option 1: Ingredients Only_**
+[h2]What Counts as a Variety?[/h2]
+A food must provide nutrition and either joy or be at least tasty raw to count as a variety. Rotten foods do not count. Cultural and preference variations apply, such as cannibals treating human flesh differently.
+[h3]Meal Variety Options[/h3]
+[b]Option 1: Ingredients Only[/b]
+This mode focuses exclusively on the variety of ingredients. Meals are considered varied based on the different ingredients they contain, irrespective of the meal type. It's ideal for players who play without many mods that add additional meal types.
+[b]Option 2: Meal Name Only[/b]
+This option simplifies the variety mechanic by considering only the type of meal consumed, disregarding the ingredients used. It's particularly well-suited for gameplay with a wide array of meal types introduced by mods, where the meal itself brings the variety.
+[b]Option 3: Both Ingredients and Meal Name[/b]
+The most player-friendly option, this mode tracks both the meal's name and its ingredients. A meal is considered a new variety if either its name is different, or it contains a different ingredient. This approach is perfect for those seeking a challenge that is not too demanding, allowing for varied gameplay without extensive micromanagement.
 
-By default, ingredients are varieties, not the meals themselves. Grow different crops and hunt different animals and you'll have happy pawns. Feed your pawns nothing but rice, corn, and raiders, and you'll have unhappy pawns. There is NO benefit to providing a mix of pemmican/survival/nutrient paste/simple/fine/lavish meals. However, lavish meals provide an extra "lavishly-prepared" variety as well as the basic variety. Therefore, an all-lavish meal diet will provide twice the variety of a diet without lavish meals.
+[h2]How Much Variety Do Pawns Need?[/h2]
+The base variety expectation depends on a pawn's current thought expectation and can be adjusted in settings.
 
-Meals that can have ingredients but don't (e.g. bought from traders, Replimat meals) are assigned a random "mystery-ingredient" variety when eaten. Fine and lavish meals also provide a mystery meat, and lavish meals provide a mystery lavish ingredient. The number of available mystery varieties depend on current expectations. It is balanced so a diet of all-fine mystery meals should approach a neutral (50%) variety need, while a diet of all-lavish mystery meals will slowly increase variety, but there is RNG involved.
+[h2]How do Pawns Track Varieties?[/h2]
+Pawns remember foods eaten up to 2.25x their current variety expectation, requiring around half of their diet to be new varieties to meet this need.
 
-This is the recommended option if you do not have food mods or your food mods don't add mostly crops/meat/alcohol, but not a lot of new meals (Vanilla Plants Expanded, Rimcuisine series, VGP vegetable garden, fishing mods, animal mods, brewing/drink mods).
+[h2]Will Pawns Seek New Varieties When Eating?[/h2]
+Pawns have a preference for new varieties and will choose meals accordingly, requiring less micromanagement.
 
-**_Option 2: Ignore Ingredients_**
+[h2]Will Pawns Use a Variety of Ingredients When Cooking?[/h2]
+Cooks will use a variety of ingredients, with better cooks having a longer memory for ingredient diversity. Note: cooks prioritize ingredients based on proximity to the stove.
 
-If you choose to enable the option to ignore ingredients varieties will be based solely on the final product consumed, ignoring ingredients. Your pawns will want a mix of simple, fine, and lavish meals, pemmican and nutrient paste, but won't care if they are made entirely from corn and chicken. 
+[h2]Are There Any Other Features?[/h2]
+Options include preventing meals with different ingredients from stacking and adjusting the number of ingredients tracked in meal stacks. These features vary based on the selected variety option.
 
-This option is recommened only if you use mods with lots of new meals such as the Vanilla Cooking Expanded series or VGP Gourment Garden. As an added bonus, this option makes the stacking and cooking features unnecessary, which may improve performance (although I didn't have performance issues during testing).
+[h2]Additional Notes:[/h2]
+[list]
+[*]Prisoners and slaves have a reduced variety need.
+[*]Gourmand pawns have unique variety requirements and mood impacts.
+[*]Ascetic pawns do not require variety.
+[/list]
 
-**_Option 3: Track Ingredients and Meals_**
+[img]https://imgur.com/PpOrKfc.png[/img]
+[list]
+[*] Github repository is [url=https://github.com/Evyatar108/Rimworld-VarietyMatters] here [/url] 
+[*] The original mod this mod is based on is [url=https://steamcommunity.com/sharedfiles/filedetails/?id=2353847457] here [/url] 
+[/list]
 
-This option causes pawns to track both the final ingestible and its ingredients. With this option you will need to both provide a variety of ingredients and a variety of meals. If, for example, you feed your pawns simple chicken meal and fine chicken/corn meal, you will have 4 varieties (rat, corn, simple meal, fine meal) compared to two varieties (rat/corn) with option 1 or two varieties (simple/fine meal) with option 2.
-
-# How Much Variety Do Pawns Need?
-
-The base variety expectation depends on a pawn's current thought expectation and is adjustable in settings.
-
-The expectation is then modified based on a pawn's current variety level. For example, a starting crashlanded colonists scenario needs 4 varieties to stay neutral (50%), 9 varieties to reach 100%, and 10 varieties to stay at 100%. This makes it easier to avoid a permanent mood debuff and harder to maintain a permanent positive mood buff.
-
-The variety expectation will also slightly increase based on the number of mod-added varieties available at load-time and slightly decrease when the weather isn't suitable for growing crops. There are settings to adjust all of these.
-
-# How do Pawns Track Varieties?
-
-Pawns remember the foods they've eaten up to 2x their current variety expectation. That means half of a pawn's diet needs to be new varieties in order to meet their expectation. The other half can be anything. For example, a pawn with an expectation of 10 that eats 10 fine rice bowls, each with a unique type of meat, will have 11 varieties (rice + 10 meats).
-
-Once a pawn's memory is full, it  will randomly forget a prior food to make room for the new meal. In the above example, if the pawn eats a simple, meatless rice bowl, there is a 50% chance it will replace one of the earlier rice meals and a 50% chance it will replace a meat memory, reducing variety to 10.
-
-# Will Pawns Look for New Varieties When Eating?
-
-Yes! When choosing meals, pawns will prefer meals with at least one new variety. How much extra preference they assign to new varieties depends on their expectation. Thus, in the early game when expectations are low, pawns might still prefer nearby or spoiling food, but when variety expectations are high, they will put more emphasis on eating new varieties. Pawns will still generally prefer lavish to fine to simple, except at the most extreme variety expectations.
-
-# Will Pawns Use a Variety of Ingredients When Cooking?
-
-Yes! New to this version, cooks will also look for new varieties when cooking meals. Similar to eating, cooks will base their ingredient choices on distance, variety, and (optionally) spoiling, with more emphasis on variety when expectations are high. 
-
-I didn't have performance issues during testing, but if you experience late-game issues, shrink the ingredient radius of your bills and use [Variety Matters](https://steamcommunity.com/sharedfiles/filedetails/?id=2266068546)
-
-# Are There Any Other Features?
-
-There is a (recommended) option to prevent meals with different ingredients from stacking, which increases the variety of foods available. The downside is the need for extra storage space. Alternatively, you can increase the number of ingredients the game tracks when stacking meals. That option was added by request and how it affects variety has not been tested. Both of these features are unnecessary and disabled if using Option 2.
-
-By default, sick pawns will temporarily stop caring about varieties. By request, a toggle was added to disable this feature. If I recall correctly, certain non-human race mods apply a beneficial hediff that is treated as being sick.
-
-# How is This Different than the Original Variety Matters?
-
-The original version used a more robust tracking system with cyclical memory dumps that tried to reward pawns for eating new varieties and punish them for eating too much of the same thing. I then added a complex category system to try to add realism and balance for the different food mods available. The result was a system that was unnecessarily complex, difficult to predict, and impossible to balance between vanilla and modded-Rimworld, resulting in either a permanent debuff or a trivially easy permanent mood buff.
-
-This version recognizes that consistent and predictable outcomes are more important than striving for realism and seeks to balance for mods by adjusting the expectation level, rather than adjusting how variety is calculated. However, the difficulty may still vary based on mod usage and biome preference.
-
-# Known Compatibility Issues
-
-[Best Mix](https://steamcommunity.com/sharedfiles/filedetails/?id=2195986094) is compatible, but will disable the portions of this mod that control how chefs choose ingredients. A future patch is likely.
+[img]https://imgur.com/rEGGf6D.png[/img]
+Banners: Mewn Goddess
+Mod: HTxL

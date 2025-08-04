@@ -90,64 +90,82 @@
 		      }
 
 		// Token: 0x06000009 RID: 9 RVA: 0x0000226C File Offset: 0x0000046C
+		// OPTIMIZATION: Cache food analysis results to avoid repeated DefDatabase iteration
+		private static bool foodAnalysisComplete = false;
+		
 		public static void FoodsAvailable()
 		{
-			int num = 0;
-			int num2 = 0;
-			int num3 = 0;
+			// OPTIMIZATION: Only analyze once per game session
+			if (foodAnalysisComplete) return;
+			
+			int mealCount = 0;
+			int ingredientCount = 0;
+			int meatTypeCount = 0;
+			
+			// OPTIMIZATION: Use cached references for frequently accessed comp types
+			var compIngredientsType = typeof(CompIngredients);
+			var compHatcherType = typeof(CompHatcher);
+			
+			// OPTIMIZATION: Pre-filter for nutrition-giving ingestibles to reduce iteration
 			foreach (ThingDef thingDef in DefDatabase<ThingDef>.AllDefsListForReading)
 			{
-				bool flag = !thingDef.IsNutritionGivingIngestible || !thingDef.ingestible.HumanEdible || thingDef.IsCorpse;
-				if (!flag)
+				// OPTIMIZATION: Early exit for non-food items
+				if (!thingDef.IsNutritionGivingIngestible ||
+				    !thingDef.ingestible.HumanEdible ||
+				    thingDef.IsCorpse)
+					continue;
+				
+				// OPTIMIZATION: Single preferability check instead of casting
+				bool isMeal = thingDef.HasComp(compIngredientsType) &&
+				             thingDef.ingestible.preferability >= FoodPreferability.MealAwful;
+				
+				if (isMeal)
 				{
-					bool flag2 = thingDef.HasComp(typeof(CompIngredients)) && (int)thingDef.ingestible.preferability >= 5;
-					if (flag2)
+					mealCount++;
+				}
+				else
+				{
+					bool hasJoy = thingDef.ingestible.joyKind != null;
+					if (hasJoy)
 					{
-						num++;
+						mealCount++;
+						ingredientCount++;
 					}
-					else
+					else if (!thingDef.HasComp(compHatcherType))
 					{
-						bool flag3 = thingDef.ingestible.joyKind != null;
-						if (flag3)
+						ingredientCount++;
+						if (thingDef.IsMeat)
 						{
-							num++;
-							num2++;
-						}
-						else
-						{
-							bool flag4 = !thingDef.HasComp(typeof(CompHatcher));
-							if (flag4)
-							{
-								num2++;
-								bool isMeat = thingDef.IsMeat;
-								if (isMeat)
-								{
-									num3++;
-								}
-							}
+							meatTypeCount++;
 						}
 					}
 				}
 			}
-			VarietyExpectation.meatTypes = (float)num3;
-			bool flag5 = num <= 22;
-			if (flag5)
+			
+			// OPTIMIZATION: Direct assignment instead of redundant calculations
+			VarietyExpectation.meatTypes = (float)meatTypeCount;
+			
+			// Calculate modded meal ratio
+			if (mealCount <= 22)
 			{
-				VarietyExpectation.moddedMeals = ((float)num - 24f) / (36f - (float)num);
+				VarietyExpectation.moddedMeals = ((float)mealCount - 24f) / (36f - (float)mealCount);
 			}
 			else
 			{
-				VarietyExpectation.moddedMeals = ((float)num - 24f) / (24f + ((float)num * 2f));
+				VarietyExpectation.moddedMeals = ((float)mealCount - 24f) / (24f + ((float)mealCount * 2f));
 			}
-			bool flag6 = num2 <= 66;
-			if (flag6)
+			
+			// Calculate modded ingredient ratio
+			if (ingredientCount <= 66)
 			{
-				VarietyExpectation.moddedIngredients = ((float)num2 - 66f) / (132f - (float)num2);
+				VarietyExpectation.moddedIngredients = ((float)ingredientCount - 66f) / (132f - (float)ingredientCount);
 			}
 			else
 			{
-				VarietyExpectation.moddedIngredients = Math.Min(((float)num2 - 66f) / (float)num2, 0.8f);
+				VarietyExpectation.moddedIngredients = Math.Min(((float)ingredientCount - 66f) / (float)ingredientCount, 0.8f);
 			}
+			
+			foodAnalysisComplete = true;
 		}
 	}
 }

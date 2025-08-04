@@ -202,14 +202,31 @@
 
         private void RemoveFoodFromQueueAndCountBasedOnKey(string key)
         {
-            var newQueue = new Queue<EatenFoodByPawn>();
+            // Use a temporary list to collect items to remove to avoid queue recreation
+            var itemsToRemove = new List<EatenFoodByPawn>();
+            
+            // First pass: identify items to remove and update counts
             foreach (EatenFoodByPawn eatenFoodSource in this.foodSourcesByOrderV2)
             {
                 if (eatenFoodSource.Source.GetFoodSourceKey() == key)
                 {
+                    itemsToRemove.Add(eatenFoodSource);
                     this.RemoveFoodFromCount(eatenFoodSource);
                 }
-                else
+            }
+            
+            // If no items to remove, avoid queue recreation
+            if (itemsToRemove.Count == 0)
+                return;
+            
+            // Only recreate queue if we actually need to remove items
+            // Use capacity hint to reduce allocations
+            var newQueue = new Queue<EatenFoodByPawn>(this.foodSourcesByOrderV2.Count - itemsToRemove.Count);
+            var itemsToRemoveSet = new HashSet<EatenFoodByPawn>(itemsToRemove);
+            
+            foreach (EatenFoodByPawn eatenFoodSource in this.foodSourcesByOrderV2)
+            {
+                if (!itemsToRemoveSet.Contains(eatenFoodSource))
                 {
                     newQueue.Enqueue(eatenFoodSource);
                 }

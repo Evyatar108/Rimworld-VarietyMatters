@@ -58,6 +58,14 @@
 				}
 				else
 				{
+					// OPTIMIZATION: Cache component lookup for this operation
+					var cookingRecord = VarietyCooking.Chef?.MapHeld?.GetComponent<VarietyCookingRecord>();
+					if (cookingRecord == null)
+					{
+						__result = false;
+						return false;
+					}
+					
 					chosen.Clear();
 					VarietyCooking.SortIngredients(availableThings, rootCell);
 					for (int i = 0; i < bill.recipe.ingredients.Count; i++)
@@ -88,7 +96,8 @@
 							return false;
 						}
 					}
-					VarietyCooking.Chef.MapHeld.GetComponent<VarietyCookingRecord>().UpdateCookingRecord(chosen);
+					// OPTIMIZATION: Use cached component reference
+					cookingRecord.UpdateCookingRecord(chosen);
 					__result = true;
 					result = false;
 				}
@@ -141,54 +150,71 @@
 			bool flag2 = flag;
 			if (flag2)
 			{
-				VarietyCooking.Chef.MapHeld.GetComponent<VarietyCookingRecord>().UpdateCookingRecord(chosen);
+				// OPTIMIZATION: Safe component lookup with null check
+				var cookingRecord = VarietyCooking.Chef?.MapHeld?.GetComponent<VarietyCookingRecord>();
+				cookingRecord?.UpdateCookingRecord(chosen);
 			}
 		}
 
 		// Token: 0x06000034 RID: 52 RVA: 0x00004438 File Offset: 0x00002638
 		private static void SortIngredients(List<Thing> availableThings, IntVec3 rootCell)
 		{
-			List<string> curVarieties = VarietyCooking.Chef.MapHeld.GetComponent<VarietyCookingRecord>().CheckRecentRecipes(VarietyCooking.Chef);
+			// OPTIMIZATION: Single component lookup per sort operation
+			var cookingRecord = VarietyCooking.Chef?.MapHeld?.GetComponent<VarietyCookingRecord>();
+			List<string> curVarieties = cookingRecord?.CheckRecentRecipes(VarietyCooking.Chef);
+			
+			// OPTIMIZATION: Pre-compute variety penalties - O(n) instead of O(n²)
+			var varietyPenalties = new Dictionary<string, float>();
+			if (curVarieties != null)
+			{
+				var varietySet = new HashSet<string>(curVarieties);
+				foreach (var thing in availableThings)
+				{
+					varietyPenalties[thing.def.label] = varietySet.Contains(thing.def.label) ? 1f : 0f;
+				}
+			}
+			
+			// OPTIMIZATION: Cache rot components to avoid repeated lookups
+			var rotCache = new Dictionary<Thing, CompRottable>();
+			bool preferSpoiling = ModSettings_VarietyMatters.preferSpoiling;
+			
 			Comparison<Thing> comparison = delegate(Thing t1, Thing t2)
 			{
 				float num = (t1.Position - rootCell).LengthHorizontal;
 				float num2 = (t2.Position - rootCell).LengthHorizontal;
-				bool flag = curVarieties != null && t1.def.label != t2.def.label;
-				if (flag)
+				
+				// OPTIMIZATION: O(1) variety penalty lookup instead of O(n) loop
+				if (curVarieties != null && t1.def.label != t2.def.label)
 				{
-					for (int i = 0; i < curVarieties.Count; i++)
-					{
-						bool flag2 = curVarieties[i] == t1.def.label;
-						if (flag2)
-						{
-							num += 1f;
-						}
-						else
-						{
-							bool flag3 = curVarieties[i] == t2.def.label;
-							if (flag3)
-							{
-								num2 += 1f;
-							}
-						}
-					}
+					num += varietyPenalties.GetValueOrDefault(t1.def.label, 0f);
+					num2 += varietyPenalties.GetValueOrDefault(t2.def.label, 0f);
 				}
-				bool preferSpoiling = ModSettings_VarietyMatters.preferSpoiling;
+				
+				// OPTIMIZATION: Cache rot components + fix bug (was checking t1 twice)
 				if (preferSpoiling)
 				{
-					CompRottable compRottable = ThingCompUtility.TryGetComp<CompRottable>(t1);
-					CompRottable compRottable2 = ThingCompUtility.TryGetComp<CompRottable>(t1);
-					bool flag4 = compRottable != null;
-					if (flag4)
+					if (!rotCache.TryGetValue(t1, out var compRottable))
+					{
+						compRottable = ThingCompUtility.TryGetComp<CompRottable>(t1);
+						rotCache[t1] = compRottable;
+					}
+					
+					if (!rotCache.TryGetValue(t2, out var compRottable2))
+					{
+						compRottable2 = ThingCompUtility.TryGetComp<CompRottable>(t2);  // FIX: was t1, now t2
+						rotCache[t2] = compRottable2;
+					}
+					
+					if (compRottable != null)
 					{
 						num += (1f - compRottable.RotProgressPct) * 10f;
 					}
-					bool flag5 = compRottable2 != null;
-					if (flag5)
+					if (compRottable2 != null)
 					{
 						num2 += (1f - compRottable2.RotProgressPct) * 10f;
 					}
 				}
+				
 				return num.CompareTo(num2);
 			};
 			availableThings.Sort(comparison);
