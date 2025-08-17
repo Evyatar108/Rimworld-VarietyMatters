@@ -48,32 +48,49 @@
         {
             var foodSource = eatenFood.Source;
 
-            if (eatenFood.IsVeneratedAnimalMeatOrCorpseOrHasIngredients)
+            // Additional null safety check for ideology system
+            if (!ModsConfig.IdeologyActive || pawn.Ideo == null)
             {
-                noVarietyReason = NoVarietyReason.IsOrHasVeneratedAnimalMeat;
-                return false;
+                noVarietyReason = NoVarietyReason.NA;
+                return true;
             }
 
-            if (!foodSource.IsAcceptableToCarnivores && FoodUtility.HasMeatEatingRequiredPrecept(pawn.Ideo))
+            try
             {
-                noVarietyReason = NoVarietyReason.UnacceptableByCarnivores;
-                return false;
-            }
+                if (eatenFood.IsVeneratedAnimalMeatOrCorpseOrHasIngredients)
+                {
+                    noVarietyReason = NoVarietyReason.IsOrHasVeneratedAnimalMeat;
+                    return false;
+                }
 
-            if (!foodSource.IsAcceptableToVegetarians && FoodUtility.HasVegetarianRequiredPrecept(pawn.Ideo))
+                if (!foodSource.IsAcceptableToCarnivores && FoodUtility.HasMeatEatingRequiredPrecept(pawn.Ideo))
+                {
+                    noVarietyReason = NoVarietyReason.UnacceptableByCarnivores;
+                    return false;
+                }
+
+                if (!foodSource.IsAcceptableToVegetarians && FoodUtility.HasVegetarianRequiredPrecept(pawn.Ideo))
+                {
+                    noVarietyReason = NoVarietyReason.UnacceptableByVegetarians;
+                    return false;
+                }
+
+                if (foodSource.IsFungus && HatesFungus(pawn))
+                {
+                    noVarietyReason = NoVarietyReason.Fungus;
+                    return false;
+                }
+
+                noVarietyReason = NoVarietyReason.NA;
+                return true;
+            }
+            catch (System.Exception ex)
             {
-                noVarietyReason = NoVarietyReason.UnacceptableByVegetarians;
-                return false;
+                // Log the error and return safe default
+                Verse.Log.Warning($"VarietyMatters: Error checking ideological food acceptability for {pawn?.Name?.ToStringShort ?? "null pawn"}: {ex.Message}");
+                noVarietyReason = NoVarietyReason.NA;
+                return true;
             }
-
-            if (foodSource.IsFungus && HatesFungus(pawn))
-            {
-                noVarietyReason = NoVarietyReason.Fungus;
-                return false;
-            }
-
-            noVarietyReason = NoVarietyReason.NA;
-            return true;
         }
 
         private static bool IsHumanlikeFoodUnacceptable(Pawn pawn, EatenFoodSource foodSource)
@@ -161,8 +178,16 @@
 
         private static bool IsCannibal(Pawn pawn)
         {
-            return pawn.story?.traits?.HasTrait(DefOf_VarietyMatters.Cannibal) == true ||
-                   (pawn.Ideo != null && pawn.Ideo.HasAnyCannibalismPrecept());
+            try
+            {
+                return pawn.story?.traits?.HasTrait(DefOf_VarietyMatters.Cannibal) == true ||
+                       (ModsConfig.IdeologyActive && pawn.Ideo != null && pawn.Ideo.HasAnyCannibalismPrecept());
+            }
+            catch (System.Exception ex)
+            {
+                Verse.Log.Warning($"VarietyMatters: Error checking cannibal status for {pawn?.Name?.ToStringShort ?? "null pawn"}: {ex.Message}");
+                return false;
+            }
         }
 
         private static bool HasAnyCannibalismPrecept(this Ideo ideo)
@@ -271,7 +296,15 @@
 
         private static bool HatesFungus(Pawn pawn)
         {
-            return !ModsConfig.IdeologyActive || pawn.Ideo?.HasPrecept(DefOf_VarietyMatters.FungusEating_Despised) == true;
+            try
+            {
+                return !ModsConfig.IdeologyActive || pawn.Ideo?.HasPrecept(DefOf_VarietyMatters.FungusEating_Despised) == true;
+            }
+            catch (System.Exception ex)
+            {
+                Verse.Log.Warning($"VarietyMatters: Error checking fungus hatred for {pawn?.Name?.ToStringShort ?? "null pawn"}: {ex.Message}");
+                return false;
+            }
         }
 
         private static bool HasNegativeMoodImpact(EatenFoodByPawn eatenFoodSource)
