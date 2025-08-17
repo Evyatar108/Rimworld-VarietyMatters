@@ -9,7 +9,17 @@
 
     public class EatenFoodSource : IExposable, ILoadReferenceable
     {
-        public static EatenFoodSource ForgottenEatenFoodSource = new EatenFoodSource() { IsForgotten = true, uniqueId = "EatenFoodSource_ForgottenFood", ThingLabel = "Forgotten food", ingredients = new List<ThingDef>() };
+        public static EatenFoodSource ForgottenEatenFoodSource = CreateForgottenFoodSource();
+
+        private static EatenFoodSource CreateForgottenFoodSource()
+        {
+            var forgotten = new EatenFoodSource();
+            forgotten.IsForgotten = true;
+            forgotten.uniqueId = "EatenFoodSource_ForgottenFood";
+            forgotten.ThingLabel = "Forgotten food";
+            forgotten.ingredients = new List<ThingDef>();
+            return forgotten;
+        }
 
         public EatenFoodSource()
         {
@@ -176,7 +186,7 @@
             Scribe_Deep.Look(ref this.isAcceptableToVegetarians, "isAcceptableToVegetarians");
             Scribe_Deep.Look(ref this.isHumanlikeCorpseOrHumanlikeMeatOrIngredient, "isHumanlikeCorpseOrHumanlikeMeatOrIngredient");
             Scribe_Deep.Look(ref this.meatSourceCategory, "meatSourceCategory");
-            Scribe_Deep.Look(ref this.consolidatedStrings, "consolidatedStrings");
+            // Do NOT save consolidatedStrings - it will be recreated on demand
             Scribe_Values.Look(ref this.isFungus, "isFungus");
             Scribe_Values.Look(ref this.uniqueId, "uniqueId");
 
@@ -185,6 +195,26 @@
                 if (this.thingLabel == null && !this.isForgotten)
                 {
                     Log.Warning("EatenFoodSource:: Loaded EatenFoodSource with null thingLabel");
+                }
+                
+                // Always re-initialize consolidatedStrings after loading since it's not saved
+                this.consolidatedStrings = new FastLazy<ConsolidatedFoodStrings>(() => new ConsolidatedFoodStrings(this));
+
+                // Ensure ingredients list is initialized
+                if (this.ingredients == null)
+                {
+                    this.ingredients = new List<ThingDef>();
+                }
+
+                // Re-initialize other FastLazy objects that may have lost their valueFactory during save/load
+                if (this.isAcceptableToCarnivores != null && this.Thing != null)
+                {
+                    // Only re-initialize if we still have the Thing reference
+                    var tempThing = this.Thing;
+                    this.isAcceptableToCarnivores = new FastLazy<bool>(() => FoodUtility.AcceptableCarnivore(tempThing));
+                    this.isAcceptableToVegetarians = new FastLazy<bool>(() => FoodUtility.AcceptableVegetarian(tempThing));
+                    this.isHumanlikeCorpseOrHumanlikeMeatOrIngredient = new FastLazy<bool>(() => FoodUtility.IsHumanlikeCorpseOrHumanlikeMeatOrIngredient(tempThing));
+                    this.meatSourceCategory = new FastLazy<MeatSourceCategory>(() => FoodUtility.GetMeatSourceCategory(tempThing.def));
                 }
             }
         }
