@@ -70,7 +70,7 @@
 			bool flag4 = ModSettings_VarietyMatters.foodTrackingType != FoodTrackingType.ByMealNames;
             if (flag4)
 			{
-				listing_Standard.CheckboxLabeled("    Cooks use different ingredients: ", ref ModSettings_VarietyMatters.preferVariety, null, 0f, 1f);
+				listing_Standard.CheckboxLabeled("    Cooks use different ingredients: ", ref ModSettings_VarietyMatters.preferVariety, "Cooks rotate ingredients across meals and mix distinct ThingDefs within a single meal. Mixing only applies to bills with 'Allow mixing ingredients' enabled — bills without mixing still get variety-weighted sort order but remain single-ingredient per slot.", 0f, 1f);
 				listing_Standard.CheckboxLabeled("    Cooks prefer spoiling ingredients: ", ref ModSettings_VarietyMatters.preferSpoiling, null, 0f, 1f);
 				listing_Standard.CheckboxLabeled("    Stack meals by ingredients: ", ref ModSettings_VarietyMatters.stackByIngredients, null, 0f, 1f);
 				if (ModSettings_VarietyMatters.foodTrackingType != FoodTrackingType.ByIngredientsCombination)
@@ -87,6 +87,10 @@
 				string label = "    Ingredients When Stacking (vanilla = 3):";
 				string text = ModSettings_VarietyMatters.numIngredients.ToString();
 				this.LabeledIntEntry(listing_Standard.GetRect(24f, 1f), label, ref ModSettings_VarietyMatters.numIngredients, ref text, 1, 1, 1, 10);
+
+				string cookingMemLabel = "    Cooking memory depth (default 10):";
+				string cookingMemText = ModSettings_VarietyMatters.cookingMemoryDepth.ToString();
+				this.LabeledIntEntry(listing_Standard.GetRect(24f, 1f), cookingMemLabel, ref ModSettings_VarietyMatters.cookingMemoryDepth, ref cookingMemText, 1, 5, 1, 100);
 			}
 
             if (ModSettings_VarietyMatters.foodTrackingType != previousFoodTrackingType
