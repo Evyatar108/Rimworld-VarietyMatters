@@ -70,7 +70,7 @@ namespace VarietyMatters
 
 			chosen.Clear();
 			VarietyCooking.SortIngredients(availableThings, rootCell, chef, bill);
-			bool recipeAllowsCap = bill.recipe.specialProducts == null && ModSettings_VarietyMatters.numIngredients > 1;
+			bool recipeAllowsCap = bill.recipe.specialProducts == null;
 			for (int i = 0; i < bill.recipe.ingredients.Count; i++)
 			{
 				IngredientCount ingredientCount = bill.recipe.ingredients[i];
@@ -164,6 +164,7 @@ namespace VarietyMatters
 				}
 				int distinctDefCount = distinctDefs != null ? distinctDefs.Count : 0;
 
+				// Skip Pass 1 for single-def slots: the formula would cap at ceil(slotBaseCount/2) and Pass 2 would fill the rest — equivalent to just running Pass 2 directly.
 				if (distinctDefCount > 1)
 				{
 					int perDefCap = Mathf.Max(1, Mathf.CeilToInt(slotBaseCount / (float)Mathf.Max(2, distinctDefCount)));
@@ -181,7 +182,9 @@ namespace VarietyMatters
 
 						float valuePerUnit = bill.recipe.IngredientValueGetter.ValuePerUnitOf(t.def);
 						int needed = Mathf.CeilToInt(remaining / valuePerUnit);
-						int take = Mathf.Min(Mathf.Min(needed, t.stackCount), defBudget);
+						int alreadyFromThing = GetAlreadyTakenFromThing(chosen, t);
+						int stackLeft = t.stackCount - alreadyFromThing;
+						int take = Mathf.Min(Mathf.Min(needed, stackLeft), defBudget);
 						if (take <= 0) continue;
 
 						ThingCountUtility.AddToList(chosen, t, take);
