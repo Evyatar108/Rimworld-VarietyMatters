@@ -159,65 +159,49 @@
 		// Token: 0x06000034 RID: 52 RVA: 0x00004438 File Offset: 0x00002638
 		private static void SortIngredients(List<Thing> availableThings, IntVec3 rootCell)
 		{
-			// OPTIMIZATION: Single component lookup per sort operation
 			var cookingRecord = VarietyCooking.Chef?.MapHeld?.GetComponent<VarietyCookingRecord>();
 			List<string> curVarieties = cookingRecord?.CheckRecentRecipes(VarietyCooking.Chef);
-			
-			// OPTIMIZATION: Pre-compute variety penalties - O(n) instead of O(n²)
-			var varietyPenalties = new Dictionary<string, float>();
-			if (curVarieties != null)
+
+			Dictionary<string, int> occurrenceByLabel = null;
+			if (curVarieties != null && curVarieties.Count > 0)
 			{
-				var varietySet = new HashSet<string>(curVarieties);
-				foreach (var thing in availableThings)
+				occurrenceByLabel = new Dictionary<string, int>();
+				for (int i = 0; i < curVarieties.Count; i++)
 				{
-					varietyPenalties[thing.def.label] = varietySet.Contains(thing.def.label) ? 1f : 0f;
+					string lbl = curVarieties[i];
+					if (occurrenceByLabel.TryGetValue(lbl, out int c))
+					{
+						occurrenceByLabel[lbl] = c + 1;
+					}
+					else
+					{
+						occurrenceByLabel[lbl] = 1;
+					}
 				}
 			}
-			
-			// OPTIMIZATION: Cache rot components to avoid repeated lookups
-			var rotCache = new Dictionary<Thing, CompRottable>();
+
 			bool preferSpoiling = ModSettings_VarietyMatters.preferSpoiling;
-			
-			Comparison<Thing> comparison = delegate(Thing t1, Thing t2)
+			var sortKeys = new Dictionary<Thing, float>(availableThings.Count);
+			for (int i = 0; i < availableThings.Count; i++)
 			{
-				float num = (t1.Position - rootCell).LengthHorizontal;
-				float num2 = (t2.Position - rootCell).LengthHorizontal;
-				
-				// OPTIMIZATION: O(1) variety penalty lookup instead of O(n) loop
-				if (curVarieties != null && t1.def.label != t2.def.label)
+				Thing t = availableThings[i];
+				float key = (t.Position - rootCell).LengthHorizontal;
+				if (occurrenceByLabel != null && occurrenceByLabel.TryGetValue(t.def.label, out int count))
 				{
-					num += varietyPenalties.GetValueOrDefault(t1.def.label, 0f);
-					num2 += varietyPenalties.GetValueOrDefault(t2.def.label, 0f);
+					key += count * 2f;
 				}
-				
-				// OPTIMIZATION: Cache rot components + fix bug (was checking t1 twice)
 				if (preferSpoiling)
 				{
-					if (!rotCache.TryGetValue(t1, out var compRottable))
-					{
-						compRottable = ThingCompUtility.TryGetComp<CompRottable>(t1);
-						rotCache[t1] = compRottable;
-					}
-					
-					if (!rotCache.TryGetValue(t2, out var compRottable2))
-					{
-						compRottable2 = ThingCompUtility.TryGetComp<CompRottable>(t2);  // FIX: was t1, now t2
-						rotCache[t2] = compRottable2;
-					}
-					
+					CompRottable compRottable = ThingCompUtility.TryGetComp<CompRottable>(t);
 					if (compRottable != null)
 					{
-						num += (1f - compRottable.RotProgressPct) * 10f;
-					}
-					if (compRottable2 != null)
-					{
-						num2 += (1f - compRottable2.RotProgressPct) * 10f;
+						key += (1f - compRottable.RotProgressPct) * 3f;
 					}
 				}
-				
-				return num.CompareTo(num2);
-			};
-			availableThings.Sort(comparison);
+				sortKeys[t] = key;
+			}
+
+			availableThings.Sort((t1, t2) => sortKeys[t1].CompareTo(sortKeys[t2]));
 		}
 	}
 }
