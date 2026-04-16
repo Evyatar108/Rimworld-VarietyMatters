@@ -203,12 +203,7 @@ namespace VarietyMatters
 				if (!ingredientCount.filter.Allows(t)) continue;
 				if (!ingredientCount.IsFixedIngredient && !bill.ingredientFilter.Allows(t)) continue;
 
-				int alreadyFromThing = 0;
-				for (int k = 0; k < chosen.Count; k++)
-				{
-					if (chosen[k].Thing == t) { alreadyFromThing = chosen[k].Count; break; }
-				}
-				int stackLeft = t.stackCount - alreadyFromThing;
+				int stackLeft = t.stackCount - GetAlreadyTakenFromThing(chosen, t);
 				if (stackLeft <= 0) continue;
 
 				float valuePerUnit = bill.recipe.IngredientValueGetter.ValuePerUnitOf(t.def);
@@ -221,6 +216,15 @@ namespace VarietyMatters
 			}
 
 			return remaining <= 0.0001f;
+		}
+
+		private static int GetAlreadyTakenFromThing(List<ThingCount> chosen, Thing t)
+		{
+			for (int k = 0; k < chosen.Count; k++)
+			{
+				if (chosen[k].Thing == t) return chosen[k].Count;
+			}
+			return 0;
 		}
 
 		// Token: 0x06000034 RID: 52 RVA: 0x00004438 File Offset: 0x00002638
