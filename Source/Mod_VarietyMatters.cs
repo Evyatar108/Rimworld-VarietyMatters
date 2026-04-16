@@ -70,7 +70,7 @@
 			bool flag4 = ModSettings_VarietyMatters.foodTrackingType != FoodTrackingType.ByMealNames;
             if (flag4)
 			{
-				listing_Standard.CheckboxLabeled("    Cooks use different ingredients: ", ref ModSettings_VarietyMatters.preferVariety, null, 0f, 1f);
+				listing_Standard.CheckboxLabeled("    Cooks use different ingredients: ", ref ModSettings_VarietyMatters.preferVariety, "Cooks rotate ingredients across meals and mix distinct ThingDefs within a single meal. Mixing only applies to bills with 'Allow mixing ingredients' enabled — bills without mixing still get variety-weighted sort order but remain single-ingredient per slot.", 0f, 1f);
 				listing_Standard.CheckboxLabeled("    Cooks prefer spoiling ingredients: ", ref ModSettings_VarietyMatters.preferSpoiling, null, 0f, 1f);
 				listing_Standard.CheckboxLabeled("    Stack meals by ingredients: ", ref ModSettings_VarietyMatters.stackByIngredients, null, 0f, 1f);
 				if (ModSettings_VarietyMatters.foodTrackingType != FoodTrackingType.ByIngredientsCombination)

@@ -101,6 +101,11 @@ namespace VarietyMatters
 			cookingRecord?.UpdateCookingRecord(chef, chosen);
 		}
 
+		// RC6: NoMix bills are structurally single-ingredient — vanilla picks one ThingDef per slot,
+		// so the per-slot cap (RC1-RC5) cannot apply and mixing cannot emerge at meal level.
+		// We still pre-sort availableThings by variety+distance so vanilla's per-slot pick favors
+		// less-recently-used ingredients across meals. Auto-toggling AllowMix on user's behalf was
+		// rejected: AllowMix is a user-owned bill flag (recipe behavior, production intent).
 		// Token: 0x06000032 RID: 50 RVA: 0x00004350 File Offset: 0x00002550
 		[HarmonyPatch(typeof(WorkGiver_DoBill), "TryFindBestBillIngredientsInSet_NoMix")]
 		[HarmonyPrefix]
