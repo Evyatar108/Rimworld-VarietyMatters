@@ -68,29 +68,12 @@
 					
 					chosen.Clear();
 					VarietyCooking.SortIngredients(availableThings, rootCell);
+					bool recipeAllowsCap = bill.recipe.specialProducts == null && ModSettings_VarietyMatters.numIngredients > 1;
 					for (int i = 0; i < bill.recipe.ingredients.Count; i++)
 					{
 						IngredientCount ingredientCount = bill.recipe.ingredients[i];
-						float billRecipeIngredientBaseCount = ingredientCount.GetBaseCount();
-						for (int j = 0; j < availableThings.Count; j++)
-						{
-							Thing availableThing = availableThings[j];
-							bool availableThingIsValidIngredient = ingredientCount.filter.Allows(availableThing) && (ingredientCount.IsFixedIngredient || bill.ingredientFilter.Allows(availableThing));
-							if (availableThingIsValidIngredient)
-							{
-								float num2 = bill.recipe.IngredientValueGetter.ValuePerUnitOf(availableThing.def);
-								int num3 = Mathf.Min(Mathf.CeilToInt(billRecipeIngredientBaseCount / num2), availableThing.stackCount);
-								ThingCountUtility.AddToList(chosen, availableThing, num3);
-								billRecipeIngredientBaseCount -= (float)num3 * num2;
-								bool flag5 = billRecipeIngredientBaseCount <= 0.0001f;
-								if (flag5)
-								{
-									break;
-								}
-							}
-						}
-						bool flag6 = billRecipeIngredientBaseCount > 0.0001f;
-						if (flag6)
+						bool applyCapForSlot = recipeAllowsCap && !ingredientCount.IsFixedIngredient;
+						if (!VarietyCooking.TryFillIngredientSlotWithCap(availableThings, bill, ingredientCount, chosen, applyCapForSlot))
 						{
 							__result = false;
 							return false;
@@ -154,6 +137,81 @@
 				var cookingRecord = VarietyCooking.Chef?.MapHeld?.GetComponent<VarietyCookingRecord>();
 				cookingRecord?.UpdateCookingRecord(chosen);
 			}
+		}
+
+		// Two-pass fill: Pass 1 caps per ThingDef to encourage mixing; Pass 2 drains residual uncapped.
+		private static bool TryFillIngredientSlotWithCap(List<Thing> availableThings, Bill bill, IngredientCount ingredientCount, List<ThingCount> chosen, bool applyCap)
+		{
+			float slotBaseCount = ingredientCount.GetBaseCount();
+			float remaining = slotBaseCount;
+
+			if (applyCap)
+			{
+				HashSet<ThingDef> distinctDefs = null;
+				for (int j = 0; j < availableThings.Count; j++)
+				{
+					Thing t = availableThings[j];
+					if (!ingredientCount.filter.Allows(t)) continue;
+					if (!ingredientCount.IsFixedIngredient && !bill.ingredientFilter.Allows(t)) continue;
+					if (distinctDefs == null) distinctDefs = new HashSet<ThingDef>();
+					distinctDefs.Add(t.def);
+				}
+				int distinctDefCount = distinctDefs != null ? distinctDefs.Count : 0;
+
+				if (distinctDefCount > 1)
+				{
+					int perDefCap = Mathf.Max(1, Mathf.CeilToInt(slotBaseCount / (float)Mathf.Max(2, distinctDefCount)));
+					Dictionary<ThingDef, int> consumedPerDef = new Dictionary<ThingDef, int>();
+					for (int j = 0; j < availableThings.Count; j++)
+					{
+						if (remaining <= 0.0001f) break;
+						Thing t = availableThings[j];
+						if (!ingredientCount.filter.Allows(t)) continue;
+						if (!ingredientCount.IsFixedIngredient && !bill.ingredientFilter.Allows(t)) continue;
+
+						consumedPerDef.TryGetValue(t.def, out int alreadyForDef);
+						int defBudget = perDefCap - alreadyForDef;
+						if (defBudget <= 0) continue;
+
+						float valuePerUnit = bill.recipe.IngredientValueGetter.ValuePerUnitOf(t.def);
+						int needed = Mathf.CeilToInt(remaining / valuePerUnit);
+						int take = Mathf.Min(Mathf.Min(needed, t.stackCount), defBudget);
+						if (take <= 0) continue;
+
+						ThingCountUtility.AddToList(chosen, t, take);
+						consumedPerDef[t.def] = alreadyForDef + take;
+						remaining -= (float)take * valuePerUnit;
+					}
+				}
+			}
+
+			if (remaining <= 0.0001f) return true;
+
+			for (int j = 0; j < availableThings.Count; j++)
+			{
+				if (remaining <= 0.0001f) break;
+				Thing t = availableThings[j];
+				if (!ingredientCount.filter.Allows(t)) continue;
+				if (!ingredientCount.IsFixedIngredient && !bill.ingredientFilter.Allows(t)) continue;
+
+				int alreadyFromThing = 0;
+				for (int k = 0; k < chosen.Count; k++)
+				{
+					if (chosen[k].Thing == t) { alreadyFromThing = chosen[k].Count; break; }
+				}
+				int stackLeft = t.stackCount - alreadyFromThing;
+				if (stackLeft <= 0) continue;
+
+				float valuePerUnit = bill.recipe.IngredientValueGetter.ValuePerUnitOf(t.def);
+				int needed = Mathf.CeilToInt(remaining / valuePerUnit);
+				int take = Mathf.Min(needed, stackLeft);
+				if (take <= 0) continue;
+
+				ThingCountUtility.AddToList(chosen, t, take);
+				remaining -= (float)take * valuePerUnit;
+			}
+
+			return remaining <= 0.0001f;
 		}
 
 		// Token: 0x06000034 RID: 52 RVA: 0x00004438 File Offset: 0x00002638
