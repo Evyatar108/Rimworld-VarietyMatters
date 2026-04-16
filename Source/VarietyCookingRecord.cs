@@ -24,8 +24,9 @@
 			if (flag)
 			{
 				int skillLevel = chef.skills?.GetSkill(SkillDefOf.Cooking)?.Level ?? chef.RaceProps.mechFixedSkillLevel;
-
-                result = this.recentlyCooked.GetRange(0, Mathf.Min(this.recentlyCooked.Count, skillLevel / 2));
+				int take = Mathf.Max(1, skillLevel / 2);
+				int start = Mathf.Max(0, this.recentlyCooked.Count - take);
+				result = this.recentlyCooked.GetRange(start, this.recentlyCooked.Count - start);
 			}
 			else
 			{
