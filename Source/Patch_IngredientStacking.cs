@@ -21,7 +21,9 @@ namespace VarietyMatters
 		public static void Prefix(CompIngredients __instance, Thing otherStack, ref List<ThingDef> __state)
 		{
 			if (ShouldSkipIngredientMerge(__instance)) return;
-			__state = ThingCompUtility.TryGetComp<CompIngredients>(otherStack).ingredients;
+			var otherComp = ThingCompUtility.TryGetComp<CompIngredients>(otherStack);
+			if (otherComp == null) return;
+			__state = otherComp.ingredients;
 			for (int i = 0; i < __instance.ingredients.Count; i++)
 			{
 				if (!__state.Contains(__instance.ingredients[i]))
