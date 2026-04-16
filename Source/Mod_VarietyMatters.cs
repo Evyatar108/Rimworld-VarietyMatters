@@ -87,6 +87,10 @@
 				string label = "    Ingredients When Stacking (vanilla = 3):";
 				string text = ModSettings_VarietyMatters.numIngredients.ToString();
 				this.LabeledIntEntry(listing_Standard.GetRect(24f, 1f), label, ref ModSettings_VarietyMatters.numIngredients, ref text, 1, 1, 1, 10);
+
+				string cookingMemLabel = "    Cooking memory depth (default 10):";
+				string cookingMemText = ModSettings_VarietyMatters.cookingMemoryDepth.ToString();
+				this.LabeledIntEntry(listing_Standard.GetRect(24f, 1f), cookingMemLabel, ref ModSettings_VarietyMatters.cookingMemoryDepth, ref cookingMemText, 1, 5, 1, 100);
 			}
 
             if (ModSettings_VarietyMatters.foodTrackingType != previousFoodTrackingType

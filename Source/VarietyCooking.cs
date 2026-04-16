@@ -96,8 +96,9 @@ namespace VarietyMatters
 			if (producedThingDef?.ingestible == null) return;
 			if (bill.recipe.specialProducts != null) return;
 
+			chefByBill.TryGetValue(bill, out Pawn chef);
 			var cookingRecord = (bill.billStack?.billGiver as Thing)?.Map?.GetComponent<VarietyCookingRecord>();
-			cookingRecord?.UpdateCookingRecord(chosen);
+			cookingRecord?.UpdateCookingRecord(chef, chosen);
 		}
 
 		// Token: 0x06000032 RID: 50 RVA: 0x00004350 File Offset: 0x00002550
@@ -134,8 +135,9 @@ namespace VarietyMatters
 			if (producedThingDef?.ingestible == null) return;
 			if (bill.recipe.specialProducts != null) return;
 
+			chefByBill.TryGetValue(bill, out Pawn chef);
 			var cookingRecord = (bill.billStack?.billGiver as Thing)?.Map?.GetComponent<VarietyCookingRecord>();
-			cookingRecord?.UpdateCookingRecord(chosen);
+			cookingRecord?.UpdateCookingRecord(chef, chosen);
 		}
 
 		// Two-pass fill: Pass 1 caps per ThingDef to encourage mixing; Pass 2 drains residual uncapped.
