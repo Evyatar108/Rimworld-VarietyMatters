@@ -103,6 +103,8 @@ namespace VarietyMatters
 
         public override void ExposeData()
         {
+            base.ExposeData();
+
             List<string> legacyRecentlyCooked = null;
             if (Scribe.mode == LoadSaveMode.LoadingVars)
             {
@@ -124,8 +126,6 @@ namespace VarietyMatters
                     this.recentByPawn = new Dictionary<Pawn, RecentListEx>();
                 }
             }
-
-            base.ExposeData();
         }
     }
 }
