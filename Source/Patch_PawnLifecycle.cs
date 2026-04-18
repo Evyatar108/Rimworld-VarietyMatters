@@ -23,6 +23,10 @@ namespace VarietyMatters
         private static void Postfix_Destroy(Pawn __instance)
         {
             VarietyRecord.RemoveTrackedPawn(__instance);
+            if (Prefs.DevMode)
+            {
+                Log.Message($"[VarietyMatters] Cleared tracker for destroyed pawn {__instance?.Name?.ToStringShort ?? "<null>"}");
+            }
         }
     }
 }
