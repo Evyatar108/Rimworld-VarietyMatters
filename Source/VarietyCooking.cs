@@ -17,7 +17,7 @@ namespace VarietyMatters
 		// Assumption: no other mod recursively re-enters BestVariety_AllowMix or SortIngredients mid-execution via Harmony stacking. If that assumption breaks, nested calls would clobber each other's scratch state. Accepted risk for the GC savings; revisit if users report interactions with specific mods (e.g. RimThreaded, PickUpAndHaul).
 		private static readonly Dictionary<Thing, int> _takenByThingScratch = new Dictionary<Thing, int>();
 		private static readonly Dictionary<Thing, float> _sortKeysScratch = new Dictionary<Thing, float>();
-		private static readonly Dictionary<string, int> _sortOccurrenceScratch = new Dictionary<string, int>();
+		private static readonly Dictionary<ThingDef, int> _penaltyPerDefScratch = new Dictionary<ThingDef, int>();
 		private static readonly Dictionary<ThingDef, float> _jitteredCapPerDefScratch = new Dictionary<ThingDef, float>();
 		private static readonly Dictionary<ThingDef, float> _consumedPerDefScratch = new Dictionary<ThingDef, float>();
 		private static readonly HashSet<ThingDef> _distinctDefsScratch = new HashSet<ThingDef>();
@@ -298,20 +298,29 @@ namespace VarietyMatters
 		// Token: 0x06000034 RID: 52 RVA: 0x00004438 File Offset: 0x00002638
 		private static void SortIngredients(List<Thing> availableThings, IntVec3 rootCell, Pawn chef, Bill bill)
 		{
+			if (availableThings.Count <= 1) return;
+
 			var cookingRecord = (bill?.billStack?.billGiver as Thing)?.Map?.GetComponent<VarietyCookingRecord>();
 			(List<string> list, int startIndex, int count) recent = default;
 			if (cookingRecord != null) recent = cookingRecord.CheckRecentRecipes(chef);
 
-			_sortOccurrenceScratch.Clear();
+			_penaltyPerDefScratch.Clear();
 			bool hasVarietyPenalty = recent.list != null && recent.count > 0;
 			if (hasVarietyPenalty)
 			{
+				// Build penalty once per unique ThingDef from availableThings, not once per Thing. Same def across multiple stacks gets a single scan of the recent slice, not N scans. String label comparison preserved against recent.list (which remains List<string> — no Scribe change).
 				int recentEnd = recent.startIndex + recent.count;
-				for (int i = recent.startIndex; i < recentEnd; i++)
+				for (int i = 0; i < availableThings.Count; i++)
 				{
-					string lbl = recent.list[i];
-					_sortOccurrenceScratch.TryGetValue(lbl, out int c);
-					_sortOccurrenceScratch[lbl] = c + 1;
+					ThingDef def = availableThings[i].def;
+					if (_penaltyPerDefScratch.ContainsKey(def)) continue;
+					int matches = 0;
+					string label = def.label;
+					for (int j = recent.startIndex; j < recentEnd; j++)
+					{
+						if (recent.list[j] == label) matches++;
+					}
+					_penaltyPerDefScratch[def] = matches;
 				}
 			}
 
@@ -321,7 +330,7 @@ namespace VarietyMatters
 			{
 				Thing t = availableThings[i];
 				float key = (t.Position - rootCell).LengthHorizontal;
-				if (hasVarietyPenalty && _sortOccurrenceScratch.TryGetValue(t.def.label, out int count))
+				if (hasVarietyPenalty && _penaltyPerDefScratch.TryGetValue(t.def, out int count))
 				{
 					key += count * 2f;
 				}
