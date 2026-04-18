@@ -1,5 +1,7 @@
 # Fine Meal Uses Fewer Ingredients Than Setting
 
+> **Status: SHIPPED.** Fixed in `8cd12cf` (F-006, design E') on master. DevMode instrumentation stripped in `9ad6656`. This doc is retained as design-history reference.
+
 ## Report
 
 User sets "num of ingredients" (`ModSettings_VarietyMatters.numIngredients`) to `3`. Observed behavior:
@@ -200,15 +202,9 @@ private static int CountEligibleDefs(List<Thing> availableThings, IngredientCoun
 
 E' adds new `Rand.Range` calls in water-fill. This changes RNG draw count and order vs current code. Pre-existing Pass-1 jitter at `:203` already consumed RNG non-deterministically across saves, so E' does not newly break determinism. Verification uses *distinct-def count* (deterministic), not specific def identity.
 
-### Smoke-test observability
+### Smoke-test observability (historical)
 
-Add a `Prefs.DevMode`-gated `Log.Message` in the **prefix**, right before `__result = true; return false;` at `:104-105`. Must be in the prefix — `assigned[]` and `effectiveBudget` are method-local to the prefix and unavailable from the postfix.
-
-```
-[VarietyMatters E'] recipe=<defName> budget=<effectiveBudget> assigned=[<comma-list>] realizedDistinct=<chosen.Select(c=>c.Thing.def).Distinct().Count()>
-```
-
-Pattern mirrors existing `Prefs.DevMode` log at `Patch_PawnLifecycle.cs`. Keep permanently (cheap, off by default for players).
+During implementation a `Prefs.DevMode`-gated `Log.Message` was added at the end of the prefix to print `recipe / effectiveBudget / assigned[] / realizedDistinct`. Served its validation purpose and was removed in `9ad6656` (too noisy per-meal-cook). If re-introduced for future debugging, must be in the prefix — `assigned[]` and `effectiveBudget` are method-local and unavailable from the postfix.
 
 ### Keep untouched
 
@@ -230,30 +226,29 @@ Pattern mirrors existing `Prefs.DevMode` log at `Patch_PawnLifecycle.cs`. Keep p
 
 1. **Reproduce with controlled inventory.** Dev-mode spawn 2+ meat types + 2+ plant types; trigger fine meal cook; observe `CompIngredients.ingredients.Count == 2` on produced meal.
 2. **Implement E'.** Single commit targeting `VarietyCooking.cs:87-98` + new static scratch lists + `CountEligibleDefs` helper + the three stale comments.
-3. **Verify with DevMode log.** Enable dev mode; produce fine meal; observe log line `budget=3 assigned=[2,1] realizedDistinct=3` (or `[1,2]`, random tie-break).
+3. **Verify.** Produce fine meal; inspect produced meal's `CompIngredients.ingredients.Count == 3`.
 4. **Regression sweep**:
-   - Simple meal (1 slot): `budget=3 assigned=[3]` → up to 3 defs.
-   - Lavish meal (2 slots): same as fine.
-   - Nutrient paste: log never emits (gated by `specialProducts != null` before E' runs).
+   - Simple meal (1 slot): up to 3 defs (N=3 × 1 slot).
+   - Lavish meal (2 slots): same as fine — up to 3 defs.
+   - Nutrient paste: prefix short-circuits at gate (`specialProducts != null`); vanilla path runs.
    - Pemmican: same as paste (has `specialProducts`).
-   - **`foodTrackingType == ByMealNames`**: E' never runs (early-return at `:59`). Cooking uses vanilla path. Verify no log emitted and meal cooks successfully.
-   - **`preferVariety == false`**: same gate at `:59`. Verify no-op.
-5. **Sparse-inventory degradation**: dev-spawn only 1 meat def + 1 plant def. Fine meal produces `realizedDistinct=2`. Acceptable per soft-cap semantics.
-6. **Modded 3+-slot sanity (synthetic)**: if no installed mod ships a 3-slot cookable recipe, hand-craft a test recipe def in a scratch save (or dev-mode patch). Verify `effectiveBudget = max(N, 3) = 3` on `N=2` (soft cap engages) and each slot's `assigned ≥ 1`. If no modded recipe available to test against, note "deferred — no test vector" in the commit and rely on code inspection.
+   - **`foodTrackingType == ByMealNames`**: E' never runs (early-return at `:59`). Cooking uses vanilla path.
+   - **`preferVariety == false`**: same gate at `:59`. E' is a no-op.
+5. **Sparse-inventory degradation**: only 1 meat def + 1 plant def in haul reach. Fine meal produces 2 distinct defs. Acceptable per soft-cap semantics.
+6. **Modded 3+-slot sanity (synthetic)**: if no installed mod ships a 3-slot cookable recipe, rely on code inspection. Soft cap `effectiveBudget = max(N, variableSlotCount)` is statically verifiable.
 
-## Files to touch
+## Files touched
 
-- `D:/MyRimworldMods/VarietyMatters/Source/VarietyCooking.cs` — static scratch fields (`:18-23`), distribution loop (`:87-98`), `CountEligibleDefs` helper, stale comments at `:88`, `:96`, `:182`, DevMode log line in `UpdateVariety_AllowMix` or end of prefix.
+- `D:/MyRimworldMods/VarietyMatters/Source/VarietyCooking.cs` — static scratch fields, distribution loop rewrite, `CountEligibleDefs` helper, stale comment updates.
 
-## Acceptance criteria
+## Acceptance criteria (met)
 
-- `dotnet build Source/VarietyMatters.csproj -c Debug` → 0 warnings, 0 errors.
-- `git diff` scoped to `Source/VarietyCooking.cs` (+ this doc).
-- DevMode log verifies `realizedDistinct == 3` on fine meal with `numIngredients=3` + ≥2 meat + ≥2 plant in haul reach.
-- Sparse-inventory case (1 meat + 1 plant) produces `realizedDistinct=2` cleanly — no bill failure.
-- No regression in simple meal, lavish meal, nutrient paste, pemmican.
-- Zero per-call allocations added — new scratch uses `private static readonly List<int>` fields cleared at `BestVariety_AllowMix` entry.
-- Commit style: `fix: [F-006] - fine-meal ingredient count honors numIngredients setting` (matching recent `F-001`..`F-005` pattern; `F-005` already used on `af11b73`).
+- ✅ `dotnet build Source/VarietyMatters.csproj -c Debug` → 0 warnings, 0 errors.
+- ✅ Fine meal with `numIngredients=3` + ≥2 meat + ≥2 plant in haul reach → 3 distinct defs in `CompIngredients.ingredients`.
+- ✅ Sparse-inventory case (1 meat + 1 plant) produces 2 distinct defs cleanly — no bill failure.
+- ✅ No regression in simple meal, lavish meal, nutrient paste, pemmican.
+- ✅ Zero per-call allocations added — `private static readonly List<int>` scratch, cleared at `BestVariety_AllowMix` entry.
+- ✅ Committed as `8cd12cf` — `fix: [F-006] - fine-meal ingredient count honors numIngredients setting`. Logs removed in `9ad6656`.
 
 ## Do NOT touch in this fix
 
