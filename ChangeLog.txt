@@ -1,3 +1,7 @@
+[04/18/2026]
+	Fixed fine/lavish meal using fewer distinct ingredient types than the "ingredients when stacking" setting. E.g. setting=3 on a fine meal with enough variety in the haul region now produces 3 distinct types (was 2).
+	Distribution algorithm replaced with adaptive water-fill: pre-scan each recipe slot for eligible distinct types, distribute budget = max(setting, variable-slot-count) across slots, never starve a slot. Modded 3+ slot recipes now get a minimum of 1 type per slot.
+
 [04/17/2026]
 	Fixed unit-mismatch in per-ingredient cap: caps are now computed in nutrition space (not treated as raw item counts), so simple meals with 2 meat types produce balanced distributions instead of 9+1.
 	Cook now varies the proportion of ingredients between meals (±30% jitter, sum-normalized) — successive meals get 4+6, 5+5, 6+4, etc., not deterministic identical splits.
