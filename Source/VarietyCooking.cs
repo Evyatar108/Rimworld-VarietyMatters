@@ -14,13 +14,16 @@ namespace VarietyMatters
 		private static readonly Dictionary<Bill, Pawn> chefByBill = new Dictionary<Bill, Pawn>();
 
 		// Reused scratch state. RimWorld cooking runs on the main thread only — no locking needed.
-		// Assumption: no other mod recursively re-enters BestVariety_AllowMix or SortIngredients mid-execution via Harmony stacking. If that assumption breaks, nested calls would clobber each other's scratch state. Accepted risk for the GC savings; revisit if users report interactions with specific mods (e.g. RimThreaded, PickUpAndHaul).
+		// Assumption: no other mod recursively re-enters BestVariety_AllowMix, CountEligibleDefs, or SortIngredients mid-execution via Harmony stacking. If that assumption breaks, nested calls would clobber each other's scratch state. Accepted risk for the GC savings; revisit if users report interactions with specific mods (e.g. RimThreaded, PickUpAndHaul).
 		private static readonly Dictionary<Thing, int> _takenByThingScratch = new Dictionary<Thing, int>();
 		private static readonly Dictionary<Thing, float> _sortKeysScratch = new Dictionary<Thing, float>();
 		private static readonly Dictionary<ThingDef, int> _penaltyPerDefScratch = new Dictionary<ThingDef, int>();
 		private static readonly Dictionary<ThingDef, float> _jitteredCapPerDefScratch = new Dictionary<ThingDef, float>();
 		private static readonly Dictionary<ThingDef, float> _consumedPerDefScratch = new Dictionary<ThingDef, float>();
 		private static readonly HashSet<ThingDef> _distinctDefsScratch = new HashSet<ThingDef>();
+		// E' adaptive water-fill scratch. Cleared at top of BestVariety_AllowMix Phase A; Lists are parallel-indexed to bill.recipe.ingredients.
+		private static readonly List<int> _eligibleDistinctScratch = new List<int>();
+		private static readonly List<int> _assignedScratch = new List<int>();
 		private static readonly Comparison<Thing> _sortKeyComparison = (t1, t2) => _sortKeysScratch[t1].CompareTo(_sortKeysScratch[t2]);
 
 		// Token: 0x06000030 RID: 48 RVA: 0x00004168 File Offset: 0x00002368
@@ -83,24 +86,74 @@ namespace VarietyMatters
 			chosen.Clear();
 			VarietyCooking.SortIngredients(availableThings, rootCell, chef, bill);
 			// _takenByThingScratch was cleared at the top of this method; it accumulates across all slots so a Thing reserved for slot 1 isn't re-allocated for slot 2.
-			bool recipeAllowsCap = bill.recipe.specialProducts == null;
+			// E' adaptive water-fill: pre-scan distinct eligible defs per variable slot, then distribute effectiveBudget = max(numIngredients, variableSlotCount) across slots, giving each at least 1 and water-filling remainder with reservoir-sampled random tie-break. Fixed slots (IsFixedIngredient==true) pass slotMaxDefs=0 — TryFillIngredientSlotWithCap sees applyCap=false and ignores the value. Soft cap: modded recipes with more variable slots than numIngredients never starve (budget grows to match slot count).
+			// specialProducts recipes already short-circuit the prefix at the gate branch above, so every bill reaching this loop has recipe.specialProducts == null.
 			int totalSlots = bill.recipe.ingredients.Count;
-			// Note: when numIngredients < totalSlots, each slot still gets a minimum budget of 1 (else the slot couldn't pick anything), so the meal may end up with up to totalSlots distinct defs — exceeding the user's numIngredients setting. Accepted because 0-budget slots are not meaningful.
-			int totalBudget = Mathf.Max(1, ModSettings_VarietyMatters.numIngredients);
-			int budgetRemainder = totalBudget % totalSlots;
-			int budgetBase = totalBudget / totalSlots;
+			int numIngredients = Mathf.Max(1, ModSettings_VarietyMatters.numIngredients);
+			_eligibleDistinctScratch.Clear();
+			_assignedScratch.Clear();
+
+			// Phase A: pre-scan each slot. Must complete before any fill call — _distinctDefsScratch is shared with TryFillIngredientSlotWithCap and is clobbered on entry there.
+			int variableSlotCount = 0;
+			for (int i = 0; i < totalSlots; i++)
+			{
+				IngredientCount ic = bill.recipe.ingredients[i];
+				int eligible = 0;
+				int assigned = 0;
+				if (!ic.IsFixedIngredient)
+				{
+					variableSlotCount++;
+					eligible = VarietyCooking.CountEligibleDefs(availableThings, ic, bill);
+					assigned = eligible > 0 ? 1 : 0;
+				}
+				_eligibleDistinctScratch.Add(eligible);
+				_assignedScratch.Add(assigned);
+			}
+
+			int effectiveBudget = Mathf.Max(numIngredients, variableSlotCount);
+			int sumAssigned = 0;
+			for (int i = 0; i < _assignedScratch.Count; i++) sumAssigned += _assignedScratch[i];
+			int remaining = effectiveBudget - sumAssigned;
+
+			// Reservoir-sample tie-break (single-pass, zero-alloc): on each while-iteration, count candidates where assigned<eligible and pick uniformly via Rand.Range(0, k)==0 replacement rule.
+			while (remaining > 0)
+			{
+				int picked = -1;
+				int candidateK = 0;
+				for (int i = 0; i < _assignedScratch.Count; i++)
+				{
+					if (_assignedScratch[i] < _eligibleDistinctScratch[i])
+					{
+						candidateK++;
+						if (Rand.Range(0, candidateK) == 0) picked = i;
+					}
+				}
+				if (picked < 0) break;
+				_assignedScratch[picked] = _assignedScratch[picked] + 1;
+				remaining--;
+			}
+
+			// Phase B: fill. slotMaxDefs==0 for (a) fixed slots (applyCap=false ignores it) and (b) variable slots whose pre-scan found eligible==0; in case (b) TryFillIngredientSlotWithCap raises 0→1 at :183 but finds nothing matching the filters, slot fails, bill fails — matches vanilla behavior for unmakeable filtered bills.
 			for (int i = 0; i < totalSlots; i++)
 			{
 				IngredientCount ingredientCount = bill.recipe.ingredients[i];
-				bool applyCapForSlot = recipeAllowsCap && !ingredientCount.IsFixedIngredient;
-				// Distribute numIngredients across recipe slots so the total distinct defs hauled per meal stays ≤ numIngredients. First `budgetRemainder` slots get +1 to spend the remainder. Minimum 1 per slot so each slot still balances when numIngredients < totalSlots.
-				int slotMaxDefs = Mathf.Max(1, budgetBase + (i < budgetRemainder ? 1 : 0));
+				bool applyCapForSlot = !ingredientCount.IsFixedIngredient;
+				int slotMaxDefs = _assignedScratch[i];
 				if (!VarietyCooking.TryFillIngredientSlotWithCap(availableThings, bill, ingredientCount, chosen, applyCapForSlot, slotMaxDefs))
 				{
 					__result = false;
 					return false;
 				}
 			}
+
+			if (Prefs.DevMode)
+			{
+				_distinctDefsScratch.Clear();
+				for (int i = 0; i < chosen.Count; i++) _distinctDefsScratch.Add(chosen[i].Thing.def);
+				Log.Message(string.Format("[VarietyMatters E'] recipe={0} budget={1} assigned=[{2}] realizedDistinct={3}",
+					bill.recipe.defName, effectiveBudget, string.Join(",", _assignedScratch), _distinctDefsScratch.Count));
+			}
+
 			__result = true;
 			return false;
 		}
@@ -165,6 +218,20 @@ namespace VarietyMatters
 			cookingRecord?.UpdateCookingRecord(chef, chosen);
 		}
 
+		// Pre-scan helper for E' Phase A. Returns the count of distinct ThingDefs in availableThings matching this slot's filter. Predicate MUST match the Pass-1 top-K loop in TryFillIngredientSlotWithCap — they share _distinctDefsScratch, so any leaked reference would observe Phase-B overwrites. Returns int only.
+		private static int CountEligibleDefs(List<Thing> availableThings, IngredientCount ic, Bill bill)
+		{
+			_distinctDefsScratch.Clear();
+			for (int j = 0; j < availableThings.Count; j++)
+			{
+				Thing t = availableThings[j];
+				if (!ic.filter.Allows(t)) continue;
+				if (!ic.IsFixedIngredient && !bill.ingredientFilter.Allows(t)) continue;
+				_distinctDefsScratch.Add(t.def);
+			}
+			return _distinctDefsScratch.Count;
+		}
+
 		// Two-pass fill: Pass 1 caps per ThingDef to encourage mixing; Pass 2 drains residual restricted to top-K (falls back to unrestricted only if top-K can't satisfy the slot).
 		private static bool TryFillIngredientSlotWithCap(List<Thing> availableThings, Bill bill, IngredientCount ingredientCount, List<ThingCount> chosen, bool applyCap, int slotMaxDefs)
 		{
@@ -179,7 +246,7 @@ namespace VarietyMatters
 
 			if (applyCap)
 			{
-				// Collect distinct defs in sort order, capped at slotMaxDefs (the slot's share of numIngredients distributed across recipe slots). Top-K by sort order preserves variety/distance/spoiling priority.
+				// Collect distinct defs in sort order, capped at this slot's precomputed E' allowance (slotMaxDefs) from the Phase-A pre-scan + water-fill. Top-K by sort order preserves variety/distance/spoiling priority.
 				int maxDefs = Mathf.Max(1, slotMaxDefs);
 				for (int j = 0; j < availableThings.Count; j++)
 				{
