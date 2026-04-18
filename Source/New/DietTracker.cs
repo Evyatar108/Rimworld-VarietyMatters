@@ -17,6 +17,10 @@
         private List<EatenFoodSource> tempList;
         private List<EatenFoodByPawn> tempListV2;
 
+        private int _version;
+
+        public int Version => this._version;
+
         public DietTracker()
         {
         }
@@ -94,10 +98,14 @@
             {
                 this.RemoveOldestFoodSourceFromMemory();
             }
+
+            this._version++;
         }
 
         public void AddFoodSource(EatenFoodSource eatenFoodSource)
         {
+            this._version++;
+
             var eatenFoodbyPawn = new EatenFoodByPawn(this.pawn, eatenFoodSource);
 
             if (ModSettings_VarietyMatters.foodDrugsAreOnlyInMemoryOnce &&
@@ -150,6 +158,8 @@
 
                 this.AddFoodSourceToCount(foodSource);
             }
+
+            this._version++;
         }
 
         private void AddFoodSourceToMemory(EatenFoodByPawn foodSource)

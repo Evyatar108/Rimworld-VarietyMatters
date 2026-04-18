@@ -34,5 +34,7 @@
         public static ExpectationDef SkyHigh;
 
         public static TraitDef Cannibal;
+
+        public static TraitDef Gourmand;
     }
 }

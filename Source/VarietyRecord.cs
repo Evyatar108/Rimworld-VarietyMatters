@@ -13,6 +13,17 @@
 		{
 		}
 
+		public static bool TryGetVarietyRecord(Pawn trackedPawn, out DietTracker tracker)
+		{
+			if (trackedPawn == null)
+			{
+				tracker = null;
+				return false;
+			}
+
+			return VarietyRecord.DietRecord.TryGetValue(trackedPawn, out tracker);
+		}
+
 		// Token: 0x06000041 RID: 65 RVA: 0x000048BC File Offset: 0x00002ABC
 		public static DietTracker GetVarietyRecord(Pawn trackedPawn)
 		{
