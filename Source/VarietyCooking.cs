@@ -146,14 +146,6 @@ namespace VarietyMatters
 				}
 			}
 
-			if (Prefs.DevMode)
-			{
-				_distinctDefsScratch.Clear();
-				for (int i = 0; i < chosen.Count; i++) _distinctDefsScratch.Add(chosen[i].Thing.def);
-				Log.Message(string.Format("[VarietyMatters E'] recipe={0} budget={1} assigned=[{2}] realizedDistinct={3}",
-					bill.recipe.defName, effectiveBudget, string.Join(",", _assignedScratch), _distinctDefsScratch.Count));
-			}
-
 			__result = true;
 			return false;
 		}
