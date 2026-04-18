@@ -1,4 +1,19 @@
 [img]https://imgur.com/PZEKJnd.png[/img]
+[h3] 2026-04-18 [/h3]
+[list]
+[*]Large performance pass across the cooking, food-scoring, and need-tooltip hot paths. Late-game colonies should see noticeably lower per-tick allocation overhead.
+[*]Food-scoring postfix now early-exits on mod-settings gates before fetching the pawn's diet tracker — saves a lookup on every meal evaluation for every pawn.
+[*]Diet trackers are no longer created during read-only food scoring. Trackers appear only when a pawn actually ingests something.
+[*]Cooking ingredient search: scratch collections reused across bills instead of allocated per slot; per-def penalty map keyed by reference instead of label string.
+[*]Food-variety need tooltip caches its description until diet, clustering setting, or tracking-type setting changes — no more per-frame rebuild.
+[*]Need_FoodVariety Disabled check reordered for cheap early-exit; race-enablement lookup backed by a shared cache invalidated only when race settings change.
+[*]Ingredient stacking merge changed from O(n*m) Contains loops to O(n+m) hash set.
+[*]Trait lookups (Gourmand) now via DefOf instead of string-based TraitDef.Named — one-time cost at load instead of per mood recalc.
+[*]Fixed a latent save-load bug where dead pawns were removed from the tracker dictionary while iterating over it (could throw InvalidOperationException on load with dead pawns).
+[*]Dead pawns now have their tracker entries freed the same tick they die instead of waiting for the next save-load cycle.
+[*]ExposeData: invalid food entries on load are now summarized as a single warning per pawn instead of spamming one log per entry.
+[*]Fine meal (and other multi-slot recipes) now honor the "num of ingredients" setting via an adaptive water-fill distribution — no more underusing ingredient variety when category stocks are lopsided. Soft-cap max(setting, variable slot count) prevents modded 3+-slot recipes from starving.
+[/list]
 [h3] 2026-04-17 [/h3]
 [list]
 [*]Major fix: cooks now actually use multiple ingredients per meal when varied stockpile is available. The previous single-ingredient bug is fixed along with a large batch of related cooking AI improvements.

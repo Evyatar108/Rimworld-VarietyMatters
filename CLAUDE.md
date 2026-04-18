@@ -57,8 +57,74 @@ When adding a new cap concern, thread it through Pass 1 + Pass 2a identically; l
 - Deploy to Steam: invoke the `rimworld-tools:deploy` skill
 - In-game dev verify: `Prefs.DevMode` on, inspect `CompIngredients.ingredients.Count` on produced meal (via dev inspector). Do NOT add permanent `Log.Message` for feature validation — remove after confirming.
 
+## 6. `DietTracker._version` — transient cache-invalidation counter
+
+`Source/New/DietTracker.cs` has a `private int _version` field (not `Scribe_`-persisted) bumped at exactly three public entry points:
+
+- `AddFoodSource:99` (top, post null-guard)
+- `UpdateMaxFoodInMemory:89` (end)
+- `ReCount:136` (end)
+
+All private mutators (`AddForgottenFoods`, `AddFoodSourceToMemory`, `AddFoodSourceToCount`, `RemoveFoodFromQueueAndCountBasedOnKey`, `RemoveOldestFoodSourceFromMemory`, `RemoveFoodFromCount`) are reached only through those three entry points — no redundant bumps needed. Consumers (e.g. `Need_FoodVariety` UI cache) compare against stored version + rebuild on mismatch. Sentinel `_lastVersion = -1` forces first-access rebuild regardless of tracker state. Load resets `_version` to 0; `ReCount` bumps it, cache rebuilds once.
+
+If you add a new DietTracker mutation entry point, bump `_version` at the end. If you add a private helper, it's covered by its caller.
+
+## 7. Read-only tracker lookup — `TryGetVarietyRecord` vs `GetVarietyRecord`
+
+`Source/VarietyRecord.cs`:
+
+- `GetVarietyRecord(Pawn)` — **creates** a `DietTracker` on miss. Use only on ingest/update paths.
+- `TryGetVarietyRecord(Pawn, out DietTracker)` — **non-creating**. Returns `false` + null on miss. Use on read-only scoring paths (e.g. `Patch_FoodUtility.FoodOptimality`).
+
+Allocating a tracker just to read a score is a perf regression. If your code only reads from the tracker, use `TryGetVarietyRecord`.
+
+## 8. Save format stability
+
+Preserve `Scribe_` layout on any cache/perf change:
+
+- `VarietyCookingRecord.RecentListEx.entries` is serialized as `List<string>` with `LookMode.Value`. **Do not** swap storage to `ThingDef`. If you need ref-based keying, build a `Dictionary<string, ThingDef>` at use-site (see `SortIngredients` label→def map).
+- `DietTracker._version`, `Need_FoodVariety._lastTipVersion`, `_raceKeysVersion` — transient, never Scribed.
+- `_countByKey` in `DietTracker` — transient; rebuilt from scratch in `ReCount:136`.
+
+## 9. Pawn-lifecycle cleanup hooks
+
+`Source/Patch_PawnLifecycle.cs` has two Harmony postfixes, both unconditionally call `VarietyRecord.RemoveTrackedPawn(__instance)`:
+
+- **Primary**: `Pawn.Kill(DamageInfo?, Hediff)` — fires synchronously on death, same-tick dict cleanup.
+- **Safety net**: `Pawn.Destroy(DestroyMode)` — catches pawns that vanish without going through Kill (trader sales, caravan loss, animal despawn, etc.).
+
+`RemoveTrackedPawn` is idempotent, so double-fire during normal death is harmless.
+
+Do NOT hook `Pawn.DeSpawn` for cleanup — caravan transitions fire DeSpawn but the tracker should persist (pawn returns).
+
+## 10. DefOf pattern
+
+`Source/DefOf_VarietyMatters.cs` uses `[DefOf]` class attribute + `DefOfHelper.EnsureInitializedInCtor`. Fields resolve before any game tick. Consumers should add a null-guard (treat `null` as "trait/precept disabled") as defense-in-depth against malformed load order.
+
+Prefer DefOf over `TraitDef.Named("X")` / `DefDatabase<T>.GetNamed(...)` string lookups — the latter are slow and break on load-order drift.
+
+## 11. `raceVariety` keying + settings cache invalidation
+
+`ModSettings_VarietyMatters.raceVariety` is `Dictionary<string, RaceSetting>` keyed by `"modName-defName"` (see `GetRaceKey` at `ModSettings_VarietyMatters.cs:44`). NOT ThingDef-keyed. Any cache of enabled races must use `HashSet<string>` with the same key form.
+
+`Need_FoodVariety._enabledRaceKeys` + `_raceKeysVersion` invalidation sites (exactly these four):
+
+1. `ModSettings_VarietyMatters.ExposeData` post-load write
+2. `ModSettings_VarietyMatters.GenerateRaces` end (covers `AddCompVariety.cs:24` and `Mod_VarietyMatters.cs:181` callers)
+3. Race checkbox write at `Mod_VarietyMatters.cs:207`
+4. Reset Current Races button at `Mod_VarietyMatters.cs:177`
+
+Do NOT double-bump inside `GenerateRaces` callers — those are already covered by (2). See `F-003` history.
+
+## 12. `Disabled` check — optimize, don't cache the bool
+
+`Need_FoodVariety.Disabled` is hot (read from `Patch_FoodUtility.FoodOptimality` per scoring candidate). The final bool is NOT cached — caching risks stale leaks into food scoring on trait/faction/settings change. Instead: reorder cheap early-exits first, cache the one expensive sub-result (`_enabledRaceKeys` HashSet, see §11). Preserve null-safe access chain (`pawn.story?.traits?`).
+
 ## Do NOT
 
 - Add per-call `new T[]` / `new List<T>()` in cooking hot path (US-004 no-alloc ethos).
 - Add permanent `Prefs.DevMode`-gated logs that fire per-meal or per-pawn-death (too noisy; see `9ad6656`).
 - Touch `Patch_IngredientStacking.cs numIngredients` when fixing cooking-cap issues — that's the stack-cap, different concern.
+- Cache `Need_FoodVariety.Disabled` as a bool (see §12).
+- Swap `RecentListEx.entries` storage type (see §8).
+- Hook `Pawn.DeSpawn` for tracker cleanup (see §9).

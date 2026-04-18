@@ -1,4 +1,15 @@
 [04/18/2026]
+	Performance pass across cooking, food-scoring, and need-tooltip hot paths. Lower per-tick allocation overhead in late-game colonies.
+	Food-scoring postfix early-exits on mod-settings gates before fetching the pawn's diet tracker — saves a lookup per meal evaluation per pawn.
+	Diet trackers no longer created during read-only food scoring; only on actual ingest.
+	Cooking ingredient search: scratch collections reused across bills instead of allocated per slot; per-def penalty map keyed by ThingDef reference instead of label string.
+	Food-variety need tooltip caches its description until diet, clustering setting, or tracking-type setting changes — no per-frame rebuild.
+	Need_FoodVariety.Disabled check reordered for cheap early-exit; race-enablement lookup backed by a shared HashSet invalidated only when race settings change.
+	Ingredient stacking merge changed from O(n*m) Contains loops to O(n+m) hash set.
+	Gourmand trait lookup now via DefOf instead of TraitDef.Named("Gourmand") — one-time cost at load instead of per mood recalc.
+	Fixed latent save-load bug where dead pawns were removed from the tracker dictionary while iterating it (could throw InvalidOperationException on load with dead pawns).
+	Dead pawns now have their tracker entries freed the same tick they die instead of waiting for the next save-load cycle.
+	ExposeData: invalid food entries on load are now summarized as one warning per pawn instead of one log per entry.
 	Fixed fine/lavish meal using fewer distinct ingredient types than the "ingredients when stacking" setting. E.g. setting=3 on a fine meal with enough variety in the haul region now produces 3 distinct types (was 2).
 	Distribution algorithm replaced with adaptive water-fill: pre-scan each recipe slot for eligible distinct types, distribute budget = max(setting, variable-slot-count) across slots, never starve a slot. Modded 3+ slot recipes now get a minimum of 1 type per slot.
 
