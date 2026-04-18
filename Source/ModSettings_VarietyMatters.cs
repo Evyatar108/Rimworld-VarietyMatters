@@ -39,6 +39,7 @@
 
 			ModSettings_VarietyMatters.raceValues = ModSettings_VarietyMatters.raceVariety.Values.ToList();
 			ModSettings_VarietyMatters.raceKeys = ModSettings_VarietyMatters.raceVariety.Keys.ToList();
+			ModSettings_VarietyMatters.raceVarietyVersion++;
         }
 
 		public static string GetRaceKey(ThingDef thingDef)
@@ -74,6 +75,8 @@
 			Scribe_Collections.Look<string, RaceSetting>(ref ModSettings_VarietyMatters.raceVariety, "raceVarietyV2", LookMode.Value, LookMode.Deep, ref ModSettings_VarietyMatters.raceKeys, ref ModSettings_VarietyMatters.raceValues, true);
 
             base.ExposeData();
+
+			ModSettings_VarietyMatters.raceVarietyVersion++;
 		}
 
 		public static FoodTrackingType foodTrackingType = FoodTrackingType.ByMealNamesAndIngredientsCombination;
@@ -139,5 +142,7 @@
 
 		// Token: 0x04000021 RID: 33
 		public static List<RaceSetting> raceValues = new List<RaceSetting>();
+
+		public static int raceVarietyVersion = 0;
     }
 }

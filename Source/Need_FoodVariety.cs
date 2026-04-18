@@ -18,6 +18,9 @@
 		private readonly Dictionary<int, int> _totalAppearancesScratch = new Dictionary<int, int>();
 		private readonly Dictionary<int, int> _appearancesSoFarScratch = new Dictionary<int, int>();
 
+		private static HashSet<string> _enabledRaceKeys = new HashSet<string>();
+		private static int _raceKeysVersion = -1;
+
 		// Token: 0x17000002 RID: 2
 		// (get) Token: 0x06000018 RID: 24 RVA: 0x00002F8C File Offset: 0x0000118C
 		public MenuVarietyLevel CurCategory
@@ -111,8 +114,11 @@
 		{
 			get
 			{
-				bool doesNotHaveVarietyNeed = this.pawn.Dead || !TraitDef_ModExtension.NeedsVariety(this.pawn) || this.pawn.needs?.food == null || this.pawn.needs?.mood == null;
-				if (doesNotHaveVarietyNeed)
+				if (this.pawn.Dead)
+				{
+					return true;
+				}
+				if (this.pawn.needs?.food == null || this.pawn.needs?.mood == null)
 				{
 					return true;
 				}
@@ -132,9 +138,31 @@
                     return true;
                 }
 
-                string raceKey = ModSettings_VarietyMatters.GetRaceKey(this.pawn.def);
-                bool isRaceWithVariety = ModSettings_VarietyMatters.raceVariety.TryGetValue(raceKey, out var settings) && settings?.isVarietyEnabled == true;
-				return !isRaceWithVariety;
+				if (!TraitDef_ModExtension.NeedsVariety(this.pawn))
+				{
+					return true;
+				}
+
+				int version = ModSettings_VarietyMatters.raceVarietyVersion;
+				if (version != _raceKeysVersion)
+				{
+					_enabledRaceKeys.Clear();
+					var raceVariety = ModSettings_VarietyMatters.raceVariety;
+					if (raceVariety != null)
+					{
+						foreach (var kv in raceVariety)
+						{
+							if (kv.Value != null && kv.Value.isVarietyEnabled)
+							{
+								_enabledRaceKeys.Add(kv.Key);
+							}
+						}
+					}
+					_raceKeysVersion = version;
+				}
+
+				string raceKey = ModSettings_VarietyMatters.GetRaceKey(this.pawn.def);
+				return !_enabledRaceKeys.Contains(raceKey);
 			}
 		}
 

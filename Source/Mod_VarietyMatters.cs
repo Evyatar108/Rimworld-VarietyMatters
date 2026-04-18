@@ -179,6 +179,7 @@
 			{
 				ModSettings_VarietyMatters.raceVariety?.Clear();
 				ModSettings_VarietyMatters.GenerateRaces();
+				ModSettings_VarietyMatters.raceVarietyVersion++;
 			}
 			listing_Standard.End();
 
@@ -204,7 +205,11 @@
 					bool value = raceSettings.isVarietyEnabled;
 					string modName = raceSettings.modName;
 					listing_Standard.CheckboxLabeled(GenText.CapitalizeFirst(raceSettings.name), ref value, $"From mod: {modName}", 0f, 1f);
-					raceSettings.isVarietyEnabled = value;
+					if (raceSettings.isVarietyEnabled != value)
+					{
+						raceSettings.isVarietyEnabled = value;
+						ModSettings_VarietyMatters.raceVarietyVersion++;
+					}
 				}
 
 				listing_Standard.End();
