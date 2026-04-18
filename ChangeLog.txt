@@ -1,3 +1,29 @@
+[04/17/2026]
+	Fixed unit-mismatch in per-ingredient cap: caps are now computed in nutrition space (not treated as raw item counts), so simple meals with 2 meat types produce balanced distributions instead of 9+1.
+	Cook now varies the proportion of ingredients between meals (±30% jitter, sum-normalized) — successive meals get 4+6, 5+5, 6+4, etc., not deterministic identical splits.
+	Capped distinct ingredient types per meal at the "ingredients when stacking" setting — prevents meals from fanning out to 10+ types when many food types are allowed in the bill filter.
+	For multi-slot recipes (fine meals, lavish meals), the distinct-types budget is distributed across slots so the whole meal respects the cap (meat slot + veg slot share the budget).
+	Fixed Pass 2 (residue fallback) leaking ingredient types past the cap — now restricted to top-K defs first, with an unrestricted fallback only when stack-limited.
+	Fixed cross-slot stack accounting: a stack reserved for slot 1 is no longer double-reserved for slot 2.
+	Fixed kibble detection in ingredient-merging patch — was comparing localized label, now uses stable defName ("Kibble"). Non-English RimWorld installs no longer merge kibble under variety rules.
+	Performance: sort/selection scratch state reused instead of allocated per bill; O(n²) chosen-list scan replaced with O(1) dictionary lookup.
+
+[04/16/2026]
+	Fixed major bug where cooks used only one ingredient per meal regardless of available stockpile variety.
+	Chefs now pick multiple ingredient types per meal when available (per-slot proportional cap, two-pass fallback).
+	Variety memory now per-pawn instead of shared per-map — multiple cooks have independent ingredient rotation.
+	Added "cooking memory depth" setting to control how many recent meals each cook remembers.
+	Variety penalty now scales with how often an ingredient was recently used (not just binary seen/unseen).
+	Fixed cooking memory reading oldest meals instead of newest (variety pressure now points the right direction).
+	Low-skill cooks (0-1) now get at least 1 meal of variety memory instead of zero.
+	Reduced spoiling weight so it no longer dominates ingredient selection at the cost of variety.
+	Removed stale static chef field; now tracks cook per-bill (survives pawn death, caravan, cross-map scenarios).
+	Cooking bills no longer fail spuriously when map component is missing (falls through to vanilla).
+	Dead-pawn cleanup: variety memory for deceased colonists now gets pruned once per in-game day.
+	Aligned ingredient-merging guards in meal stacking so shuffle fairness is preserved on merges.
+	Legacy "RecentlyCooked" save data gracefully discarded on load; variety rebuilds within ~10 cooks.
+	Note: NoMix bills (Allow Mixing Ingredients disabled) remain single-ingredient by vanilla design — enable mixing in bill UI to get variety.
+
 [11/04/2023]
 	Integrated with Variety Matter More Compat
 

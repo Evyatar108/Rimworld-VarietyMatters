@@ -1,4 +1,16 @@
 [img]https://imgur.com/PZEKJnd.png[/img]
+[h3] 2026-04-17 [/h3]
+[list]
+[*]Major fix: cooks now actually use multiple ingredients per meal when varied stockpile is available. The previous single-ingredient bug is fixed along with a large batch of related cooking AI improvements.
+[*]Each cook has independent variety memory — multiple chefs no longer share one ingredient-rotation history.
+[*]Meal ingredient proportions now vary between cooks (jittered ±30%) instead of producing identical splits every time.
+[*]Distinct ingredient types per meal are capped at the "ingredients when stacking" setting, so meals stay recognizable even when many food types are allowed.
+[*]Multi-slot recipes (fine/lavish meals) distribute the ingredient-type budget across slots.
+[*]New setting: "cooking memory depth" controls how many recent meals each cook remembers.
+[*]Fixed kibble detection breaking on translated installs (was comparing localized text, now uses stable internal name).
+[*]Performance: allocations in the cooking ingredient search loop eliminated for large colonies.
+[*]Legacy saves: pre-fix ingredient-memory data gracefully discarded; variety rebuilds within ~10 cooks.
+[/list]
 [h3] 2025-08-04 [/h3]
 [list]
 [*]Major performance improvements for large colonies! Cooking operations are now much faster, especially noticeable with diverse food varieties.

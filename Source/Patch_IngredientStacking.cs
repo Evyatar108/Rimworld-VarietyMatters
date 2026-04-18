@@ -14,7 +14,7 @@ namespace VarietyMatters
 			return ModSettings_VarietyMatters.foodTrackingType == New.FoodTrackingType.ByMealNames
 				|| ModSettings_VarietyMatters.numIngredients <= 3
 				|| instance.ingredients.Count == 0
-				|| instance.parent.def.label == "kibble";
+				|| instance.parent.def.defName == "Kibble";
 		}
 
 		// Token: 0x06000021 RID: 33 RVA: 0x00003540 File Offset: 0x00001740
