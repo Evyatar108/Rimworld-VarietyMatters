@@ -314,14 +314,45 @@
 
                 if (Scribe.mode == LoadSaveMode.PostLoadInit)
                 {
+                    int skippedCount = 0;
+
                     if (tempList != null)
                     {
-                        this.foodSourcesByOrderV2 = new Queue<EatenFoodByPawn>(tempList.Where(x => IsEatenFoodSourceValid(x)).Select(x => new EatenFoodByPawn(this.pawn, x)));
+                        this.foodSourcesByOrderV2 = new Queue<EatenFoodByPawn>(tempList.Count + 1);
+                        for (int i = 0; i < tempList.Count; i++)
+                        {
+                            EatenFoodSource src = tempList[i];
+                            if (IsEatenFoodSourceValid(src))
+                            {
+                                this.foodSourcesByOrderV2.Enqueue(new EatenFoodByPawn(this.pawn, src));
+                            }
+                            else
+                            {
+                                skippedCount++;
+                            }
+                        }
                     }
 
                     if (tempListV2 != null)
                     {
-                        this.foodSourcesByOrderV2 = new Queue<EatenFoodByPawn>(tempListV2.Where(x => IsEatenFoodSourceByPawnValid(x)));
+                        this.foodSourcesByOrderV2 = new Queue<EatenFoodByPawn>(tempListV2.Count + 1);
+                        for (int i = 0; i < tempListV2.Count; i++)
+                        {
+                            EatenFoodByPawn src = tempListV2[i];
+                            if (IsEatenFoodSourceByPawnValid(src))
+                            {
+                                this.foodSourcesByOrderV2.Enqueue(src);
+                            }
+                            else
+                            {
+                                skippedCount++;
+                            }
+                        }
+                    }
+
+                    if (skippedCount > 0)
+                    {
+                        Log.Warning($"VarietyMatters: ExposeData skipped {skippedCount} invalid food entries for {this.pawn?.LabelShort ?? "<null>"}");
                     }
 
                     this.foodsVarietyInfos = new Dictionary<string, FoodVarietyInfo>(this.maxEatenFoodSourceInMemory + 1);
@@ -338,13 +369,11 @@
         {
             if (eatenFoodSourceByPawn == null)
             {
-                Log.Warning("DietTracker:: Loaded a null eaten food source by pawn.");
                 return false;
             }
 
             if (eatenFoodSourceByPawn.Pawn == null)
             {
-                Log.Warning($"DietTracker:: Loaded eaten food source by pawn with null pawn.");
                 return false;
             }
 
@@ -355,7 +384,6 @@
         {
             if (eatenFoodSource == null)
             {
-                Log.Warning("DietTracker:: Loaded a null eaten food source.");
                 return false;
             }
 
@@ -366,13 +394,11 @@
 
             if (eatenFoodSource.ThingLabel == null)
             {
-                Log.Warning("DietTracker:: Loaded a eaten food source with a null thing label");
                 return false;
             }
 
             if (eatenFoodSource.ThingDef == null)
             {
-                Log.Warning("DietTracker:: Loaded a eaten food source with a null thing def");
                 return false;
             }
 
