@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using VarietyMatters.New;
     using Verse;
 
@@ -101,12 +102,10 @@
 		{
 			if (VarietyRecord.DietRecord != null)
 			{
-				foreach (Pawn pawn in VarietyRecord.DietRecord.Keys)
+				List<Pawn> deadPawns = VarietyRecord.DietRecord.Keys.Where(p => p.Dead).ToList();
+				foreach (var p in deadPawns)
 				{
-					if (pawn.Dead)
-					{
-						VarietyRecord.RemoveTrackedPawn(pawn);
-					}
+					VarietyRecord.RemoveTrackedPawn(p);
 				}
 			}
 
