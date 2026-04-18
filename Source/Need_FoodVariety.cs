@@ -12,6 +12,12 @@
     // Token: 0x0200000C RID: 12
     public class Need_FoodVariety : Need
 	{
+		private int _lastTipVersion = -1;
+		private string _cachedFoodSourcesDesc;
+		private readonly List<(EatenFoodSource, FoodVarietyInfo, NoVarietyReason?)> _foodsVarietyInfoScratch = new List<(EatenFoodSource, FoodVarietyInfo, NoVarietyReason?)>();
+		private readonly Dictionary<int, int> _totalAppearancesScratch = new Dictionary<int, int>();
+		private readonly Dictionary<int, int> _appearancesSoFarScratch = new Dictionary<int, int>();
+
 		// Token: 0x17000002 RID: 2
 		// (get) Token: 0x06000018 RID: 24 RVA: 0x00002F8C File Offset: 0x0000118C
 		public MenuVarietyLevel CurCategory
@@ -203,8 +209,23 @@
 
         private string GetEatenFoodSourcesDescription(DietTracker dietTracker)
         {
-            var foodsVarietyInfoInIngestionOrder = dietTracker.GetFoodVarietyInfoForPawnInIngestionOrder().ToList();
-            var totalAppearancesOfFoodSources = new Dictionary<int, int>();
+            int version = dietTracker.Version;
+            if (version == this._lastTipVersion && this._cachedFoodSourcesDesc != null)
+            {
+                return this._cachedFoodSourcesDesc;
+            }
+
+            this._foodsVarietyInfoScratch.Clear();
+            this._totalAppearancesScratch.Clear();
+            this._appearancesSoFarScratch.Clear();
+
+            foreach (var tuple in dietTracker.GetFoodVarietyInfoForPawnInIngestionOrder())
+            {
+                this._foodsVarietyInfoScratch.Add(tuple);
+            }
+
+            var foodsVarietyInfoInIngestionOrder = this._foodsVarietyInfoScratch;
+            var totalAppearancesOfFoodSources = this._totalAppearancesScratch;
 
             foreach (var (eatenFoodSource, foodVarietyInfo, _) in foodsVarietyInfoInIngestionOrder)
             {
@@ -217,7 +238,7 @@
             }
 
             var stringBuilder = new StringBuilder(", the most recent ones were:\n");
-            var appearancesOfFoodSourcesSoFar = new Dictionary<int, int>();
+            var appearancesOfFoodSourcesSoFar = this._appearancesSoFarScratch;
             int maxViewableRecentMeals = 5;
 
             for (int i = foodsVarietyInfoInIngestionOrder.Count - 1; i >= 0 && (foodsVarietyInfoInIngestionOrder.Count - 1 - i) < maxViewableRecentMeals; i--)
@@ -291,7 +312,9 @@
                 }
             }
 
-            return stringBuilder.ToString();
+            this._cachedFoodSourcesDesc = stringBuilder.ToString();
+            this._lastTipVersion = version;
+            return this._cachedFoodSourcesDesc;
         }
 
         private string GetVarietyInfoForForgotten(int seed)
