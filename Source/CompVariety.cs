@@ -1,7 +1,8 @@
 ﻿namespace VarietyMatters
 {
     using System;
-    using System.Linq;
+    using System.Collections.Generic;
+    using System.Text;
     using RimWorld;
     using Verse;
 
@@ -10,6 +11,9 @@
   {
         private string cachedIngredientsKey;
         private string cachedFoodSourceKey;
+
+        private static readonly List<string> _ingredientDefNamesScratch = new List<string>();
+        private static readonly StringBuilder _ingredientsKeyBuilder = new StringBuilder();
 
         // Token: 0x17000001 RID: 1
         // (get) Token: 0x06000006 RID: 6 RVA: 0x0000210F File Offset: 0x0000030F
@@ -63,7 +67,20 @@
 		              }
 		              else
 		              {
-		                  cachedIngredientsKey = string.Join(",", ingredients.ingredients.Select(x => x.defName).OrderBy(x => x));
+		                  List<ThingDef> source = ingredients.ingredients;
+		                  _ingredientDefNamesScratch.Clear();
+		                  for (int i = 0; i < source.Count; i++)
+		                  {
+		                      _ingredientDefNamesScratch.Add(source[i].defName);
+		                  }
+		                  _ingredientDefNamesScratch.Sort();
+		                  _ingredientsKeyBuilder.Clear();
+		                  for (int i = 0; i < _ingredientDefNamesScratch.Count; i++)
+		                  {
+		                      if (i > 0) _ingredientsKeyBuilder.Append(',');
+		                      _ingredientsKeyBuilder.Append(_ingredientDefNamesScratch[i]);
+		                  }
+		                  cachedIngredientsKey = _ingredientsKeyBuilder.ToString();
 		              }
 		          }
 		          return cachedIngredientsKey;
