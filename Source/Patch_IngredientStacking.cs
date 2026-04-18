@@ -9,6 +9,9 @@ namespace VarietyMatters
     [HarmonyPatch(typeof(CompIngredients), "PreAbsorbStack")]
 	public class Patch_IngredientStacking
 	{
+		// RimWorld stack-absorption runs on the main thread; scratch reused across Prefix/Postfix calls.
+		private static readonly HashSet<ThingDef> _mergeSeenDefsScratch = new HashSet<ThingDef>();
+
 		private static bool ShouldSkipIngredientMerge(CompIngredients instance)
 		{
 			return ModSettings_VarietyMatters.foodTrackingType == New.FoodTrackingType.ByMealNames
@@ -24,11 +27,19 @@ namespace VarietyMatters
 			var otherComp = ThingCompUtility.TryGetComp<CompIngredients>(otherStack);
 			if (otherComp == null) return;
 			__state = otherComp.ingredients;
-			for (int i = 0; i < __instance.ingredients.Count; i++)
+			HashSet<ThingDef> seen = _mergeSeenDefsScratch;
+			seen.Clear();
+			for (int i = 0; i < __state.Count; i++)
 			{
-				if (!__state.Contains(__instance.ingredients[i]))
+				seen.Add(__state[i]);
+			}
+			List<ThingDef> instIngredients = __instance.ingredients;
+			for (int i = 0; i < instIngredients.Count; i++)
+			{
+				ThingDef def = instIngredients[i];
+				if (seen.Add(def))
 				{
-					__state.Add(__instance.ingredients[i]);
+					__state.Add(def);
 				}
 			}
 		}
@@ -44,11 +55,19 @@ namespace VarietyMatters
 				{
 					GenList.Shuffle<ThingDef>(__state);
 				}
+				HashSet<ThingDef> seen = _mergeSeenDefsScratch;
+				seen.Clear();
+				List<ThingDef> instIngredients = __instance.ingredients;
+				for (int i = 0; i < instIngredients.Count; i++)
+				{
+					seen.Add(instIngredients[i]);
+				}
 				for (int i = 0; i < __state.Count; i++)
 				{
-					if (!__instance.ingredients.Contains(__state[i]))
+					ThingDef def = __state[i];
+					if (seen.Add(def))
 					{
-						__instance.ingredients.Add(__state[i]);
+						instIngredients.Add(def);
 						num++;
 					}
 					if (num == ModSettings_VarietyMatters.numIngredients)
