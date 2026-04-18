@@ -13,6 +13,8 @@
     public class Need_FoodVariety : Need
 	{
 		private int _lastTipVersion = -1;
+		private bool _lastTipClusterSimilarMeals;
+		private FoodTrackingType _lastTipFoodTrackingType;
 		private string _cachedFoodSourcesDesc;
 		private readonly List<(EatenFoodSource, FoodVarietyInfo, NoVarietyReason?)> _foodsVarietyInfoScratch = new List<(EatenFoodSource, FoodVarietyInfo, NoVarietyReason?)>();
 		private readonly Dictionary<int, int> _totalAppearancesScratch = new Dictionary<int, int>();
@@ -238,7 +240,12 @@
         private string GetEatenFoodSourcesDescription(DietTracker dietTracker)
         {
             int version = dietTracker.Version;
-            if (version == this._lastTipVersion && this._cachedFoodSourcesDesc != null)
+            bool clusterSimilarMeals = ModSettings_VarietyMatters.clusterSimilarMealsTogether;
+            FoodTrackingType foodTrackingType = ModSettings_VarietyMatters.foodTrackingType;
+            if (version == this._lastTipVersion
+                && clusterSimilarMeals == this._lastTipClusterSimilarMeals
+                && foodTrackingType == this._lastTipFoodTrackingType
+                && this._cachedFoodSourcesDesc != null)
             {
                 return this._cachedFoodSourcesDesc;
             }
@@ -342,6 +349,8 @@
 
             this._cachedFoodSourcesDesc = stringBuilder.ToString();
             this._lastTipVersion = version;
+            this._lastTipClusterSimilarMeals = clusterSimilarMeals;
+            this._lastTipFoodTrackingType = foodTrackingType;
             return this._cachedFoodSourcesDesc;
         }
 
