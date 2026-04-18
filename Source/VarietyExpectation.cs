@@ -51,7 +51,8 @@
                 expectedVariety = Math.Max(1, expectedVariety * ModSettings_VarietyMatters.prisonerExpectedVarietyPercentage / 100);
             }
 
-            if (ingester?.story?.traits?.HasTrait(TraitDef.Named("Gourmand")) == true)
+            TraitDef gourmand = DefOf_VarietyMatters.Gourmand;
+            if (gourmand != null && ingester?.story?.traits?.HasTrait(gourmand) == true)
             {
                 expectedVariety = expectedVariety * 5 / 4; // *1.25, 25%+
             }

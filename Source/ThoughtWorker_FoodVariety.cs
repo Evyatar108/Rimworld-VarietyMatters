@@ -17,7 +17,8 @@
                 baseMultiplier = 1f;
             }
 
-            if (p.story.traits.HasTrait(TraitDef.Named("Gourmand")))
+            TraitDef gourmand = DefOf_VarietyMatters.Gourmand;
+            if (gourmand != null && p.story.traits.HasTrait(gourmand))
             {
                 baseMultiplier *= 2;
             }
