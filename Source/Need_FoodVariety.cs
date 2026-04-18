@@ -19,6 +19,7 @@
 		private readonly List<(EatenFoodSource, FoodVarietyInfo, NoVarietyReason?)> _foodsVarietyInfoScratch = new List<(EatenFoodSource, FoodVarietyInfo, NoVarietyReason?)>();
 		private readonly Dictionary<int, int> _totalAppearancesScratch = new Dictionary<int, int>();
 		private readonly Dictionary<int, int> _appearancesSoFarScratch = new Dictionary<int, int>();
+		private readonly StringBuilder _foodSourcesDescBuilder = new StringBuilder();
 
 		private static HashSet<string> _enabledRaceKeys = new HashSet<string>();
 		private static int _raceKeysVersion = -1;
@@ -272,7 +273,9 @@
                 totalAppearancesOfFoodSources[key]++;
             }
 
-            var stringBuilder = new StringBuilder(", the most recent ones were:\n");
+            var stringBuilder = this._foodSourcesDescBuilder;
+            stringBuilder.Clear();
+            stringBuilder.Append(", the most recent ones were:\n");
             var appearancesOfFoodSourcesSoFar = this._appearancesSoFarScratch;
             int maxViewableRecentMeals = 5;
 
