@@ -19,6 +19,8 @@
 
         private int _version;
 
+        private Dictionary<string, int> _countByKey;
+
         public int Version => this._version;
 
         public DietTracker()
@@ -34,6 +36,7 @@
             this.foodsNoVarietyReasons = new Dictionary<EatenFoodByPawn, NoVarietyReason>(this.maxEatenFoodSourceInMemory + 1);
             this.foodSourcesByOrderV2 = new Queue<EatenFoodByPawn>(this.maxEatenFoodSourceInMemory + 1);
             this.KeysOfFoodSourcesWithVariety = new HashSet<string>();
+            this._countByKey = new Dictionary<string, int>(this.maxEatenFoodSourceInMemory + 1);
             this.totalVariety = 0;
 
             this.AddForgottenFoods();
@@ -147,6 +150,7 @@
 
             this.foodsVarietyInfos.Clear();
             this.KeysOfFoodSourcesWithVariety.Clear();
+            this._countByKey.Clear();
 
             foreach (EatenFoodByPawn foodSource in this.foodSourcesByOrderV2)
             {
@@ -173,6 +177,15 @@
         private void AddFoodSourceToCount(EatenFoodByPawn eatenFood)
         {
             string foodSourceKey = eatenFood.Source.GetFoodSourceKey();
+
+            if (this._countByKey.TryGetValue(foodSourceKey, out int existingCount))
+            {
+                this._countByKey[foodSourceKey] = existingCount + 1;
+            }
+            else
+            {
+                this._countByKey[foodSourceKey] = 1;
+            }
 
             bool hasVarietyValueForPawn = VarietyProvider.DoesFoodHasVarietyValueForPawn(this.Pawn, eatenFood, out NoVarietyReason noVarietyReason);
 
@@ -212,37 +225,24 @@
 
         private void RemoveFoodFromQueueAndCountBasedOnKey(string key)
         {
-            // Use a temporary list to collect items to remove to avoid queue recreation
-            var itemsToRemove = new List<EatenFoodByPawn>();
-            
-            // First pass: identify items to remove and update counts
-            foreach (EatenFoodByPawn eatenFoodSource in this.foodSourcesByOrderV2)
+            if (!this._countByKey.ContainsKey(key))
             {
-                if (eatenFoodSource.Source.GetFoodSourceKey() == key)
-                {
-                    itemsToRemove.Add(eatenFoodSource);
-                    this.RemoveFoodFromCount(eatenFoodSource);
-                }
-            }
-            
-            // If no items to remove, avoid queue recreation
-            if (itemsToRemove.Count == 0)
                 return;
-            
-            // Only recreate queue if we actually need to remove items
-            // Use capacity hint to reduce allocations
-            var newQueue = new Queue<EatenFoodByPawn>(this.foodSourcesByOrderV2.Count - itemsToRemove.Count);
-            var itemsToRemoveSet = new HashSet<EatenFoodByPawn>(itemsToRemove);
-            
-            foreach (EatenFoodByPawn eatenFoodSource in this.foodSourcesByOrderV2)
-            {
-                if (!itemsToRemoveSet.Contains(eatenFoodSource))
-                {
-                    newQueue.Enqueue(eatenFoodSource);
-                }
             }
 
-            this.foodSourcesByOrderV2 = newQueue;
+            int initialCount = this.foodSourcesByOrderV2.Count;
+            for (int i = 0; i < initialCount; i++)
+            {
+                EatenFoodByPawn eatenFoodSource = this.foodSourcesByOrderV2.Dequeue();
+                if (eatenFoodSource.Source.GetFoodSourceKey() == key)
+                {
+                    this.RemoveFoodFromCount(eatenFoodSource);
+                }
+                else
+                {
+                    this.foodSourcesByOrderV2.Enqueue(eatenFoodSource);
+                }
+            }
         }
 
         private void RemoveOldestFoodSourceFromMemory()
@@ -254,6 +254,19 @@
         private void RemoveFoodFromCount(EatenFoodByPawn eatenFoodSource)
         {
             string key = eatenFoodSource.Source.GetFoodSourceKey();
+
+            if (this._countByKey.TryGetValue(key, out int existingCount))
+            {
+                if (existingCount <= 1)
+                {
+                    this._countByKey.Remove(key);
+                }
+                else
+                {
+                    this._countByKey[key] = existingCount - 1;
+                }
+            }
+
             if (this.foodsVarietyInfos.TryGetValue(key, out FoodVarietyInfo foodSourceInfoForPawn))
             {
                 foodSourceInfoForPawn.CountInMemory--;
@@ -314,6 +327,7 @@
                     this.foodsVarietyInfos = new Dictionary<string, FoodVarietyInfo>(this.maxEatenFoodSourceInMemory + 1);
                     this.foodsNoVarietyReasons = new Dictionary<EatenFoodByPawn, NoVarietyReason>(this.maxEatenFoodSourceInMemory + 1);
                     this.KeysOfFoodSourcesWithVariety = new HashSet<string>();
+                    this._countByKey = new Dictionary<string, int>(this.maxEatenFoodSourceInMemory + 1);
 
                     this.ReCount();
                 }
