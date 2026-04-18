@@ -179,7 +179,6 @@
 			{
 				ModSettings_VarietyMatters.raceVariety?.Clear();
 				ModSettings_VarietyMatters.GenerateRaces();
-				ModSettings_VarietyMatters.raceVarietyVersion++;
 			}
 			listing_Standard.End();
 
