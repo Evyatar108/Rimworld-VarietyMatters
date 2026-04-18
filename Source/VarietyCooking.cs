@@ -18,6 +18,9 @@ namespace VarietyMatters
 		private static readonly Dictionary<Thing, int> _takenByThingScratch = new Dictionary<Thing, int>();
 		private static readonly Dictionary<Thing, float> _sortKeysScratch = new Dictionary<Thing, float>();
 		private static readonly Dictionary<string, int> _sortOccurrenceScratch = new Dictionary<string, int>();
+		private static readonly Dictionary<ThingDef, float> _jitteredCapPerDefScratch = new Dictionary<ThingDef, float>();
+		private static readonly Dictionary<ThingDef, float> _consumedPerDefScratch = new Dictionary<ThingDef, float>();
+		private static readonly HashSet<ThingDef> _distinctDefsScratch = new HashSet<ThingDef>();
 		private static readonly Comparison<Thing> _sortKeyComparison = (t1, t2) => _sortKeysScratch[t1].CompareTo(_sortKeysScratch[t2]);
 
 		// Token: 0x06000030 RID: 48 RVA: 0x00004168 File Offset: 0x00002368
@@ -165,10 +168,14 @@ namespace VarietyMatters
 		// Two-pass fill: Pass 1 caps per ThingDef to encourage mixing; Pass 2 drains residual restricted to top-K (falls back to unrestricted only if top-K can't satisfy the slot).
 		private static bool TryFillIngredientSlotWithCap(List<Thing> availableThings, Bill bill, IngredientCount ingredientCount, List<ThingCount> chosen, bool applyCap, int slotMaxDefs)
 		{
+			// Per-slot scratch: cleared at method entry so each slot computes its own top-K/caps/consumed tallies without cross-slot bleed. _takenByThingScratch is cleared by the caller (BestVariety_AllowMix) once per bill so cross-slot Thing accounting survives.
+			_distinctDefsScratch.Clear();
+			_jitteredCapPerDefScratch.Clear();
+			_consumedPerDefScratch.Clear();
+
 			float slotBaseCount = ingredientCount.GetBaseCount();
 			float remaining = slotBaseCount;
-			HashSet<ThingDef> distinctDefs = null;
-			// _takenByThingScratch is cleared by the caller (BestVariety_AllowMix) once per bill so cross-slot accounting survives. Do not clear here — slots that share a Thing rely on accumulated counts from prior slots.
+			bool hasDistinctDefs = false;
 
 			if (applyCap)
 			{
@@ -179,31 +186,29 @@ namespace VarietyMatters
 					Thing t = availableThings[j];
 					if (!ingredientCount.filter.Allows(t)) continue;
 					if (!ingredientCount.IsFixedIngredient && !bill.ingredientFilter.Allows(t)) continue;
-					if (distinctDefs == null) distinctDefs = new HashSet<ThingDef>();
-					if (distinctDefs.Contains(t.def)) continue;
-					if (distinctDefs.Count >= maxDefs) break;
-					distinctDefs.Add(t.def);
+					hasDistinctDefs = true;
+					if (_distinctDefsScratch.Contains(t.def)) continue;
+					if (_distinctDefsScratch.Count >= maxDefs) break;
+					_distinctDefsScratch.Add(t.def);
 				}
-				int distinctDefCount = distinctDefs != null ? distinctDefs.Count : 0;
+				int distinctDefCount = _distinctDefsScratch.Count;
 
 				// Skip Pass 1 for single-def slots: the formula would cap at slotBaseCount/2 and Pass 2 would fill the rest — equivalent to just running Pass 2 directly.
 				if (distinctDefCount > 1)
 				{
 					// Jitter per-def cap with ±30% weights, then normalize so the sum equals slotBaseCount. This gives varied distributions across meals (e.g. 4+6, 5+5, 6+4) without under-allocating Pass 1 (which would leak residual to Pass 2 and concentrate it on the first-sorted def).
-					Dictionary<ThingDef, float> jitteredCapPerDef = new Dictionary<ThingDef, float>();
 					float weightSum = 0f;
-					foreach (ThingDef def in distinctDefs)
+					foreach (ThingDef def in _distinctDefsScratch)
 					{
 						float w = Rand.Range(0.7f, 1.3f);
-						jitteredCapPerDef[def] = w;
+						_jitteredCapPerDefScratch[def] = w;
 						weightSum += w;
 					}
 					float normFactor = slotBaseCount / weightSum;
-					foreach (ThingDef def in distinctDefs)
+					foreach (ThingDef def in _distinctDefsScratch)
 					{
-						jitteredCapPerDef[def] *= normFactor;
+						_jitteredCapPerDefScratch[def] *= normFactor;
 					}
-					Dictionary<ThingDef, float> consumedPerDef = new Dictionary<ThingDef, float>();
 					for (int j = 0; j < availableThings.Count; j++)
 					{
 						if (remaining <= 0.0001f) break;
@@ -211,9 +216,9 @@ namespace VarietyMatters
 						if (!ingredientCount.filter.Allows(t)) continue;
 						if (!ingredientCount.IsFixedIngredient && !bill.ingredientFilter.Allows(t)) continue;
 						// Skip defs outside the top-K (maxDefs) selected above — those fall through to Pass 2 if needed.
-						if (!jitteredCapPerDef.TryGetValue(t.def, out float capForDef)) continue;
+						if (!_jitteredCapPerDefScratch.TryGetValue(t.def, out float capForDef)) continue;
 
-						consumedPerDef.TryGetValue(t.def, out float alreadyForDefBase);
+						_consumedPerDefScratch.TryGetValue(t.def, out float alreadyForDefBase);
 						float defBudgetBase = capForDef - alreadyForDefBase;
 						if (defBudgetBase <= 0.0001f) continue;
 
@@ -228,7 +233,7 @@ namespace VarietyMatters
 
 						ThingCountUtility.AddToList(chosen, t, take);
 						_takenByThingScratch[t] = alreadyFromThing + take;
-						consumedPerDef[t.def] = alreadyForDefBase + (float)take * valuePerUnit;
+						_consumedPerDefScratch[t.def] = alreadyForDefBase + (float)take * valuePerUnit;
 						remaining -= (float)take * valuePerUnit;
 					}
 				}
@@ -243,7 +248,7 @@ namespace VarietyMatters
 				Thing t = availableThings[j];
 				if (!ingredientCount.filter.Allows(t)) continue;
 				if (!ingredientCount.IsFixedIngredient && !bill.ingredientFilter.Allows(t)) continue;
-				if (distinctDefs != null && !distinctDefs.Contains(t.def)) continue;
+				if (hasDistinctDefs && !_distinctDefsScratch.Contains(t.def)) continue;
 
 				_takenByThingScratch.TryGetValue(t, out int alreadyFromThing2a);
 				int stackLeft = t.stackCount - alreadyFromThing2a;
@@ -262,7 +267,7 @@ namespace VarietyMatters
 			if (remaining <= 0.0001f) return true;
 
 			// Pass 2b: relax the numIngredients cap only if strictly necessary to fill the slot (rare — top-K entirely exhausted). Without this, a stack-limited scenario would fail the bill and the cook would skip the recipe.
-			if (distinctDefs != null)
+			if (hasDistinctDefs)
 			{
 				for (int j = 0; j < availableThings.Count; j++)
 				{
@@ -270,7 +275,7 @@ namespace VarietyMatters
 					Thing t = availableThings[j];
 					if (!ingredientCount.filter.Allows(t)) continue;
 					if (!ingredientCount.IsFixedIngredient && !bill.ingredientFilter.Allows(t)) continue;
-					if (distinctDefs.Contains(t.def)) continue;
+					if (_distinctDefsScratch.Contains(t.def)) continue;
 
 					_takenByThingScratch.TryGetValue(t, out int alreadyFromThing2b);
 					int stackLeft = t.stackCount - alreadyFromThing2b;
