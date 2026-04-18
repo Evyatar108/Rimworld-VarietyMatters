@@ -37,8 +37,6 @@
 				ModSettings_VarietyMatters.raceVariety.Add(key, raceSetting);
 			}
 
-			ModSettings_VarietyMatters.raceValues = ModSettings_VarietyMatters.raceVariety.Values.ToList();
-			ModSettings_VarietyMatters.raceKeys = ModSettings_VarietyMatters.raceVariety.Keys.ToList();
 			ModSettings_VarietyMatters.raceVarietyVersion++;
         }
 
