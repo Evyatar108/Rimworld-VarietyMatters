@@ -33,17 +33,17 @@ namespace VarietyMatters
         {
         }
 
-        public List<string> CheckRecentRecipes(Pawn chef)
+        public (List<string> list, int startIndex, int count) CheckRecentRecipes(Pawn chef)
         {
-            if (chef == null) return null;
-            if (!this.recentByPawn.TryGetValue(chef, out RecentListEx listEx)) return null;
+            if (chef == null) return (null, 0, 0);
+            if (!this.recentByPawn.TryGetValue(chef, out RecentListEx listEx)) return (null, 0, 0);
             List<string> list = listEx.entries;
-            if (list == null || list.Count == 0) return null;
+            if (list == null || list.Count == 0) return (null, 0, 0);
 
             int skillLevel = chef.skills?.GetSkill(SkillDefOf.Cooking)?.Level ?? chef.RaceProps.mechFixedSkillLevel;
             int take = Mathf.Max(1, skillLevel / 2);
             int start = Mathf.Max(0, list.Count - take);
-            return list.GetRange(start, list.Count - start);
+            return (list, start, list.Count - start);
         }
 
         public void UpdateCookingRecord(Pawn chef, List<ThingCount> chosen)

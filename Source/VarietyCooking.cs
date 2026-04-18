@@ -294,15 +294,17 @@ namespace VarietyMatters
 		private static void SortIngredients(List<Thing> availableThings, IntVec3 rootCell, Pawn chef, Bill bill)
 		{
 			var cookingRecord = (bill?.billStack?.billGiver as Thing)?.Map?.GetComponent<VarietyCookingRecord>();
-			List<string> curVarieties = (chef != null) ? cookingRecord?.CheckRecentRecipes(chef) : null;
+			(List<string> list, int startIndex, int count) recent = default;
+			if (cookingRecord != null) recent = cookingRecord.CheckRecentRecipes(chef);
 
 			_sortOccurrenceScratch.Clear();
-			bool hasVarietyPenalty = curVarieties != null && curVarieties.Count > 0;
+			bool hasVarietyPenalty = recent.list != null && recent.count > 0;
 			if (hasVarietyPenalty)
 			{
-				for (int i = 0; i < curVarieties.Count; i++)
+				int recentEnd = recent.startIndex + recent.count;
+				for (int i = recent.startIndex; i < recentEnd; i++)
 				{
-					string lbl = curVarieties[i];
+					string lbl = recent.list[i];
 					_sortOccurrenceScratch.TryGetValue(lbl, out int c);
 					_sortOccurrenceScratch[lbl] = c + 1;
 				}
