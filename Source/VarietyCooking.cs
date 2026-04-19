@@ -375,6 +375,10 @@ namespace VarietyMatters
 			float spoilPull = varietyPull * 0.75f;                    // rot override ceiling
 
 			_sortKeysScratch.Clear();
+			// F-030 jitter: small per-call random offset breaks "closest def always wins the 3rd slot"
+			// ties when only a couple defs escape the immediate-repeat penalty. Magnitude << penalty
+			// so structured rotation is preserved; enough to shuffle defs within a cluster of similar keys.
+			float jitterRange = Mathf.Min(2f, varietyPull * 0.2f);   // caps at ±2 even if varietyPull is cranked up
 			for (int i = 0; i < availableThings.Count; i++)
 			{
 				Thing t = availableThings[i];
@@ -408,6 +412,8 @@ namespace VarietyMatters
 						key -= spoilPull * compRottable.RotProgressPct;
 					}
 				}
+				// Jitter applies uniformly — includes distance-only sort for bills with no history yet.
+				key += Rand.Range(-jitterRange, jitterRange);
 				_sortKeysScratch[t] = key;
 			}
 
