@@ -34,16 +34,10 @@
 		private int _iconOverlayHash;
 		private Action _drawHoverOverlayAction;
 
-		private const float OverlayWidth = 320f;
+		private float _overlayWidth = 320f;
 		private const float OverlayHeight = 260f;
 		private const float OverlayPadding = 6f;
-		private const float TileBaseSize = 32f;
 		private const float TileMaxSize = 32f;
-
-		private static float SizeOfTiles(float numberToScale, float slotNumber, float max)
-		{
-			return Math.Min(numberToScale * (10f / slotNumber), max);
-		}
 
 		// Token: 0x17000002 RID: 2
 		// (get) Token: 0x06000018 RID: 24 RVA: 0x00002F8C File Offset: 0x0000118C
@@ -263,8 +257,9 @@
 				this._drawHoverOverlayAction = this.DrawHoverOverlay;
 			}
 
+			this._overlayWidth = Math.Min(320f, UI.screenWidth * 0.3f);
 			Vector2 mouse = Event.current.mousePosition;
-			Rect overlayRect = new Rect(mouse.x + 12f, mouse.y + 12f, OverlayWidth, OverlayHeight);
+			Rect overlayRect = new Rect(mouse.x + 12f, mouse.y + 12f, this._overlayWidth, OverlayHeight);
 			if (overlayRect.xMax > UI.screenWidth) overlayRect.x = UI.screenWidth - overlayRect.width;
 			if (overlayRect.yMax > UI.screenHeight) overlayRect.y = UI.screenHeight - overlayRect.height;
 			if (overlayRect.x < 0f) overlayRect.x = 0f;
@@ -277,7 +272,7 @@
 		{
 			this._tileRectsScratch.Clear();
 
-			Rect inner = new Rect(OverlayPadding, OverlayPadding, OverlayWidth - 2f * OverlayPadding, OverlayHeight - 2f * OverlayPadding);
+			Rect inner = new Rect(OverlayPadding, OverlayPadding, this._overlayWidth - 2f * OverlayPadding, OverlayHeight - 2f * OverlayPadding);
 
 			string tip = this.GetTipString();
 			float textHeight = Text.CalcHeight(tip, inner.width);
@@ -314,7 +309,7 @@
 			int count = this._foodDefsScratch.Count;
 			if (count == 0) return;
 
-			float tileWidth = SizeOfTiles(TileBaseSize, count, TileMaxSize);
+			float tileWidth = Math.Min(inner.width / count, TileMaxSize);
 			float tileY = inner.y + textHeight + 6f;
 
 			for (int i = 0; i < count; i++)
