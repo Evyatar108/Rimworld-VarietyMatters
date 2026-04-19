@@ -41,22 +41,14 @@ namespace VarietyMatters.New.Performance
                     return;
 
                 recalculationPending = false;
-                
-                try
-                {
-                    // Perform the expensive recalculation
-                    PerformVarietyRecalculation();
-                }
-                catch (Exception ex)
-                {
-                    Log.Error($"Error during debounced variety recalculation: {ex}");
-                }
-                finally
-                {
-                    debounceTimer?.Dispose();
-                    debounceTimer = null;
-                }
+                debounceTimer?.Dispose();
+                debounceTimer = null;
             }
+
+            // Defer Verse state mutations to the main thread — Timer callbacks fire
+            // on a threadpool thread, so DietTracker.ReCount / UpdateMaxFoodInMemory /
+            // VarietyAdjuster would otherwise race against main-thread readers.
+            LongEventHandler.ExecuteWhenFinished(PerformVarietyRecalculation);
         }
 
         private static void PerformVarietyRecalculation()
@@ -64,17 +56,23 @@ namespace VarietyMatters.New.Performance
             if (VarietyRecord.PawnRecords == null)
                 return;
 
-            // Batch the recalculation to reduce individual overhead.
-            // UpdateMaxFoodInMemory() picks up lowExpectationFloor changes so
-            // existing trackers don't keep load-time maxEatenFoodSourceInMemory values.
-            foreach (DietTracker dietTracker in VarietyRecord.PawnRecords)
+            try
             {
-                if (dietTracker?.Pawn != null && !dietTracker.Pawn.Dead)
+                // UpdateMaxFoodInMemory() picks up lowExpectationFloor changes so
+                // existing trackers don't keep load-time maxEatenFoodSourceInMemory values.
+                foreach (DietTracker dietTracker in VarietyRecord.PawnRecords)
                 {
-                    dietTracker.UpdateMaxFoodInMemory();
-                    dietTracker.ReCount();
-                    VarietyAdjuster.AdjustVarietyLevel(dietTracker);
+                    if (dietTracker?.Pawn != null && !dietTracker.Pawn.Dead)
+                    {
+                        dietTracker.UpdateMaxFoodInMemory();
+                        dietTracker.ReCount();
+                        VarietyAdjuster.AdjustVarietyLevel(dietTracker);
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Error during debounced variety recalculation: {ex}");
             }
         }
 

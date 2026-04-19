@@ -1,3 +1,6 @@
+[04/19/2026]
+	Thread-safety hardening: debounced settings recalculation now defers Verse state mutations (DietTracker.ReCount / UpdateMaxFoodInMemory / VarietyAdjuster.AdjustVarietyLevel) to the main thread via LongEventHandler, preventing races against main-thread readers when a Timer callback fires from the threadpool.
+
 [04/18/2026]
 	Compatibility: Meals Over Preserved Foods — FoodOptimality postfix now runs at LowerThanNormal Harmony priority, so MOPF's adjustments stack cleanly with the variety bonus instead of being overridden.
 	Compatibility: Human Alien Races and other runtime-generated races no longer throw a NullReferenceException in GetRaceKey when a ThingDef has no modContentPack. Existing saves may need to click "Reset Current Races" once in Mod Settings to repopulate the race list.
