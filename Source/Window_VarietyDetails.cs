@@ -40,9 +40,9 @@ namespace VarietyMatters
 
         // Aggregate stats cache — rebuilt on tracker version change only.
         private int _lastAggregateVersion = -1;
-        private ThingDef _repeatChampDef;
+        private readonly List<ThingDef> _repeatChampDefs = new List<ThingDef>();
         private int _repeatChampCount;
-        private ThingDef _mostVariedIngredientDef;
+        private readonly List<ThingDef> _mostVariedIngredientDefs = new List<ThingDef>();
         private int _mostVariedIngredientCount;
         private int _forgottenCount;
 
@@ -137,49 +137,68 @@ namespace VarietyMatters
             Widgets.DrawBoxSolid(rect, SectionBg);
             Rect inner = rect.ContractedBy(Padding);
             float lineHeight = 26f;
+            const float labelWidth = 220f;
             float y = inner.y;
 
-            // Most repeated meal.
-            Rect repeatRect = new Rect(inner.x, y, inner.width, lineHeight);
-            Widgets.Label(new Rect(repeatRect.x, repeatRect.y, 220f, lineHeight), "VM_Aggregate_RepeatChamp".Translate());
-            if (this._repeatChampDef != null && this._repeatChampCount >= 2)
-            {
-                Rect iconRect = new Rect(repeatRect.x + 220f, repeatRect.y - 2f, IngredientIcon, IngredientIcon);
-                if (this._repeatChampDef.uiIcon != null)
-                {
-                    Widgets.DrawTextureFitted(iconRect, this._repeatChampDef.uiIcon, 1f);
-                }
-                TooltipIfOver(iconRect, this._repeatChampDef.LabelCap);
-                Widgets.Label(new Rect(iconRect.xMax + 6f, repeatRect.y, inner.xMax - iconRect.xMax - 6f, lineHeight), "x" + this._repeatChampCount.ToString());
-            }
-            else
-            {
-                Widgets.Label(new Rect(repeatRect.x + 220f, repeatRect.y, inner.xMax - repeatRect.x - 220f, lineHeight), "—");
-            }
+            // Most-repeated meals (all ties).
+            Widgets.Label(new Rect(inner.x, y, labelWidth, lineHeight), "VM_Aggregate_RepeatChamp".Translate());
+            Rect valueRect = new Rect(inner.x + labelWidth, y - 2f, inner.xMax - inner.x - labelWidth, IngredientIcon);
+            DrawAggregateIcons(valueRect, this._repeatChampDefs, this._repeatChampCount);
             y += lineHeight + 4f;
 
-            // Most-varied ingredient.
-            Rect ingRect = new Rect(inner.x, y, inner.width, lineHeight);
-            Widgets.Label(new Rect(ingRect.x, ingRect.y, 220f, lineHeight), "VM_Aggregate_MostVariedIngredient".Translate());
-            if (this._mostVariedIngredientDef != null && this._mostVariedIngredientCount >= 2)
-            {
-                Rect iconRect = new Rect(ingRect.x + 220f, ingRect.y - 2f, IngredientIcon, IngredientIcon);
-                if (this._mostVariedIngredientDef.uiIcon != null)
-                {
-                    Widgets.DrawTextureFitted(iconRect, this._mostVariedIngredientDef.uiIcon, 1f);
-                }
-                TooltipIfOver(iconRect, this._mostVariedIngredientDef.LabelCap);
-                Widgets.Label(new Rect(iconRect.xMax + 6f, ingRect.y, inner.xMax - iconRect.xMax - 6f, lineHeight), "x" + this._mostVariedIngredientCount.ToString());
-            }
-            else
-            {
-                Widgets.Label(new Rect(ingRect.x + 220f, ingRect.y, inner.xMax - ingRect.x - 220f, lineHeight), "—");
-            }
+            // Most-used ingredients (all ties).
+            Widgets.Label(new Rect(inner.x, y, labelWidth, lineHeight), "VM_Aggregate_MostVariedIngredient".Translate());
+            valueRect = new Rect(inner.x + labelWidth, y - 2f, inner.xMax - inner.x - labelWidth, IngredientIcon);
+            DrawAggregateIcons(valueRect, this._mostVariedIngredientDefs, this._mostVariedIngredientCount);
             y += lineHeight + 4f;
 
-            // Forgotten.
+            // Forgotten count.
             Rect fgRect = new Rect(inner.x, y, inner.width, lineHeight);
             Widgets.Label(fgRect, "VM_Aggregate_Forgotten".Translate(this._forgottenCount, this._rows.Count));
+        }
+
+        private static void DrawAggregateIcons(Rect rect, List<ThingDef> defs, int count)
+        {
+            if (defs == null || defs.Count == 0 || count < 2)
+            {
+                Text.Anchor = TextAnchor.MiddleLeft;
+                Widgets.Label(rect, "—");
+                Text.Anchor = TextAnchor.UpperLeft;
+                return;
+            }
+            float x = rect.x;
+            float iy = rect.y;
+            int maxFit = Math.Max(1, (int)((rect.width + IngredientGap) / (IngredientIcon + IngredientGap)));
+            // Reserve space for the trailing "×N" label (approx 40f).
+            maxFit = Math.Max(1, maxFit - 1);
+            int drawn = Math.Min(defs.Count, maxFit);
+            for (int i = 0; i < drawn; i++)
+            {
+                ThingDef def = defs[i];
+                if (def == null) continue;
+                Rect iconRect = new Rect(x, iy, IngredientIcon, IngredientIcon);
+                if (def.uiIcon != null)
+                {
+                    Widgets.DrawTextureFitted(iconRect, def.uiIcon, 1f);
+                }
+                TooltipIfOver(iconRect, def.LabelCap);
+                x += IngredientIcon + IngredientGap;
+            }
+            // Overflow indicator if ties exceed row width.
+            if (defs.Count > drawn)
+            {
+                Rect moreRect = new Rect(x, iy, IngredientIcon, IngredientIcon);
+                Text.Anchor = TextAnchor.MiddleCenter;
+                GUI.color = new Color(1f, 1f, 1f, 0.7f);
+                Widgets.Label(moreRect, "+" + (defs.Count - drawn));
+                GUI.color = Color.white;
+                Text.Anchor = TextAnchor.UpperLeft;
+                x += IngredientIcon + IngredientGap;
+            }
+            Rect countRect = new Rect(x + 4f, iy + 2f, rect.xMax - x, rect.height);
+            Text.Anchor = TextAnchor.MiddleLeft;
+            Widgets.Label(countRect, "×" + count.ToString());
+            Text.Anchor = TextAnchor.UpperLeft;
         }
 
         private void DrawMealList(Rect rect)
@@ -377,9 +396,9 @@ namespace VarietyMatters
         {
             if (!VarietyRecord.TryGetVarietyRecord(this.pawn, out DietTracker tracker) || tracker == null)
             {
-                this._repeatChampDef = null;
+                this._repeatChampDefs.Clear();
                 this._repeatChampCount = 0;
-                this._mostVariedIngredientDef = null;
+                this._mostVariedIngredientDefs.Clear();
                 this._mostVariedIngredientCount = 0;
                 this._forgottenCount = 0;
                 return;
@@ -418,27 +437,38 @@ namespace VarietyMatters
                 }
             }
 
-            // Find most-repeated meal.
-            this._repeatChampDef = null;
+            // Find max, then collect ALL defs tied at that count.
+            this._repeatChampDefs.Clear();
             this._repeatChampCount = 0;
             foreach (var kv in this._repeatCounts)
             {
-                if (kv.Value > this._repeatChampCount)
+                if (kv.Value > this._repeatChampCount) this._repeatChampCount = kv.Value;
+            }
+            if (this._repeatChampCount >= 2)
+            {
+                foreach (var kv in this._repeatCounts)
                 {
-                    this._repeatChampCount = kv.Value;
-                    this._repeatChampDef = this._keyToDef[kv.Key];
+                    if (kv.Value == this._repeatChampCount)
+                    {
+                        this._repeatChampDefs.Add(this._keyToDef[kv.Key]);
+                    }
                 }
             }
 
-            // Find most-used ingredient.
-            this._mostVariedIngredientDef = null;
+            this._mostVariedIngredientDefs.Clear();
             this._mostVariedIngredientCount = 0;
             foreach (var kv in this._ingredientCounts)
             {
-                if (kv.Value > this._mostVariedIngredientCount)
+                if (kv.Value > this._mostVariedIngredientCount) this._mostVariedIngredientCount = kv.Value;
+            }
+            if (this._mostVariedIngredientCount >= 2)
+            {
+                foreach (var kv in this._ingredientCounts)
                 {
-                    this._mostVariedIngredientCount = kv.Value;
-                    this._mostVariedIngredientDef = kv.Key;
+                    if (kv.Value == this._mostVariedIngredientCount)
+                    {
+                        this._mostVariedIngredientDefs.Add(kv.Key);
+                    }
                 }
             }
 
