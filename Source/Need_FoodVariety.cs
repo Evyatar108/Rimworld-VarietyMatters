@@ -339,8 +339,9 @@
             string varietesCountExpectedText = varietyExpectation.ToString();
 			string actualVarietiesCountText = "0";
 			string mostRecentFoodSourceText = "VM_FoodVarietyTip_NoMemory".Translate();
-            DietTracker dietTracker = VarietyRecord.GetVarietyRecord(this.pawn);
-			if (dietTracker != null && dietTracker.MostRecentEatenFoodSource != null)
+			if (VarietyRecord.TryGetVarietyRecord(this.pawn, out DietTracker dietTracker)
+				&& dietTracker != null
+				&& dietTracker.MostRecentEatenFoodSource != null)
 			{
 				actualVarietiesCountText = dietTracker.TotalVariety.ToString();
                 mostRecentFoodSourceText = this.GetEatenFoodSourcesDescription(dietTracker);
