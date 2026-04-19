@@ -621,6 +621,7 @@
                 "(No Variety) Rotten food is a no-go. It's completely inedible.");
         }
 
+        // why-not-translated: NoVarietyReason sub-pools deferred to US-018b to cap initial Keyed count <= 200
         private string RandChooseDisgustingMealStrings(int seed)
         {
             return this.RandChoose(
@@ -648,6 +649,7 @@
             );
         }
 
+        // why-not-translated: NoVarietyReason sub-pools deferred to US-018b to cap initial Keyed count <= 200
         private string RandChooseHumanLikeMeatStrings(int seed)
         {
             return this.RandChoose(
@@ -657,6 +659,7 @@
                 "(No Variety) This is too much. Eating something so human-like is disturbing.");
         }
 
+        // why-not-translated: NoVarietyReason sub-pools deferred to US-018b to cap initial Keyed count <= 200
         private string RandChooseInsectMeatStrings(int seed)
         {
             return this.RandChoose(
@@ -666,6 +669,7 @@
                 "(No Variety) Eating insects doesn't quite meet my expectations for diverse cuisine.");
         }
 
+        // why-not-translated: NoVarietyReason sub-pools deferred to US-018b to cap initial Keyed count <= 200
         private string RandChooseRawOrRawlikeFoodStrings(int seed)
         {
             return this.RandChoose(
@@ -675,6 +679,7 @@
                 "(No Variety) This is too raw for my liking. Craving for something more cooked.");
         }
 
+        // why-not-translated: NoVarietyReason sub-pools deferred to US-018b to cap initial Keyed count <= 200
         private string RandChooseFungusStrings(int seed)
         {
             return this.RandChoose(
@@ -684,6 +689,7 @@
                 "(No Variety) A diet heavy in fungus isn't what I'd call varied. It's pretty one-note.");
         }
 
+        // why-not-translated: NoVarietyReason sub-pools deferred to US-018b to cap initial Keyed count <= 200
         private string RandChooseChemicalStrings(int seed)
         {
             return this.RandChoose(seed,
@@ -697,6 +703,7 @@
             );
         }
 
+        // why-not-translated: NoVarietyReason sub-pools deferred to US-018b to cap initial Keyed count <= 200
         private string RandChooseUnacceptableByVegetariansStrings(int seed)
         {
             return this.RandChoose(
@@ -706,6 +713,7 @@
                 "(No Variety) Eating this would go against my vegetarian principles. It lacks variety.");
         }
 
+        // why-not-translated: NoVarietyReason sub-pools deferred to US-018b to cap initial Keyed count <= 200
         private string RandChooseUnacceptableByCarnivoresStrings(int seed)
         {
             return this.RandChoose(
@@ -715,6 +723,7 @@
                 "(No Variety) All plants and no meat? That's not what a carnivore's diet should be.");
         }
 
+        // why-not-translated: NoVarietyReason sub-pools deferred to US-018b to cap initial Keyed count <= 200
         private string RandChooseIsOrHasVeneratedAnimalMeatStrings(int seed)
         {
             return this.RandChoose(
