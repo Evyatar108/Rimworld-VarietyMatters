@@ -64,11 +64,14 @@ namespace VarietyMatters.New.Performance
             if (VarietyRecord.PawnRecords == null)
                 return;
 
-            // Batch the recalculation to reduce individual overhead
+            // Batch the recalculation to reduce individual overhead.
+            // US-015: UpdateMaxFoodInMemory() picks up lowExpectationFloor changes so
+            // existing trackers don't keep load-time maxEatenFoodSourceInMemory values.
             foreach (DietTracker dietTracker in VarietyRecord.PawnRecords)
             {
                 if (dietTracker?.Pawn != null && !dietTracker.Pawn.Dead)
                 {
+                    dietTracker.UpdateMaxFoodInMemory();
                     dietTracker.ReCount();
                     VarietyAdjuster.AdjustVarietyLevel(dietTracker);
                 }

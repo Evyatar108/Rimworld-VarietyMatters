@@ -117,6 +117,7 @@
 				ModSettings_VarietyMatters.highVariety = 10;
 				ModSettings_VarietyMatters.skyHighVariety = 12;
 				ModSettings_VarietyMatters.nobleVariety = 15;
+				ModSettings_VarietyMatters.lowExpectationFloor = 3;
                 ModSettings_VarietyMatters.slaveExpectedVarietyPercentage = 3;
                 ModSettings_VarietyMatters.slavesHaveVarietyNeed = false;
                 ModSettings_VarietyMatters.prisonersHaveVarietyNeed = false;
@@ -143,6 +144,15 @@
 			string label8 = "    Noble and Royal (default 15):";
 			string text8 = ModSettings_VarietyMatters.nobleVariety.ToString();
 			this.LabeledIntEntry(listing_Standard.GetRect(24f, 1f), label8, ref ModSettings_VarietyMatters.nobleVariety, ref text8, 1, 5, 1, 50);
+			// US-015: tribal/low-expectation floor. Clamps GetVarietyExpectation return.
+			int previousLowExpectationFloor = ModSettings_VarietyMatters.lowExpectationFloor;
+			string label9 = "    Low Expectation Floor (default 3):";
+			string text9 = ModSettings_VarietyMatters.lowExpectationFloor.ToString();
+			this.LabeledIntEntry(listing_Standard.GetRect(24f, 1f), label9, ref ModSettings_VarietyMatters.lowExpectationFloor, ref text9, 1, 5, 1, 50);
+			if (ModSettings_VarietyMatters.lowExpectationFloor != previousLowExpectationFloor)
+			{
+				DebouncedSettingsHandler.QueueRecalculation();
+			}
 
 
             string labelSlavesHaveVarietyNeed = "    Slaves have variety need (default true):";

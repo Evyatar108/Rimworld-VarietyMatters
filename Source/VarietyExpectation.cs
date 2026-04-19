@@ -57,7 +57,9 @@
                 expectedVariety = expectedVariety * 5 / 4; // *1.25, 25%+
             }
 
-            return expectedVariety;
+            // US-015: Math.Max(raw, setting) soft-cap per CLAUDE.md §3. Prevents
+            // tribal/Naked-Brutality day-1 mood crater (-7 variety thought).
+            return Math.Max(expectedVariety, ModSettings_VarietyMatters.lowExpectationFloor);
 		}
 
 		public static float moddedMeals;

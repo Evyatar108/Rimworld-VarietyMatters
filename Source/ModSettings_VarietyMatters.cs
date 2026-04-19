@@ -65,6 +65,7 @@
 			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.highVariety, "highVariety", 10, false);
 			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.skyHighVariety, "skyHighVariety", 12, false);
 			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.nobleVariety, "nobleVariety", 15, false);
+			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.lowExpectationFloor, "lowExpectationFloor", 3, false);
 			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.numIngredients, "numIngredients", 3, false);
 			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.cookingMemoryDepth, "cookingMemoryDepth", 10, false);
             Scribe_Values.Look<bool>(ref ModSettings_VarietyMatters.slavesHaveVarietyNeed, "slavesHaveVarietyNeed", true, false);
@@ -122,6 +123,11 @@
 
 		// Token: 0x0400001B RID: 27
 		public static int nobleVariety = 15;
+
+		// US-015: minimum variety expectation floor. GetVarietyExpectation clamps its
+		// return via Math.Max(raw, lowExpectationFloor) so tribal/Naked-Brutality starts
+		// don't crater to -7 mood on day 1 (CLAUDE.md §3 soft-cap: max(setting, structural)).
+		public static int lowExpectationFloor = 3;
 
 		public static bool slavesHaveVarietyNeed = true;
 		public static int slaveExpectedVarietyPercentage = 65;
