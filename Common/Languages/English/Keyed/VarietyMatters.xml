@@ -44,6 +44,17 @@
   <VM_OverlayStats>Expected {0} / Recent {1} / Memory {2}</VM_OverlayStats>
   <VM_ForgottenMealTip>Forgotten meal — details faded from memory</VM_ForgottenMealTip>
 
+  <!-- Details window (US-020) -->
+  <VM_Details_OpenTooltip>Open variety details</VM_Details_OpenTooltip>
+  <VM_DetailsWindow_NoMeals>No meals tracked yet.</VM_DetailsWindow_NoMeals>
+  <VM_Favourites_Placeholder>Favourites: coming soon</VM_Favourites_Placeholder>
+  <VM_Aggregate_RepeatChamp>Most-repeated meal:</VM_Aggregate_RepeatChamp>
+  <VM_Aggregate_MostVariedIngredient>Most-used ingredient:</VM_Aggregate_MostVariedIngredient>
+  <VM_Aggregate_Forgotten>Forgotten: {0} of {1}</VM_Aggregate_Forgotten>
+  <VM_Status_HasVariety>+ Variety</VM_Status_HasVariety>
+  <VM_Status_NoVariety>— Repeat</VM_Status_NoVariety>
+  <VM_Status_Forgotten>Forgotten</VM_Status_Forgotten>
+
   <!-- Disabled reason tip (US-017) -->
   <VM_DisabledPrefix>Disabled: </VM_DisabledPrefix>
   <VM_DisabledReason_DeadOrMissingFaculties>pawn is dead or missing food/mood faculties</VM_DisabledReason_DeadOrMissingFaculties>

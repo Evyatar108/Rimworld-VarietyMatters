@@ -45,17 +45,41 @@
 		private const float IngredientGap = 2f;
 		private const float MealIngredientGap = 6f;
 
-		private static readonly Color HasVarietyBorder = new Color(0.35f, 0.85f, 0.35f);
-		private static readonly Color NoVarietyBorder = new Color(0.85f, 0.35f, 0.35f);
-		private static readonly Color ForgottenBorder = new Color(0.55f, 0.55f, 0.55f);
+		public static readonly Color HasVarietyBorder = new Color(0.35f, 0.85f, 0.35f);
+		public static readonly Color NoVarietyBorder = new Color(0.85f, 0.35f, 0.35f);
+		public static readonly Color ForgottenBorder = new Color(0.55f, 0.55f, 0.55f);
 		private static readonly Color RowBgTransparent = new Color(0f, 0f, 0f, 0f);
 
-		private struct MealRowInfo
+		public enum MealRowStatus { HasVariety, NoVariety, Forgotten }
+
+		public struct MealRowInfo
 		{
 			public ThingDef MealDef;            // null for forgotten
 			public List<ThingDef> Ingredients;  // null/empty for forgotten
-			public Color BorderColor;
-			public bool IsForgotten;
+			public MealRowStatus Status;
+			public bool IsForgotten => this.Status == MealRowStatus.Forgotten;
+			public Color BorderColor
+			{
+				get
+				{
+					switch (this.Status)
+					{
+						case MealRowStatus.HasVariety: return HasVarietyBorder;
+						case MealRowStatus.Forgotten: return ForgottenBorder;
+						default: return NoVarietyBorder;
+					}
+				}
+			}
+		}
+
+		public void ProvideMealRowsSnapshot(List<MealRowInfo> dest)
+		{
+			this.RebuildMealRowsIfNeeded();
+			dest.Clear();
+			for (int i = 0; i < this._mealRowsScratch.Count; i++)
+			{
+				dest.Add(this._mealRowsScratch[i]);
+			}
 		}
 
 		// Token: 0x17000002 RID: 2
@@ -260,8 +284,27 @@
 		{
 			base.DrawOnGUI(rect, maxThresholdMarkers, customMargin, drawArrows, false, rectForTooltip, drawLabel);
 
+			// Info button (top-right of bar) — click to open details window. Placed inside rect so it doesn't
+			// collide with adjacent need rows (NeedsCardUtility.DoNeeds has no vertical slack).
+			Rect infoRect = new Rect(rect.xMax - 20f, rect.y + 2f, 16f, 16f);
+			if (infoRect.width > 0f && infoRect.height > 0f && rect.width >= 140f)
+			{
+				if (Widgets.ButtonImage(infoRect, TexButton.Info))
+				{
+					if (!Find.WindowStack.IsOpen<Window_VarietyDetails>())
+					{
+						Find.WindowStack.Add(new Window_VarietyDetails(this.pawn));
+					}
+				}
+				if (Mouse.IsOver(infoRect))
+				{
+					TooltipHandler.TipRegion(infoRect, "VM_Details_OpenTooltip".Translate());
+				}
+			}
+
 			Rect tipRect = rectForTooltip ?? rect;
-			if (!doTooltip || !Mouse.IsOver(tipRect))
+			// Suppress overlay when the cursor is over the info button to avoid overlap / double-hover.
+			if (!doTooltip || !Mouse.IsOver(tipRect) || Mouse.IsOver(infoRect))
 			{
 				return;
 			}
@@ -354,15 +397,13 @@
 				{
 					row.MealDef = null;
 					row.Ingredients = null;
-					row.BorderColor = ForgottenBorder;
-					row.IsForgotten = true;
+					row.Status = MealRowStatus.Forgotten;
 					this._mealRowsScratch.Add(row);
 					continue;
 				}
 
 				row.MealDef = src.ThingDef;
 				row.Ingredients = src.IngredientsDefs;
-				row.IsForgotten = false;
 
 				string key = src.GetFoodSourceKey();
 				this._appearancesSoFarRowsScratch.TryGetValue(key, out int seenSoFar);
@@ -370,7 +411,7 @@
 
 				// Has-variety = first appearance in iteration AND there's a FoodVarietyInfo entry AND no explicit no-reason.
 				bool hasVariety = info != null && noReason == null && seenSoFar == 0;
-				row.BorderColor = hasVariety ? HasVarietyBorder : NoVarietyBorder;
+				row.Status = hasVariety ? MealRowStatus.HasVariety : MealRowStatus.NoVariety;
 
 				this._mealRowsScratch.Add(row);
 			}
