@@ -65,7 +65,7 @@ namespace VarietyMatters.New.Performance
                 return;
 
             // Batch the recalculation to reduce individual overhead.
-            // US-015: UpdateMaxFoodInMemory() picks up lowExpectationFloor changes so
+            // UpdateMaxFoodInMemory() picks up lowExpectationFloor changes so
             // existing trackers don't keep load-time maxEatenFoodSourceInMemory values.
             foreach (DietTracker dietTracker in VarietyRecord.PawnRecords)
             {

@@ -20,7 +20,7 @@
 			Harmony harmony = new Harmony("rimworld.varietymatters");
 			harmony.PatchAll(Assembly.GetExecutingAssembly());
 
-			// US-016: warn once at startup if Vanilla Food Variety Expanded is co-loaded —
+			// Warn once at startup if Vanilla Food Variety Expanded is co-loaded —
 			// both mods transpile CompIngredients.MergeIngredients and stacking behavior is undefined.
 			if (LoadedModManager.RunningModsListForReading.Any(m => m.PackageId == "vanillaexpanded.vanillafoodvarietyexpanded"))
 			{

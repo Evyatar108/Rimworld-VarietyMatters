@@ -42,9 +42,6 @@
 
 		public static string GetRaceKey(ThingDef thingDef)
 		{
-			// Null-safe modContentPack access: Human Alien Races may generate ThingDefs
-			// at runtime without a content pack attached. Mirror GenerateRaces line 34
-			// precedent (?.Name ?? "null") so the key form stays stable across callers. F-007.
 			return (thingDef.modContentPack?.Name ?? "null") + "-" + thingDef.defName;
         }
 

@@ -7,7 +7,7 @@
 
     public static class VarietyProvider
     {
-        // F-007 invariant: every `return false` path below (and in delegated helpers
+        // Invariant: every `return false` path below (and in delegated helpers
         // CheckFoodPreferability, IsFoodIdeologicallyAcceptable, IsMealAcceptableByPawn,
         // IsBadFoodAcceptableByPawn, Handle*Preferability, IsChemicalFoodAcceptableByPawn,
         // IsNotMindingNutrientMeal, HandleTerribleOrAwfulMeals) MUST set noVarietyReason
