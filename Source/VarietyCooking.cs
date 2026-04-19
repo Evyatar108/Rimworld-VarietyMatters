@@ -17,7 +17,8 @@ namespace VarietyMatters
 		// Assumption: no other mod recursively re-enters BestVariety_AllowMix, CountEligibleDefs, or SortIngredients mid-execution via Harmony stacking. If that assumption breaks, nested calls would clobber each other's scratch state. Accepted risk for the GC savings; revisit if users report interactions with specific mods (e.g. RimThreaded, PickUpAndHaul).
 		private static readonly Dictionary<Thing, int> _takenByThingScratch = new Dictionary<Thing, int>();
 		private static readonly Dictionary<Thing, float> _sortKeysScratch = new Dictionary<Thing, float>();
-		private static readonly Dictionary<ThingDef, int> _penaltyPerDefScratch = new Dictionary<ThingDef, int>();
+		// F-031: position-weighted graded penalty per def. Value is Σ (j - startIndex + 1) / count over matching entries in the recent slice. graded == 0 → unused (fresh), graded == 1 → one newest use (neutral), graded > 1 → multiple/deep repeats (penalize).
+		private static readonly Dictionary<ThingDef, float> _gradedPerDefScratch = new Dictionary<ThingDef, float>();
 		private static readonly Dictionary<ThingDef, float> _jitteredCapPerDefScratch = new Dictionary<ThingDef, float>();
 		private static readonly Dictionary<ThingDef, float> _consumedPerDefScratch = new Dictionary<ThingDef, float>();
 		private static readonly HashSet<ThingDef> _distinctDefsScratch = new HashSet<ThingDef>();
@@ -341,78 +342,62 @@ namespace VarietyMatters
 			(List<string> list, int startIndex, int count) recent = default;
 			if (cookingRecord != null) recent = cookingRecord.CheckRecentRecipes(chef);
 
-			_penaltyPerDefScratch.Clear();
+			_gradedPerDefScratch.Clear();
 			bool hasVarietyPenalty = recent.list != null && recent.count > 0;
 			if (hasVarietyPenalty)
 			{
-				// Build penalty once per unique ThingDef from availableThings, not once per Thing. Same def across multiple stacks gets a single scan of the recent slice, not N scans. String label comparison preserved against recent.list (which remains List<string> — no Scribe change).
+				// F-031 position-weighted graded: Σ (j - startIndex + 1) / count for matches. Newest positions contribute ≈1, oldest ≈1/count. Per unique def once (not per Thing stack).
 				int recentEnd = recent.startIndex + recent.count;
+				float invCount = 1f / recent.count;
 				for (int i = 0; i < availableThings.Count; i++)
 				{
 					ThingDef def = availableThings[i].def;
-					if (_penaltyPerDefScratch.ContainsKey(def)) continue;
-					int matches = 0;
+					if (_gradedPerDefScratch.ContainsKey(def)) continue;
+					float graded = 0f;
 					string label = def.label;
 					for (int j = recent.startIndex; j < recentEnd; j++)
 					{
-						if (recent.list[j] == label) matches++;
+						if (recent.list[j] == label) graded += (j - recent.startIndex + 1) * invCount;
 					}
-					_penaltyPerDefScratch[def] = matches;
+					_gradedPerDefScratch[def] = graded;
 				}
 			}
 
 			bool preferSpoiling = ModSettings_VarietyMatters.preferSpoiling;
 
-			// F-027 rotation:
+			// F-031 C10-continuous rotation (replaces F-027 branchy fresh-bonus/in-last-meal/count-penalty):
 			//   key = distance
-			//       + immediateRepeatPenalty × I(def in last meal)   // strong — breaks close-pile distance ties
-			//       + recentPenalty × max(0, recentMatches - I(def in last meal))  // soft cumulative pressure on older repeats
-			//       - spoilPull × rotProgressPct                      // near-rot override (weaker than immediate repeat)
-			// varietyPull knob = tiles the cook will walk further to avoid the last meal's defs. Default 10.
+			//       − varietyPull × (1 − graded)   // unified fresh bonus + penalty, monotone, no cliff
+			//       − spoilPull × rotProgressPct
+			//       + jitter
+			// graded == 0 (unused in window) → −varietyPull (strong fresh pull)
+			// graded ≈ 1 (one newest use) → 0 (neutral)
+			// graded > 1 (multiple/deep repeats) → +penalty scaling with recency × frequency
+			// Position IS age: no separate last-meal tracking needed.
 			float varietyPull = ModSettings_VarietyMatters.varietyPull;
-			float immediateRepeatPenalty = varietyPull;               // full pull on last-meal defs
-			float recentPenalty = varietyPull * 0.35f;                // cumulative older-repeat nudge
-			float spoilPull = varietyPull * 0.75f;                    // rot override ceiling
+			float spoilPull = varietyPull * 0.75f;
 
 			_sortKeysScratch.Clear();
-			// F-030 jitter: small per-call random offset breaks "closest def always wins the 3rd slot"
-			// ties when only a couple defs escape the immediate-repeat penalty. Magnitude << penalty
-			// so structured rotation is preserved; enough to shuffle defs within a cluster of similar keys.
-			float jitterRange = Mathf.Min(2f, varietyPull * 0.2f);   // caps at ±2 even if varietyPull is cranked up
+			// Bounded jitter breaks ties within near-equal key clusters; magnitude << varietyPull so structured rotation is preserved.
+			float jitterRange = Mathf.Min(2f, varietyPull * 0.2f);
 			for (int i = 0; i < availableThings.Count; i++)
 			{
 				Thing t = availableThings[i];
 				float key = (t.Position - rootCell).LengthHorizontal;
 				if (hasVarietyPenalty)
 				{
-					_penaltyPerDefScratch.TryGetValue(t.def, out int count);
-					bool inLastMeal = cookingRecord != null && cookingRecord.IsDefInLastMeal(chef, t.def.label);
-					if (inLastMeal)
-					{
-						// Discount 1 from count (it counted the last-meal occurrence); older repeats still get cumulative pressure.
-						key += immediateRepeatPenalty + recentPenalty * Math.Max(0, count - 1);
-					}
-					else if (count == 0)
-					{
-						// Fresh bonus: never used inside the recent window. Strong pull.
-						key -= varietyPull;
-					}
-					else
-					{
-						// Linear cumulative penalty — older uses still bias away, but weak so distance decides among tied older defs.
-						key += recentPenalty * count;
-					}
+					_gradedPerDefScratch.TryGetValue(t.def, out float graded);
+					key -= varietyPull * (1f - graded);
 				}
+				// No-history branch: all defs score identically from this term, so skipping it is sort-invariant. Distance + jitter decide the first meal.
 				if (preferSpoiling)
 				{
 					CompRottable compRottable = ThingCompUtility.TryGetComp<CompRottable>(t);
 					if (compRottable != null)
 					{
-						// Near-rot pull; doesn't override a large distance gap but can outweigh the cumulative older-repeat nudge.
 						key -= spoilPull * compRottable.RotProgressPct;
 					}
 				}
-				// Jitter applies uniformly — includes distance-only sort for bills with no history yet.
 				key += Rand.Range(-jitterRange, jitterRange);
 				_sortKeysScratch[t] = key;
 			}
