@@ -125,6 +125,7 @@
 				ModSettings_VarietyMatters.skyHighVariety = 12;
 				ModSettings_VarietyMatters.nobleVariety = 15;
 				ModSettings_VarietyMatters.lowExpectationFloor = 3;
+				DebouncedSettingsHandler.QueueRecalculation();
                 ModSettings_VarietyMatters.slaveExpectedVarietyPercentage = 3;
                 ModSettings_VarietyMatters.slavesHaveVarietyNeed = false;
                 ModSettings_VarietyMatters.prisonersHaveVarietyNeed = false;
