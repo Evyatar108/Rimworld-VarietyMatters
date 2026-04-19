@@ -385,24 +385,16 @@ namespace VarietyMatters
 
 			bool preferSpoiling = ModSettings_VarietyMatters.preferSpoiling;
 
-			// F-026 dev trace — confirm formula fires with populated penalty dict.
-			bool trace = Prefs.DevMode;
-			if (trace)
-			{
-				string chefName = chef?.LabelShort ?? "<null>";
-				string recentSummary = hasVarietyPenalty
-					? $"count={recent.count} last={string.Join(",", recent.list.GetRange(recent.startIndex, recent.count))}"
-					: "(empty/null)";
-				Log.Message($"[VarietyMatters F-026] SortIngredients: chef={chefName} availThings={availableThings.Count} hasPenalty={hasVarietyPenalty} recent={{{recentSummary}}}");
-			}
-
-			// F-025 rotation: derived weights from single "variety pull" knob.
-			// varietyPull = tiles we'd walk further to use an unused ingredient vs a recently-used one.
-			// repeatPenalty stays linear + small so distance still decides among equally-unused defs.
-			// spoilPull: only active when preferSpoiling; defeats mild repeats near rot but not huge distances.
+			// F-027 rotation:
+			//   key = distance
+			//       + immediateRepeatPenalty × I(def in last meal)   // strong — breaks close-pile distance ties
+			//       + recentPenalty × max(0, recentMatches - I(def in last meal))  // soft cumulative pressure on older repeats
+			//       - spoilPull × rotProgressPct                      // near-rot override (weaker than immediate repeat)
+			// varietyPull knob = tiles the cook will walk further to avoid the last meal's defs. Default 10.
 			float varietyPull = ModSettings_VarietyMatters.varietyPull;
-			float repeatPenalty = varietyPull * 0.35f;
-			float spoilPull = varietyPull * 0.75f;
+			float immediateRepeatPenalty = varietyPull;               // full pull on last-meal defs
+			float recentPenalty = varietyPull * 0.35f;                // cumulative older-repeat nudge
+			float spoilPull = varietyPull * 0.75f;                    // rot override ceiling
 
 			_sortKeysScratch.Clear();
 			for (int i = 0; i < availableThings.Count; i++)
@@ -412,15 +404,21 @@ namespace VarietyMatters
 				if (hasVarietyPenalty)
 				{
 					_penaltyPerDefScratch.TryGetValue(t.def, out int count);
-					if (count == 0)
+					bool inLastMeal = cookingRecord != null && cookingRecord.IsDefInLastMeal(chef, t.def.label);
+					if (inLastMeal)
 					{
-						// Fresh bonus: this def hasn't been used inside the recent window at all.
+						// Discount 1 from count (it counted the last-meal occurrence); older repeats still get cumulative pressure.
+						key += immediateRepeatPenalty + recentPenalty * Math.Max(0, count - 1);
+					}
+					else if (count == 0)
+					{
+						// Fresh bonus: never used inside the recent window. Strong pull.
 						key -= varietyPull;
 					}
 					else
 					{
-						// Linear repeat penalty scaling with usage count; caps at window size.
-						key += repeatPenalty * count;
+						// Linear cumulative penalty — older uses still bias away, but weak so distance decides among tied older defs.
+						key += recentPenalty * count;
 					}
 				}
 				if (preferSpoiling)
@@ -428,9 +426,7 @@ namespace VarietyMatters
 					CompRottable compRottable = ThingCompUtility.TryGetComp<CompRottable>(t);
 					if (compRottable != null)
 					{
-						// Subtract pull proportional to how rotten (0 = fresh, 1 = rotten).
-						// At rotPct=1, pulls spoilPull = 0.75 * varietyPull tiles toward this pick,
-						// which beats a +repeatPenalty (0.35x) but not a large distance gap.
+						// Near-rot pull; doesn't override a large distance gap but can outweigh the cumulative older-repeat nudge.
 						key -= spoilPull * compRottable.RotProgressPct;
 					}
 				}
@@ -438,20 +434,6 @@ namespace VarietyMatters
 			}
 
 			availableThings.Sort(_sortKeyComparison);
-
-			if (trace)
-			{
-				int limit = System.Math.Min(availableThings.Count, 8);
-				System.Text.StringBuilder sb = new System.Text.StringBuilder("[VarietyMatters F-026] sorted (top 8): ");
-				for (int i = 0; i < limit; i++)
-				{
-					Thing t = availableThings[i];
-					int matches = 0;
-					if (hasVarietyPenalty) _penaltyPerDefScratch.TryGetValue(t.def, out matches);
-					sb.Append($"{t.def.defName}(key={_sortKeysScratch[t]:F1},m={matches}) ");
-				}
-				Log.Message(sb.ToString());
-			}
 		}
 	}
 }

@@ -29,6 +29,11 @@ namespace VarietyMatters
         private List<Pawn> scribeKeys;
         private List<RecentListEx> scribeValues;
 
+        // F-027: transient "just-cooked last meal" def-label set per chef. NOT Scribe-persisted; rebuilds
+        // on first cook post-load. Used by SortIngredients for a strong immediate-repeat penalty that
+        // scales with the variety-pull setting so close-by ingredients don't win purely on distance.
+        private Dictionary<Pawn, HashSet<string>> lastMealDefsByPawn = new Dictionary<Pawn, HashSet<string>>();
+
         public VarietyCookingRecord(Map map) : base(map)
         {
         }
@@ -63,9 +68,21 @@ namespace VarietyMatters
                 this.recentByPawn[chef] = listEx;
             }
 
+            // F-027: rebuild the "last meal" def-label set for this chef. Replaces contents so only
+            // the *just-picked* defs get the strong immediate-repeat penalty; older defs only get the
+            // softer linear recent-matches penalty.
+            if (!this.lastMealDefsByPawn.TryGetValue(chef, out HashSet<string> lastMeal) || lastMeal == null)
+            {
+                lastMeal = new HashSet<string>();
+                this.lastMealDefsByPawn[chef] = lastMeal;
+            }
+            lastMeal.Clear();
+
             for (int i = 0; i < chosen.Count; i++)
             {
-                listEx.entries.Add(chosen[i].Thing.def.label);
+                string label = chosen[i].Thing.def.label;
+                listEx.entries.Add(label);
+                lastMeal.Add(label);
             }
 
             int depth = Mathf.Max(1, ModSettings_VarietyMatters.cookingMemoryDepth);
@@ -75,9 +92,18 @@ namespace VarietyMatters
             }
         }
 
+        public bool IsDefInLastMeal(Pawn chef, string defLabel)
+        {
+            if (chef == null || defLabel == null) return false;
+            return this.lastMealDefsByPawn.TryGetValue(chef, out HashSet<string> lastMeal)
+                && lastMeal != null
+                && lastMeal.Contains(defLabel);
+        }
+
         public override void MapRemoved()
         {
             this.recentByPawn?.Clear();
+            this.lastMealDefsByPawn?.Clear();
             base.MapRemoved();
         }
 
@@ -106,6 +132,7 @@ namespace VarietyMatters
             for (int i = 0; i < toRemove.Count; i++)
             {
                 this.recentByPawn.Remove(toRemove[i]);
+                this.lastMealDefsByPawn?.Remove(toRemove[i]);
             }
         }
 
