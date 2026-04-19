@@ -40,8 +40,16 @@ namespace VarietyMatters
             List<string> list = listEx.entries;
             if (list == null || list.Count == 0) return (null, 0, 0);
 
+            // Use the full recent window. The list is already capped at ModSettings_VarietyMatters.cookingMemoryDepth by
+            // UpdateCookingRecord. The prior skill-based sub-slice (take = skillLevel / 2) dated from a single-def-per-meal
+            // baseline; once the E' water-fill injects numIngredients distinct defs per meal, each meal consumes ~numIngredients
+            // entries and a skill-6 cook only saw the LAST meal's picks, causing two-meal oscillation (A/B/C → D/E/F → A/B/C).
+            // The cookingMemoryDepth setting (user-tunable) is the proper knob; skill level scales other cooking traits in vanilla.
             int skillLevel = chef.skills?.GetSkill(SkillDefOf.Cooking)?.Level ?? chef.RaceProps.mechFixedSkillLevel;
-            int take = Mathf.Max(1, skillLevel / 2);
+            int numIngredients = Mathf.Max(1, ModSettings_VarietyMatters.numIngredients);
+            // Keep a mild skill-scaled floor so very low-skill / no-skill cooks still rotate over at least one full meal's depth.
+            int take = Mathf.Max(numIngredients, skillLevel * numIngredients / 2);
+            take = Mathf.Min(take, list.Count);
             int start = Mathf.Max(0, list.Count - take);
             return (list, start, list.Count - start);
         }
