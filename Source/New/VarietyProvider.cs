@@ -7,6 +7,13 @@
 
     public static class VarietyProvider
     {
+        // F-007 invariant: every `return false` path below (and in delegated helpers
+        // CheckFoodPreferability, IsFoodIdeologicallyAcceptable, IsMealAcceptableByPawn,
+        // IsBadFoodAcceptableByPawn, Handle*Preferability, IsChemicalFoodAcceptableByPawn,
+        // IsNotMindingNutrientMeal, HandleTerribleOrAwfulMeals) MUST set noVarietyReason
+        // to a non-NA value. DietTracker:: Variety reason mismatch log triggers iff a
+        // false return leaks NA. Do not add a new early-return without pairing it with
+        // a specific NoVarietyReason — audit grep: `return false` in this file.
         public static bool DoesFoodHasVarietyValueForPawn(Pawn pawn, EatenFoodByPawn eatenFoodByPawn, out NoVarietyReason noVarietyReason)
         {
             EatenFoodSource foodSource = eatenFoodByPawn.Source;

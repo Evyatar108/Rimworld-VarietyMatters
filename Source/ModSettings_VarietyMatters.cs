@@ -42,7 +42,10 @@
 
 		public static string GetRaceKey(ThingDef thingDef)
 		{
-			return thingDef.modContentPack.Name + "-" + thingDef.defName;
+			// Null-safe modContentPack access: Human Alien Races may generate ThingDefs
+			// at runtime without a content pack attached. Mirror GenerateRaces line 34
+			// precedent (?.Name ?? "null") so the key form stays stable across callers. F-007.
+			return (thingDef.modContentPack?.Name ?? "null") + "-" + thingDef.defName;
         }
 
 		// Token: 0x0600000F RID: 15 RVA: 0x00002520 File Offset: 0x00000720

@@ -7,7 +7,11 @@
     using Verse;
 
     // Token: 0x0200000D RID: 13
+    // HarmonyPriority.LowerThanNormal: defer to MOPF (Meals Over Preserved Foods) and other
+    // postfixes that adjust FoodOptimality raw score. Our +60f variety bonus stacks cleanly
+    // on top of their adjustments instead of being overwritten. See F-007.
     [HarmonyPatch]
+    [HarmonyPriority(Priority.LowerThanNormal)]
 	public static class Patch_FoodUtility
 	{
 		// Token: 0x06000020 RID: 32 RVA: 0x00003298 File Offset: 0x00001498
