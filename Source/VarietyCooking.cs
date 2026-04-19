@@ -384,21 +384,43 @@ namespace VarietyMatters
 			}
 
 			bool preferSpoiling = ModSettings_VarietyMatters.preferSpoiling;
+
+			// F-025 rotation: derived weights from single "variety pull" knob.
+			// varietyPull = tiles we'd walk further to use an unused ingredient vs a recently-used one.
+			// repeatPenalty stays linear + small so distance still decides among equally-unused defs.
+			// spoilPull: only active when preferSpoiling; defeats mild repeats near rot but not huge distances.
+			float varietyPull = ModSettings_VarietyMatters.varietyPull;
+			float repeatPenalty = varietyPull * 0.35f;
+			float spoilPull = varietyPull * 0.75f;
+
 			_sortKeysScratch.Clear();
 			for (int i = 0; i < availableThings.Count; i++)
 			{
 				Thing t = availableThings[i];
 				float key = (t.Position - rootCell).LengthHorizontal;
-				if (hasVarietyPenalty && _penaltyPerDefScratch.TryGetValue(t.def, out int count))
+				if (hasVarietyPenalty)
 				{
-					key += count * 2f;
+					_penaltyPerDefScratch.TryGetValue(t.def, out int count);
+					if (count == 0)
+					{
+						// Fresh bonus: this def hasn't been used inside the recent window at all.
+						key -= varietyPull;
+					}
+					else
+					{
+						// Linear repeat penalty scaling with usage count; caps at window size.
+						key += repeatPenalty * count;
+					}
 				}
 				if (preferSpoiling)
 				{
 					CompRottable compRottable = ThingCompUtility.TryGetComp<CompRottable>(t);
 					if (compRottable != null)
 					{
-						key += (1f - compRottable.RotProgressPct) * 3f;
+						// Subtract pull proportional to how rotten (0 = fresh, 1 = rotten).
+						// At rotPct=1, pulls spoilPull = 0.75 * varietyPull tiles toward this pick,
+						// which beats a +repeatPenalty (0.35x) but not a large distance gap.
+						key -= spoilPull * compRottable.RotProgressPct;
 					}
 				}
 				_sortKeysScratch[t] = key;

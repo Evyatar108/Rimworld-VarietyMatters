@@ -65,6 +65,7 @@
 			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.lowExpectationFloor, "lowExpectationFloor", 3, false);
 			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.numIngredients, "numIngredients", 3, false);
 			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.cookingMemoryDepth, "cookingMemoryDepth", 10, false);
+			Scribe_Values.Look<float>(ref ModSettings_VarietyMatters.varietyPull, "varietyPull", 10f, false);
             Scribe_Values.Look<bool>(ref ModSettings_VarietyMatters.slavesHaveVarietyNeed, "slavesHaveVarietyNeed", true, false);
             Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.slaveExpectedVarietyPercentage, "slaveExpectedVarietyPercentage", 65, false);
             Scribe_Values.Look<bool>(ref ModSettings_VarietyMatters.prisonersHaveVarietyNeed, "prisonersHaveVarietyNeed", true, false);
@@ -99,6 +100,9 @@
 		public static int numIngredients = 3;
 
 		public static int cookingMemoryDepth = 10;
+
+		// F-025 rotation-formula knob. Default 10 tiles = cook walks up to 10 extra tiles for an unused ingredient.
+		public static float varietyPull = 10f;
 
 		// Token: 0x04000015 RID: 21
 		public static int extremelyLowVariety = 4;
