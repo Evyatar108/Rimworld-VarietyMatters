@@ -25,9 +25,8 @@
 		private static HashSet<string> _enabledRaceKeys = new HashSet<string>();
 		private static int _raceKeysVersion = -1;
 
-		// Hover-overlay scratch (US-019). _tileRectsScratch: per-frame layout rects.
+		// Hover-overlay scratch (US-019).
 		// _foodDefsScratch: cached icon sequence, rebuilt only on (DietTracker.Version, memoryMultiplier) change.
-		private readonly List<Rect> _tileRectsScratch = new List<Rect>();
 		private readonly List<ThingDef> _foodDefsScratch = new List<ThingDef>();
 		private int _lastIconsVersion = -1;
 		private float _lastIconsMemoryMult = -1f;
@@ -270,8 +269,8 @@
 
 		private void DrawHoverOverlay()
 		{
-			this._tileRectsScratch.Clear();
-
+			Text.Font = GameFont.Small;
+			Text.Anchor = TextAnchor.UpperLeft;
 			Rect inner = new Rect(OverlayPadding, OverlayPadding, this._overlayWidth - 2f * OverlayPadding, OverlayHeight - 2f * OverlayPadding);
 
 			string tip = this.GetTipString();
@@ -317,7 +316,6 @@
 				float x = inner.x + i * tileWidth;
 				if (x + tileWidth > inner.xMax + 0.1f) break;
 				Rect tile = new Rect(x, tileY, tileWidth - 2f, tileWidth - 2f);
-				this._tileRectsScratch.Add(tile);
 				ThingDef def = this._foodDefsScratch[i];
 				if (def.uiIcon != null)
 				{
