@@ -189,7 +189,7 @@
 
             bool hasVarietyValueForPawn = VarietyProvider.DoesFoodHasVarietyValueForPawn(this.Pawn, eatenFood, out NoVarietyReason noVarietyReason);
 
-            if (!hasVarietyValueForPawn && noVarietyReason != NoVarietyReason.NA && Prefs.DevMode)
+            if (!hasVarietyValueForPawn && noVarietyReason == NoVarietyReason.NA && Prefs.DevMode)
             {
                 Log.Warning("DietTracker:: Variety reason mismatch");
             }
