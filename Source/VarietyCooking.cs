@@ -57,31 +57,58 @@ namespace VarietyMatters
 		[HarmonyPrefix]
 		private static bool BestVariety_AllowMix(ref bool __result, List<Thing> availableThings, Bill bill, List<ThingCount> chosen, IntVec3 rootCell)
 		{
+			// F-023 dev tracing — logs which gate trips (or where water-fill lands) when DevMode is on.
+			// Revert after diagnosis.
+			bool trace = Prefs.DevMode;
+			string recipeName = bill?.recipe?.defName ?? "<null>";
+
 			// Clear scratch up front regardless of early-return path. Holding stale Thing refs until the next eligible AllowMix call is harmless functionally, but releasing them now is free and keeps the invariant simple: scratch is empty after every call.
 			_takenByThingScratch.Clear();
 			if (ModSettings_VarietyMatters.foodTrackingType == New.FoodTrackingType.ByMealNames || !ModSettings_VarietyMatters.preferVariety)
 			{
+				if (trace) Log.Message($"[VarietyMatters F-023] {recipeName}: gate1 tripped (foodTrackingType={ModSettings_VarietyMatters.foodTrackingType}, preferVariety={ModSettings_VarietyMatters.preferVariety}) -> vanilla");
 				return true;
 			}
 
 			bool gate;
+			string gate2Reason = "";
 			if (bill.recipe.workSkill == SkillDefOf.Cooking)
 			{
 				ThingDef producedThingDef = bill.recipe.ProducedThingDef;
-				gate = (producedThingDef?.ingestible != null) ? (bill.recipe.specialProducts != null) : true;
+				if (producedThingDef?.ingestible == null)
+				{
+					gate = true;
+					gate2Reason = "product has no ingestible";
+				}
+				else if (bill.recipe.specialProducts != null)
+				{
+					gate = true;
+					gate2Reason = "recipe has specialProducts";
+				}
+				else
+				{
+					gate = false;
+				}
 			}
 			else
 			{
 				gate = true;
+				gate2Reason = $"workSkill={bill.recipe.workSkill?.defName ?? "null"} (not Cooking)";
 			}
-			if (gate) return true;
+			if (gate)
+			{
+				if (trace) Log.Message($"[VarietyMatters F-023] {recipeName}: gate2 tripped ({gate2Reason}) -> vanilla");
+				return true;
+			}
 
 			chefByBill.TryGetValue(bill, out Pawn chef);
 			var cookingRecord = (bill.billStack?.billGiver as Thing)?.Map?.GetComponent<VarietyCookingRecord>();
 			if (cookingRecord == null)
 			{
+				if (trace) Log.Message($"[VarietyMatters F-023] {recipeName}: gate3 tripped (cookingRecord null on map) -> vanilla");
 				return true;
 			}
+			if (trace) Log.Message($"[VarietyMatters F-023] {recipeName}: gates passed, chef={chef?.LabelShort ?? "<null>"}, availableThings={availableThings?.Count ?? 0}, runs E' water-fill");
 
 			chosen.Clear();
 			VarietyCooking.SortIngredients(availableThings, rootCell, chef, bill);
@@ -114,6 +141,7 @@ namespace VarietyMatters
 			int sumAssigned = 0;
 			for (int i = 0; i < _assignedScratch.Count; i++) sumAssigned += _assignedScratch[i];
 			int remaining = effectiveBudget - sumAssigned;
+			if (trace) Log.Message($"[VarietyMatters F-023] {recipeName}: totalSlots={totalSlots} variableSlotCount={variableSlotCount} numIngredients={numIngredients} effectiveBudget={effectiveBudget} eligiblePerSlot=[{string.Join(",", _eligibleDistinctScratch)}] initialAssigned=[{string.Join(",", _assignedScratch)}] remaining={remaining}");
 
 			// Reservoir-sample tie-break (single-pass, zero-alloc): on each while-iteration, count candidates where assigned<eligible and pick uniformly via Rand.Range(0, k)==0 replacement rule.
 			while (remaining > 0)
@@ -133,16 +161,31 @@ namespace VarietyMatters
 				remaining--;
 			}
 
+			if (trace) Log.Message($"[VarietyMatters F-023] {recipeName}: finalAssigned=[{string.Join(",", _assignedScratch)}]");
 			// Phase B: fill. slotMaxDefs==0 for (a) fixed slots (applyCap=false ignores it) and (b) variable slots whose pre-scan found eligible==0; in case (b) TryFillIngredientSlotWithCap raises 0→1 at :183 but finds nothing matching the filters, slot fails, bill fails — matches vanilla behavior for unmakeable filtered bills.
 			for (int i = 0; i < totalSlots; i++)
 			{
 				IngredientCount ingredientCount = bill.recipe.ingredients[i];
 				bool applyCapForSlot = !ingredientCount.IsFixedIngredient;
 				int slotMaxDefs = _assignedScratch[i];
+				int chosenBefore = chosen.Count;
 				if (!VarietyCooking.TryFillIngredientSlotWithCap(availableThings, bill, ingredientCount, chosen, applyCapForSlot, slotMaxDefs))
 				{
+					if (trace) Log.Message($"[VarietyMatters F-023] {recipeName}: slot {i} fill FAILED (applyCap={applyCapForSlot} slotMaxDefs={slotMaxDefs}) -> bill fails");
 					__result = false;
 					return false;
+				}
+				if (trace)
+				{
+					// List the defs actually picked for this slot.
+					int addedCount = chosen.Count - chosenBefore;
+					string picks = "";
+					for (int k = chosenBefore; k < chosen.Count; k++)
+					{
+						if (picks.Length > 0) picks += ",";
+						picks += chosen[k].Thing?.def?.defName + "x" + chosen[k].Count;
+					}
+					Log.Message($"[VarietyMatters F-023] {recipeName}: slot {i} filled with {addedCount} thing(s): [{picks}]");
 				}
 			}
 
