@@ -611,6 +611,7 @@
             }
         }
 
+        // why-not-translated: NoVarietyReason sub-pools deferred to US-018b to cap initial Keyed count <= 200
         private string RandChooseRottenStrings(int seed)
         {
             return this.RandChoose(
