@@ -242,7 +242,7 @@
 			base.DrawOnGUI(rect, maxThresholdMarkers, customMargin, drawArrows, false, rectForTooltip, drawLabel);
 
 			Rect tipRect = rectForTooltip ?? rect;
-			if (!Mouse.IsOver(tipRect))
+			if (!doTooltip || !Mouse.IsOver(tipRect))
 			{
 				return;
 			}
