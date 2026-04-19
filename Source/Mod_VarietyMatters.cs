@@ -152,7 +152,6 @@
 			string label8 = "    Noble and Royal (default 15):";
 			string text8 = ModSettings_VarietyMatters.nobleVariety.ToString();
 			this.LabeledIntEntry(listing_Standard.GetRect(24f, 1f), label8, ref ModSettings_VarietyMatters.nobleVariety, ref text8, 1, 5, 1, 50);
-			// US-015: tribal/low-expectation floor. Clamps GetVarietyExpectation return.
 			int previousLowExpectationFloor = ModSettings_VarietyMatters.lowExpectationFloor;
 			string label9 = "    Low Expectation Floor (default 3):";
 			string text9 = ModSettings_VarietyMatters.lowExpectationFloor.ToString();

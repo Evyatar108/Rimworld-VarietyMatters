@@ -121,9 +121,9 @@
 		// Token: 0x0400001B RID: 27
 		public static int nobleVariety = 15;
 
-		// US-015: minimum variety expectation floor. GetVarietyExpectation clamps its
+		// Minimum variety expectation floor. GetVarietyExpectation clamps its
 		// return via Math.Max(raw, lowExpectationFloor) so tribal/Naked-Brutality starts
-		// don't crater to -7 mood on day 1 (CLAUDE.md §3 soft-cap: max(setting, structural)).
+		// don't crater to -7 mood on day 1.
 		public static int lowExpectationFloor = 3;
 
 		public static bool slavesHaveVarietyNeed = true;
