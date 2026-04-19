@@ -54,6 +54,11 @@
   <VM_Status_HasVariety>+ Variety</VM_Status_HasVariety>
   <VM_Status_NoVariety>— Repeat</VM_Status_NoVariety>
   <VM_Status_Forgotten>Forgotten</VM_Status_Forgotten>
+  <VM_Status_ForgottenCount>Forgotten ×{0}</VM_Status_ForgottenCount>
+  <VM_MealAgo_Minutes>{0}m ago</VM_MealAgo_Minutes>
+  <VM_MealAgo_Hours>{0}h ago</VM_MealAgo_Hours>
+  <VM_MealAgo_Days>{0}d ago</VM_MealAgo_Days>
+  <VM_MealAgo_Unknown>—</VM_MealAgo_Unknown>
 
   <!-- Disabled reason tip (US-017) -->
   <VM_DisabledPrefix>Disabled: </VM_DisabledPrefix>

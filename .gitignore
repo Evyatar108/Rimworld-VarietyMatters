@@ -4,3 +4,11 @@ obj
 objd
 .vs
 /Source/.vs/VarietyMatters/v17/.suo
+
+# Agent harness + ralph orchestration artifacts
+.claude/
+.ralph/
+
+# Session research + design scratch
+VFVE_UX_INSPIRATION.md
+design/

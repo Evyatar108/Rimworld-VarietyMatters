@@ -67,6 +67,10 @@
             this.DrugCategory = foodSourceThing.def.ingestible.drugCategory;
 
             this.IsFungus = foodSourceThing.def.IsFungus;
+
+            this.AteAtTick = Current.ProgramState == ProgramState.Playing && Find.TickManager != null
+                ? Find.TickManager.TicksGame
+                : -1;
         }
 
         private Thing thing;
@@ -88,6 +92,15 @@
         {
             get => this.thingLabel;
             private set => this.thingLabel = value;
+        }
+
+        // Tick the meal was eaten. -1 = unknown (old saves where this field didn't exist, or the
+        // forgotten-food singleton). Save-compat: Scribe_Values with default -1 preserves old saves.
+        private int ateAtTick = -1;
+        public int AteAtTick
+        {
+            get => this.ateAtTick;
+            private set => this.ateAtTick = value;
         }
 
         private FoodPreferability foodPreferability;
@@ -180,6 +193,8 @@
             Scribe_Values.Look(ref this.thingLabel, "thingLabel");
             Scribe_Values.Look(ref this.isForgotten, "isForgotton");
             Scribe_Values.Look(ref this.foodPreferability, "foodPreferability");
+            // Default -1 = unknown timestamp for saves written before this field existed.
+            Scribe_Values.Look(ref this.ateAtTick, "ateAtTick", -1);
             Scribe_Collections.Look(ref this.ingredients, "ingredients", LookMode.Def);
             Scribe_Values.Look(ref this.isRotten, "isRotten");
             Scribe_Deep.Look(ref this.isAcceptableToCarnivores, "isAcceptableToCarnivores");

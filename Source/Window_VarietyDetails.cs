@@ -14,10 +14,12 @@ namespace VarietyMatters
         private const float HeaderHeight = 120f;
         private const float AggregateHeight = 90f;
         private const float MealRowHeight = 76f;
+        private const float ForgottenRowHeight = 38f;
         private const float MealIconBig = 64f;
+        private const float ForgottenMiniIcon = 28f;
         private const float IngredientIcon = 28f;
         private const float IngredientGap = 4f;
-        private const float StatusWidth = 110f;
+        private const float StatusWidth = 220f;
         private const float SectionGap = 10f;
         private const float Padding = 10f;
 
@@ -120,7 +122,7 @@ namespace VarietyMatters
             if (need != null)
             {
                 statRect.y += 24f;
-                Widgets.Label(statRect, string.Format("{0} {1}", "Variety".Translate().CapitalizeFirst(), (need.CurLevelPercentage).ToStringPercent()));
+                Widgets.Label(statRect, string.Format("{0} {1}", need.LabelCap, (need.CurLevelPercentage).ToStringPercent()));
             }
 
             // Favourites placeholder slot — reserved for §2a. Drawn as a dim "Favourites: —" line for now.
@@ -188,16 +190,72 @@ namespace VarietyMatters
                 return;
             }
 
-            float contentHeight = this._rows.Count * (MealRowHeight + 4f);
+            // Pre-compute total content height, collapsing consecutive forgotten rows into one compact row.
+            float contentHeight = 0f;
+            int i = 0;
+            while (i < this._rows.Count)
+            {
+                if (this._rows[i].IsForgotten)
+                {
+                    int j = i;
+                    while (j < this._rows.Count && this._rows[j].IsForgotten) j++;
+                    contentHeight += ForgottenRowHeight + 4f;
+                    i = j;
+                }
+                else
+                {
+                    contentHeight += MealRowHeight + 4f;
+                    i++;
+                }
+            }
+
             Rect viewRect = new Rect(0f, 0f, rect.width - 16f, contentHeight);
             Widgets.BeginScrollView(rect, ref this._scrollPosition, viewRect);
             float y = 0f;
-            for (int i = 0; i < this._rows.Count; i++)
+            i = 0;
+            while (i < this._rows.Count)
             {
-                DrawMealRow(new Rect(0f, y, viewRect.width, MealRowHeight), this._rows[i]);
-                y += MealRowHeight + 4f;
+                if (this._rows[i].IsForgotten)
+                {
+                    int j = i;
+                    while (j < this._rows.Count && this._rows[j].IsForgotten) j++;
+                    int count = j - i;
+                    DrawForgottenGroup(new Rect(0f, y, viewRect.width, ForgottenRowHeight), count);
+                    y += ForgottenRowHeight + 4f;
+                    i = j;
+                }
+                else
+                {
+                    DrawMealRow(new Rect(0f, y, viewRect.width, MealRowHeight), this._rows[i]);
+                    y += MealRowHeight + 4f;
+                    i++;
+                }
             }
             Widgets.EndScrollView();
+        }
+
+        private static void DrawForgottenGroup(Rect rect, int count)
+        {
+            Widgets.DrawBoxSolid(rect, SectionBg);
+            Rect inner = rect.ContractedBy(6f);
+            Rect iconRect = new Rect(inner.x, inner.y + (inner.height - ForgottenMiniIcon) * 0.5f, ForgottenMiniIcon, ForgottenMiniIcon);
+            Widgets.DrawBoxSolidWithOutline(iconRect, BorderBg, ForgottenColor, 1);
+            Text.Anchor = TextAnchor.MiddleCenter;
+            GUI.color = ForgottenColor;
+            Widgets.Label(iconRect, "?");
+            GUI.color = Color.white;
+            Text.Anchor = TextAnchor.UpperLeft;
+            TooltipIfOver(iconRect, "VM_ForgottenMealTip".Translate());
+
+            Rect labelRect = new Rect(iconRect.xMax + Padding, inner.y, inner.xMax - iconRect.xMax - Padding, inner.height);
+            GUI.color = ForgottenColor;
+            Text.Anchor = TextAnchor.MiddleLeft;
+            string label = count == 1
+                ? "VM_Status_Forgotten".Translate().ToString()
+                : "VM_Status_ForgottenCount".Translate(count).ToString();
+            Widgets.Label(labelRect, label);
+            Text.Anchor = TextAnchor.UpperLeft;
+            GUI.color = Color.white;
         }
 
         private static void DrawMealRow(Rect rect, Need_FoodVariety.MealRowInfo row)
@@ -229,11 +287,25 @@ namespace VarietyMatters
                 TooltipIfOver(mealRect, row.MealDef.LabelCap);
             }
 
-            // Variety status label (center).
+            // Variety status label + meal name (center). Wider so long meal labels fit on one line.
             Rect statusRect = new Rect(mealRect.xMax + Padding, inner.y + 4f, StatusWidth, 24f);
             GUI.color = row.BorderColor;
-            Widgets.Label(statusRect, GetStatusLabel(row));
+            string statusText = GetStatusLabel(row);
+            if (!row.IsForgotten && row.MealDef != null)
+            {
+                statusText = statusText + " · " + row.MealDef.LabelCap;
+            }
+            Widgets.Label(statusRect, statusText.Truncate(statusRect.width));
             GUI.color = Color.white;
+
+            // Age indicator below status ("5h ago"). Greyed out.
+            if (!row.IsForgotten && row.AteAtTick >= 0)
+            {
+                Rect ageRect = new Rect(mealRect.xMax + Padding, statusRect.yMax + 2f, StatusWidth, 20f);
+                GUI.color = new Color(1f, 1f, 1f, 0.55f);
+                Widgets.Label(ageRect, FormatAteAgo(row.AteAtTick));
+                GUI.color = Color.white;
+            }
 
             // Ingredient icons (right of status). Filling row from status.xMax to inner.xMax.
             float ingStartX = statusRect.xMax + Padding;
@@ -257,6 +329,17 @@ namespace VarietyMatters
                     x += IngredientIcon + IngredientGap;
                 }
             }
+        }
+
+        private static string FormatAteAgo(int ateAtTick)
+        {
+            if (ateAtTick < 0) return "VM_MealAgo_Unknown".Translate();
+            int nowTick = Find.TickManager != null ? Find.TickManager.TicksGame : 0;
+            int diff = Math.Max(0, nowTick - ateAtTick);
+            // RimWorld: 60 ticks = 1 real second in paused, but in-game time uses 2500 ticks/hour, 60000 ticks/day.
+            if (diff < 2500) return "VM_MealAgo_Minutes".Translate(Math.Max(1, diff / 60));
+            if (diff < 60000) return "VM_MealAgo_Hours".Translate(diff / 2500);
+            return "VM_MealAgo_Days".Translate(diff / 60000);
         }
 
         private static string GetStatusLabel(Need_FoodVariety.MealRowInfo row)

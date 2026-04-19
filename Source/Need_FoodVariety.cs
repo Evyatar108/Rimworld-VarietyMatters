@@ -57,6 +57,7 @@
 			public ThingDef MealDef;            // null for forgotten
 			public List<ThingDef> Ingredients;  // null/empty for forgotten
 			public MealRowStatus Status;
+			public int AteAtTick;               // -1 for forgotten / old saves
 			public bool IsForgotten => this.Status == MealRowStatus.Forgotten;
 			public Color BorderColor
 			{
@@ -398,12 +399,14 @@
 					row.MealDef = null;
 					row.Ingredients = null;
 					row.Status = MealRowStatus.Forgotten;
+					row.AteAtTick = -1;
 					this._mealRowsScratch.Add(row);
 					continue;
 				}
 
 				row.MealDef = src.ThingDef;
 				row.Ingredients = src.IngredientsDefs;
+				row.AteAtTick = src.AteAtTick;
 
 				string key = src.GetFoodSourceKey();
 				this._appearancesSoFarRowsScratch.TryGetValue(key, out int seenSoFar);
