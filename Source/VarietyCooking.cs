@@ -385,6 +385,31 @@ namespace VarietyMatters
 
 			bool preferSpoiling = ModSettings_VarietyMatters.preferSpoiling;
 
+			// F-028 deep trace — fires only in DevMode. Revert after diagnosis.
+			bool trace = Prefs.DevMode;
+			if (trace)
+			{
+				string chefName = chef?.LabelShort ?? "<null>";
+				string lastMeal = "<null>";
+				if (cookingRecord != null && chef != null)
+				{
+					System.Text.StringBuilder sb = new System.Text.StringBuilder();
+					foreach (Thing t in availableThings)
+					{
+						if (cookingRecord.IsDefInLastMeal(chef, t.def.label))
+						{
+							if (sb.Length > 0) sb.Append(",");
+							sb.Append(t.def.label);
+						}
+					}
+					lastMeal = sb.Length > 0 ? sb.ToString() : "(empty)";
+				}
+				string recentSummary = hasVarietyPenalty
+					? string.Join(",", recent.list.GetRange(recent.startIndex, recent.count))
+					: "(empty)";
+				Log.Message($"[VarietyMatters F-028] SortIngredients chef={chefName} availThings={availableThings.Count} hasPenalty={hasVarietyPenalty} lastMealDefsInAvail={{{lastMeal}}} recent={{{recentSummary}}}");
+			}
+
 			// F-027 rotation:
 			//   key = distance
 			//       + immediateRepeatPenalty × I(def in last meal)   // strong — breaks close-pile distance ties
@@ -434,6 +459,21 @@ namespace VarietyMatters
 			}
 
 			availableThings.Sort(_sortKeyComparison);
+
+			if (trace)
+			{
+				int limit = System.Math.Min(availableThings.Count, 8);
+				System.Text.StringBuilder sb = new System.Text.StringBuilder("[VarietyMatters F-028] sorted top-" + limit + ": ");
+				for (int i = 0; i < limit; i++)
+				{
+					Thing t = availableThings[i];
+					int count = 0;
+					if (hasVarietyPenalty) _penaltyPerDefScratch.TryGetValue(t.def, out count);
+					bool inLast = cookingRecord != null && chef != null && cookingRecord.IsDefInLastMeal(chef, t.def.label);
+					sb.Append(t.def.defName + "[key=" + _sortKeysScratch[t].ToString("F1") + ",m=" + count + ",last=" + (inLast ? "Y" : "N") + "] ");
+				}
+				Log.Message(sb.ToString());
+			}
 		}
 	}
 }
