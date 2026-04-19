@@ -83,7 +83,7 @@ Allocating a tracker just to read a score is a perf regression. If your code onl
 Preserve `Scribe_` layout on any cache/perf change:
 
 - `VarietyCookingRecord.RecentListEx.entries` is serialized as `List<string>` with `LookMode.Value`. **Do not** swap storage to `ThingDef`. If you need ref-based keying, build a `Dictionary<string, ThingDef>` at use-site (see `SortIngredients` label→def map).
-- `DietTracker._version`, `Need_FoodVariety._lastTipVersion`, `_raceKeysVersion` — transient, never Scribed.
+- `DietTracker._version`, `Need_FoodVariety._lastTipVersion`, `Need_FoodVariety._lastIconsVersion`, `Need_FoodVariety._lastIconsMemoryMult`, `Need_FoodVariety._iconOverlayHash`, `Need_FoodVariety._overlayWidth`, `Need_FoodVariety._foodDefsScratch`, `Need_FoodVariety._drawHoverOverlayAction`, `_raceKeysVersion` — transient, never Scribed.
 - `_countByKey` in `DietTracker` — transient; rebuilt from scratch in `ReCount:136`.
 
 ## 9. Pawn-lifecycle cleanup hooks
