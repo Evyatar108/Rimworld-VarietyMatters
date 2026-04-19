@@ -2,6 +2,7 @@
 	Thread-safety hardening: debounced settings recalculation now defers Verse state mutations (DietTracker.ReCount / UpdateMaxFoodInMemory / VarietyAdjuster.AdjustVarietyLevel) to the main thread via LongEventHandler, preventing races against main-thread readers when a Timer callback fires from the threadpool.
 	Food Variety need is now visible on the need list for all pawns; when a pawn is excluded (slaves/prisoners/non-player/trait-opted-out/race-disabled), the tooltip leads with a plain-English reason so the gating is no longer silent.
 	Keyed string extraction: settings UI labels, tooltips, tip template, disabled-reason labels, and the three main flavor pools (Forgotten/NoVariety/HasVariety, 20 entries each) now route through RimWorld's Translate() system via Common/Languages/English/Keyed/VarietyMatters.xml. Translators can extend coverage without C# edits.
+	Food Variety need tooltip now opens a hover overlay with the tip text plus a row of food icons for what the colonist has eaten recently, surfacing the visual grid VFVE ships as a popup without adding a persistent row to the needs tab.
 
 [04/18/2026]
 	Compatibility: Meals Over Preserved Foods — FoodOptimality postfix now runs at LowerThanNormal Harmony priority, so MOPF's adjustments stack cleanly with the variety bonus instead of being overridden.

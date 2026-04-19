@@ -5,6 +5,7 @@
     using System.Linq;
     using System.Text;
     using RimWorld;
+    using UnityEngine;
     using VarietyMatters.New;
     using Verse;
     using static VarietyMatters.New.DietTracker;
@@ -23,6 +24,26 @@
 
 		private static HashSet<string> _enabledRaceKeys = new HashSet<string>();
 		private static int _raceKeysVersion = -1;
+
+		// Hover-overlay scratch (US-019). _tileRectsScratch: per-frame layout rects.
+		// _foodDefsScratch: cached icon sequence, rebuilt only on (DietTracker.Version, memoryMultiplier) change.
+		private readonly List<Rect> _tileRectsScratch = new List<Rect>();
+		private readonly List<ThingDef> _foodDefsScratch = new List<ThingDef>();
+		private int _lastIconsVersion = -1;
+		private float _lastIconsMemoryMult = -1f;
+		private int _iconOverlayHash;
+		private Action _drawHoverOverlayAction;
+
+		private const float OverlayWidth = 320f;
+		private const float OverlayHeight = 260f;
+		private const float OverlayPadding = 6f;
+		private const float TileBaseSize = 32f;
+		private const float TileMaxSize = 32f;
+
+		private static float SizeOfTiles(float numberToScale, float slotNumber, float max)
+		{
+			return Math.Min(numberToScale * (10f / slotNumber), max);
+		}
 
 		// Token: 0x17000002 RID: 2
 		// (get) Token: 0x06000018 RID: 24 RVA: 0x00002F8C File Offset: 0x0000118C
@@ -219,6 +240,94 @@
 			{
 				this.CurLevel = 0.5f;
                 return;
+			}
+		}
+
+		public override void DrawOnGUI(Rect rect, int maxThresholdMarkers = int.MaxValue, float customMargin = -1f, bool drawArrows = true, bool doTooltip = true, Rect? rectForTooltip = null, bool drawLabel = true)
+		{
+			base.DrawOnGUI(rect, maxThresholdMarkers, customMargin, drawArrows, false, rectForTooltip, drawLabel);
+
+			Rect tipRect = rectForTooltip ?? rect;
+			if (!Mouse.IsOver(tipRect))
+			{
+				return;
+			}
+
+			if (this._iconOverlayHash == 0)
+			{
+				this._iconOverlayHash = unchecked((this.pawn.thingIDNumber * 397) ^ "variety_icons".GetHashCode());
+				if (this._iconOverlayHash == 0) this._iconOverlayHash = 1;
+			}
+			if (this._drawHoverOverlayAction == null)
+			{
+				this._drawHoverOverlayAction = this.DrawHoverOverlay;
+			}
+
+			Vector2 mouse = Event.current.mousePosition;
+			Rect overlayRect = new Rect(mouse.x + 12f, mouse.y + 12f, OverlayWidth, OverlayHeight);
+			if (overlayRect.xMax > UI.screenWidth) overlayRect.x = UI.screenWidth - overlayRect.width;
+			if (overlayRect.yMax > UI.screenHeight) overlayRect.y = UI.screenHeight - overlayRect.height;
+			if (overlayRect.x < 0f) overlayRect.x = 0f;
+			if (overlayRect.y < 0f) overlayRect.y = 0f;
+
+			Find.WindowStack.ImmediateWindow(this._iconOverlayHash, overlayRect, WindowLayer.Super, this._drawHoverOverlayAction, doBackground: true);
+		}
+
+		private void DrawHoverOverlay()
+		{
+			this._tileRectsScratch.Clear();
+
+			Rect inner = new Rect(OverlayPadding, OverlayPadding, OverlayWidth - 2f * OverlayPadding, OverlayHeight - 2f * OverlayPadding);
+
+			string tip = this.GetTipString();
+			float textHeight = Text.CalcHeight(tip, inner.width);
+			Rect textRect = new Rect(inner.x, inner.y, inner.width, textHeight);
+			Widgets.Label(textRect, tip);
+
+			if (inner.width < 200f)
+			{
+				return;
+			}
+
+			if (!VarietyRecord.TryGetVarietyRecord(this.pawn, out DietTracker tracker) || tracker == null)
+			{
+				return;
+			}
+
+			int version = tracker.Version;
+			float memMult = ModSettings_VarietyMatters.memoryMultiplier;
+			if (version != this._lastIconsVersion || memMult != this._lastIconsMemoryMult)
+			{
+				this._foodDefsScratch.Clear();
+				foreach (var tuple in tracker.GetFoodVarietyInfoForPawnInIngestionOrder())
+				{
+					EatenFoodSource src = tuple.Item1;
+					if (src == null || src.IsForgotten) continue;
+					ThingDef def = src.ThingDef;
+					if (def == null) continue;
+					this._foodDefsScratch.Add(def);
+				}
+				this._lastIconsVersion = version;
+				this._lastIconsMemoryMult = memMult;
+			}
+
+			int count = this._foodDefsScratch.Count;
+			if (count == 0) return;
+
+			float tileWidth = SizeOfTiles(TileBaseSize, count, TileMaxSize);
+			float tileY = inner.y + textHeight + 6f;
+
+			for (int i = 0; i < count; i++)
+			{
+				float x = inner.x + i * tileWidth;
+				if (x + tileWidth > inner.xMax + 0.1f) break;
+				Rect tile = new Rect(x, tileY, tileWidth - 2f, tileWidth - 2f);
+				this._tileRectsScratch.Add(tile);
+				ThingDef def = this._foodDefsScratch[i];
+				if (def.uiIcon != null)
+				{
+					Widgets.DrawTextureFitted(tile, def.uiIcon, 1f);
+				}
 			}
 		}
 
@@ -623,7 +732,7 @@
 
         private string RandChoose(int seed, params string[] choices)
         {
-            Random rand = new Random(seed);
+            System.Random rand = new System.Random(seed);
 
             int caseSelector = rand.Next(0, choices.Length);
 
