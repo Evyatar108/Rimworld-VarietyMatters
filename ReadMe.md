@@ -1,6 +1,10 @@
 [img]https://imgur.com/PZEKJnd.png[/img]
 [h3] 2026-04-18 [/h3]
 [list]
+[*][b]Compatibility — Meals Over Preserved Foods:[/b] the variety food-scoring postfix now runs at a lower Harmony priority, so MOPF's adjustments stack cleanly with the variety bonus instead of being overridden.
+[*][b]Compatibility — Human Alien Races:[/b] runtime-generated races no longer throw a NullReferenceException when a ThingDef has no mod content pack. Existing saves may need to click "Reset Current Races" once in Mod Settings to repopulate the race list after upgrading.
+[*][b]Compatibility — Vanilla Food Variety Expanded:[/b] VarietyMatters now warns once at startup if VFVE is loaded alongside it. Both mods modify the same ingredient-stacking code, which causes undefined stacking behavior — disable one of them.
+[*][b]New setting — Low Expectation Floor:[/b] clamps the minimum variety expectation (default 3). Tribal and Naked-Brutality starts no longer crater to a -7 variety mood on day 1 under the vanilla 1/2/3 expectation tiers. Adjustable in Mod Settings.
 [*]Large performance pass across the cooking, food-scoring, and need-tooltip hot paths. Late-game colonies should see noticeably lower per-tick allocation overhead.
 [*]Food-scoring postfix now early-exits on mod-settings gates before fetching the pawn's diet tracker — saves a lookup on every meal evaluation for every pawn.
 [*]Diet trackers are no longer created during read-only food scoring. Trackers appear only when a pawn actually ingests something.
