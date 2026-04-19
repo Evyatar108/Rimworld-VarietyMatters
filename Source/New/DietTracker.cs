@@ -24,7 +24,7 @@
 
         // Decay window (~2 in-game days). Meals older than this are dropped from the overlap set
         // when scoring a new meal under ByIngredientOverlap.
-        private const int VarietyDecayTicks = 120000;
+        public const int VarietyDecayTicks = 120000;
 
         // Shared scratch for overlap computation. Cleared on method entry of each consumer
         // (ComputeVarietyScore, GetOverlapBreakdown). Never held across frames.

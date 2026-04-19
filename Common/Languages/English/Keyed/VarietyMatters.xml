@@ -7,6 +7,8 @@
   <VM_Settings_TrackByMealNamesAndIngredients>    Track meal names and their ingredients (Easy): </VM_Settings_TrackByMealNamesAndIngredients>
   <VM_Settings_TrackByMealIngredients>    Track meal ingredients only (Normal): </VM_Settings_TrackByMealIngredients>
   <VM_Settings_TrackByMealNames>    Track meals names only (Hard): </VM_Settings_TrackByMealNames>
+  <VM_Settings_TrackByIngredientOverlap>    Track ingredient overlap (Continuous): </VM_Settings_TrackByIngredientOverlap>
+  <VM_Settings_TrackByIngredientOverlapTooltip>Per-meal variety is scored by how many ingredients overlap with meals eaten in the last ~2 in-game days. Trivial swaps (one ingredient different) give partial credit; fully-different meals count as fresh; repeats count as stale.</VM_Settings_TrackByIngredientOverlapTooltip>
   <VM_Settings_OtherOptionsHeader>Other Options:</VM_Settings_OtherOptionsHeader>
   <VM_Settings_NonControlledPawnsLabel>    Non controlled pawns also have variety need: </VM_Settings_NonControlledPawnsLabel>
   <VM_Settings_FoodDrugsOnceLabel>    Foods that are also drugs are stored in memory just once: </VM_Settings_FoodDrugsOnceLabel>
@@ -59,6 +61,25 @@
   <VM_MealAgo_Hours>{0}h ago</VM_MealAgo_Hours>
   <VM_MealAgo_Days>{0}d ago</VM_MealAgo_Days>
   <VM_MealAgo_Unknown>—</VM_MealAgo_Unknown>
+
+  <!-- US-024: ByIngredientOverlap UX -->
+  <VM_MealAgo_Minute_One>1 minute ago</VM_MealAgo_Minute_One>
+  <VM_MealAgo_Minutes_Many>{0} minutes ago</VM_MealAgo_Minutes_Many>
+  <VM_MealAgo_Hour_One>1 hour ago</VM_MealAgo_Hour_One>
+  <VM_MealAgo_Hours_Many>{0} hours ago</VM_MealAgo_Hours_Many>
+  <VM_MealAgo_Day_One>1 day ago</VM_MealAgo_Day_One>
+  <VM_MealAgo_Days_Many>{0} days ago</VM_MealAgo_Days_Many>
+  <VM_Details_ScoreBadge>{0}%</VM_Details_ScoreBadge>
+  <VM_Details_ScoreTooltip>Variety score: {0}%. 100% = all ingredients fresh; 0% = every ingredient repeated within the last 2 days.</VM_Details_ScoreTooltip>
+  <VM_Details_Repeated>Repeated:</VM_Details_Repeated>
+  <VM_Details_New>New:</VM_Details_New>
+  <VM_Details_NutrientPasteNoIngredients>Nutrient paste (no ingredients)</VM_Details_NutrientPasteNoIngredients>
+  <VM_Aggregate_TiredOf>Tired of:</VM_Aggregate_TiredOf>
+  <VM_Aggregate_TryFeeding>Try feeding:</VM_Aggregate_TryFeeding>
+  <VM_Aggregate_None>—</VM_Aggregate_None>
+  <VM_Overlap_Glyph_Fresh>◆</VM_Overlap_Glyph_Fresh>
+  <VM_Overlap_Glyph_Repeat>■</VM_Overlap_Glyph_Repeat>
+  <VM_Overlap_Glyph_Forgotten>?</VM_Overlap_Glyph_Forgotten>
 
   <!-- Disabled reason tip (US-017) -->
   <VM_DisabledPrefix>Disabled: </VM_DisabledPrefix>
