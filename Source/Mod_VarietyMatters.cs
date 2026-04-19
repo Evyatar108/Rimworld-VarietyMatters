@@ -48,54 +48,54 @@
 
             Rect rect = new Rect(10f, 0f, inRect.width * 0.5f, viewRect1.height*1.05f);
 			listing_Standard.Begin(rect);
-			listing_Standard.Label("Variety Tracking Options:", -1f);
+			listing_Standard.Label("VM_Settings_VarietyTrackingHeader".Translate(), -1f);
 
 			var previousFoodTrackingType = ModSettings_VarietyMatters.foodTrackingType;
 			var previousClusterSimilarMealsTogether = ModSettings_VarietyMatters.clusterSimilarMealsTogether;
 
-			bool trackByMealNamesAndTheirIngredients = listing_Standard.RadioButton("    Track meal names and their ingredients (Easy): ", ModSettings_VarietyMatters.foodTrackingType == FoodTrackingType.ByMealNamesAndIngredientsCombination, 0f, null, null);
+			bool trackByMealNamesAndTheirIngredients = listing_Standard.RadioButton("VM_Settings_TrackByMealNamesAndIngredients".Translate(), ModSettings_VarietyMatters.foodTrackingType == FoodTrackingType.ByMealNamesAndIngredientsCombination, 0f, null, null);
 			if (trackByMealNamesAndTheirIngredients)
 			{
 				ModSettings_VarietyMatters.foodTrackingType = FoodTrackingType.ByMealNamesAndIngredientsCombination;
 			}
 
-			bool trackByMealIngredients = listing_Standard.RadioButton("    Track meal ingredients only (Normal): ", ModSettings_VarietyMatters.foodTrackingType == FoodTrackingType.ByIngredientsCombination, 0f, null, null);
+			bool trackByMealIngredients = listing_Standard.RadioButton("VM_Settings_TrackByMealIngredients".Translate(), ModSettings_VarietyMatters.foodTrackingType == FoodTrackingType.ByIngredientsCombination, 0f, null, null);
 			if (trackByMealIngredients)
 			{
 				ModSettings_VarietyMatters.foodTrackingType = FoodTrackingType.ByIngredientsCombination;
 			}
 
-            bool trackByMealNames = listing_Standard.RadioButton("    Track meals names only (Hard): ", ModSettings_VarietyMatters.foodTrackingType == FoodTrackingType.ByMealNames, 0f, null, null);
+            bool trackByMealNames = listing_Standard.RadioButton("VM_Settings_TrackByMealNames".Translate(), ModSettings_VarietyMatters.foodTrackingType == FoodTrackingType.ByMealNames, 0f, null, null);
 			if (trackByMealNames)
 			{
 				ModSettings_VarietyMatters.foodTrackingType = FoodTrackingType.ByMealNames;
 			}
 
-			listing_Standard.Label("Other Options:", -1f);
-			listing_Standard.CheckboxLabeled("    Non controlled pawns also have variety need: ", ref ModSettings_VarietyMatters.nonControlledPawnsHaveVarietyNeed, null, 0f, 1f);
-            listing_Standard.CheckboxLabeled("    Foods that are also drugs are stored in memory just once: ", ref ModSettings_VarietyMatters.foodDrugsAreOnlyInMemoryOnce, "Foods that also serve as drugs are stored in memory only once. This allows for a scheduled intake of these substances without diminishing variety, while still enjoying the benefits of having them considered as variety if the pawns likes them as food.", 0f, 1f);
+			listing_Standard.Label("VM_Settings_OtherOptionsHeader".Translate(), -1f);
+			listing_Standard.CheckboxLabeled("VM_Settings_NonControlledPawnsLabel".Translate(), ref ModSettings_VarietyMatters.nonControlledPawnsHaveVarietyNeed, null, 0f, 1f);
+            listing_Standard.CheckboxLabeled("VM_Settings_FoodDrugsOnceLabel".Translate(), ref ModSettings_VarietyMatters.foodDrugsAreOnlyInMemoryOnce, "VM_Settings_FoodDrugsOnceTooltip".Translate(), 0f, 1f);
 			bool flag4 = ModSettings_VarietyMatters.foodTrackingType != FoodTrackingType.ByMealNames;
             if (flag4)
 			{
-				listing_Standard.CheckboxLabeled("    Cooks use different ingredients: ", ref ModSettings_VarietyMatters.preferVariety, "Cooks rotate ingredients across meals and mix distinct ThingDefs within a single meal. Mixing only applies to bills with 'Allow mixing ingredients' enabled — bills without mixing still get variety-weighted sort order but remain single-ingredient per slot.", 0f, 1f);
-				listing_Standard.CheckboxLabeled("    Cooks prefer spoiling ingredients: ", ref ModSettings_VarietyMatters.preferSpoiling, null, 0f, 1f);
-				listing_Standard.CheckboxLabeled("    Stack meals by ingredients: ", ref ModSettings_VarietyMatters.stackByIngredients, null, 0f, 1f);
+				listing_Standard.CheckboxLabeled("VM_Settings_PreferVarietyLabel".Translate(), ref ModSettings_VarietyMatters.preferVariety, "VM_Settings_PreferVarietyTooltip".Translate(), 0f, 1f);
+				listing_Standard.CheckboxLabeled("VM_Settings_PreferSpoilingLabel".Translate(), ref ModSettings_VarietyMatters.preferSpoiling, null, 0f, 1f);
+				listing_Standard.CheckboxLabeled("VM_Settings_StackByIngredientsLabel".Translate(), ref ModSettings_VarietyMatters.stackByIngredients, null, 0f, 1f);
 				if (ModSettings_VarietyMatters.foodTrackingType != FoodTrackingType.ByIngredientsCombination)
 				{
-					listing_Standard.CheckboxLabeled("    Count different quality meals as the same meal type: ", ref ModSettings_VarietyMatters.clusterSimilarMealsTogether, null, 0f, 1f);
+					listing_Standard.CheckboxLabeled("VM_Settings_ClusterSimilarMealsLabel".Translate(), ref ModSettings_VarietyMatters.clusterSimilarMealsTogether, null, 0f, 1f);
 				}
 				else
 				{
 					ModSettings_VarietyMatters.clusterSimilarMealsTogether = false;
                 }
 
-				listing_Standard.Label("    ^For example, Fine and Lavish meals will counted as one type", -1f);
+				listing_Standard.Label("VM_Settings_ClusterSimilarMealsExample".Translate(), -1f);
 
-				string label = "    Ingredients When Stacking (vanilla = 3):";
+				string label = "VM_Settings_NumIngredientsLabel".Translate();
 				string text = ModSettings_VarietyMatters.numIngredients.ToString();
 				this.LabeledIntEntry(listing_Standard.GetRect(24f, 1f), label, ref ModSettings_VarietyMatters.numIngredients, ref text, 1, 1, 1, 10);
 
-				string cookingMemLabel = "    Cooking memory depth (default 10):";
+				string cookingMemLabel = "VM_Settings_CookingMemoryDepthLabel".Translate();
 				string cookingMemText = ModSettings_VarietyMatters.cookingMemoryDepth.ToString();
 				this.LabeledIntEntry(listing_Standard.GetRect(24f, 1f), cookingMemLabel, ref ModSettings_VarietyMatters.cookingMemoryDepth, ref cookingMemText, 1, 5, 1, 100);
 			}
@@ -114,7 +114,7 @@
             }
 
             listing_Standard.GapLine(12f);
-			bool flag5 = listing_Standard.ButtonTextLabeled("Expectation Level Base Varieties:", "Reset", 0, null, null);
+			bool flag5 = listing_Standard.ButtonTextLabeled("VM_Settings_ExpectationHeader".Translate(), "VM_Settings_ResetButton".Translate(), 0, null, null);
 			if (flag5)
 			{
 				ModSettings_VarietyMatters.extremelyLowVariety = 4;
@@ -131,29 +131,29 @@
                 ModSettings_VarietyMatters.prisonersHaveVarietyNeed = false;
             }
             listing_Standard.Gap(8f);
-			string label2 = "    Extremely Low (default 4):";
+			string label2 = "VM_Settings_ExtremelyLowLabel".Translate();
 			string text2 = ModSettings_VarietyMatters.extremelyLowVariety.ToString();
 			this.LabeledIntEntry(listing_Standard.GetRect(24f, 1f), label2, ref ModSettings_VarietyMatters.extremelyLowVariety, ref text2, 1, 5, 1, 50);
-			string label3 = "    Very Low (default 5):";
+			string label3 = "VM_Settings_VeryLowLabel".Translate();
 			string text3 = ModSettings_VarietyMatters.veryLowVariety.ToString();
 			this.LabeledIntEntry(listing_Standard.GetRect(24f, 1f), label3, ref ModSettings_VarietyMatters.veryLowVariety, ref text3, 1, 5, 1, 50);
-			string label4 = "    Low (default 6):";
+			string label4 = "VM_Settings_LowLabel".Translate();
 			string text4 = ModSettings_VarietyMatters.lowVariety.ToString();
 			this.LabeledIntEntry(listing_Standard.GetRect(24f, 1f), label4, ref ModSettings_VarietyMatters.lowVariety, ref text4, 1, 5, 1, 50);
-			string label5 = "    Moderate (default 8):";
+			string label5 = "VM_Settings_ModerateLabel".Translate();
 			string text5 = ModSettings_VarietyMatters.moderateVariety.ToString();
 			this.LabeledIntEntry(listing_Standard.GetRect(24f, 1f), label5, ref ModSettings_VarietyMatters.moderateVariety, ref text5, 1, 5, 1, 50);
-			string label6 = "    High (default 10):";
+			string label6 = "VM_Settings_HighLabel".Translate();
 			string text6 = ModSettings_VarietyMatters.highVariety.ToString();
 			this.LabeledIntEntry(listing_Standard.GetRect(24f, 1f), label6, ref ModSettings_VarietyMatters.highVariety, ref text6, 1, 5, 1, 50);
-			string label7 = "    Sky High (default 12):";
+			string label7 = "VM_Settings_SkyHighLabel".Translate();
 			string text7 = ModSettings_VarietyMatters.skyHighVariety.ToString();
 			this.LabeledIntEntry(listing_Standard.GetRect(24f, 1f), label7, ref ModSettings_VarietyMatters.skyHighVariety, ref text7, 1, 5, 1, 50);
-			string label8 = "    Noble and Royal (default 15):";
+			string label8 = "VM_Settings_NobleLabel".Translate();
 			string text8 = ModSettings_VarietyMatters.nobleVariety.ToString();
 			this.LabeledIntEntry(listing_Standard.GetRect(24f, 1f), label8, ref ModSettings_VarietyMatters.nobleVariety, ref text8, 1, 5, 1, 50);
 			int previousLowExpectationFloor = ModSettings_VarietyMatters.lowExpectationFloor;
-			string label9 = "    Low Expectation Floor (default 3):";
+			string label9 = "VM_Settings_LowExpectationFloorLabel".Translate();
 			string text9 = ModSettings_VarietyMatters.lowExpectationFloor.ToString();
 			this.LabeledIntEntry(listing_Standard.GetRect(24f, 1f), label9, ref ModSettings_VarietyMatters.lowExpectationFloor, ref text9, 1, 5, 1, 50);
 			if (ModSettings_VarietyMatters.lowExpectationFloor != previousLowExpectationFloor)
@@ -162,36 +162,36 @@
 			}
 
 
-            string labelSlavesHaveVarietyNeed = "    Slaves have variety need (default true):";
+            string labelSlavesHaveVarietyNeed = "VM_Settings_SlavesHaveVarietyLabel".Translate();
 			listing_Standard.CheckboxLabeled(labelSlavesHaveVarietyNeed, ref ModSettings_VarietyMatters.slavesHaveVarietyNeed, null, 0f, 1f);
 
 			if (ModSettings_VarietyMatters.slavesHaveVarietyNeed)
 			{
-				string labelDivideSlaveVariety = "    Slave expected variety (default 65%):";
+				string labelDivideSlaveVariety = "VM_Settings_SlaveExpectedVarietyLabel".Translate();
 				string textDivideSlaveVariety = ModSettings_VarietyMatters.slaveExpectedVarietyPercentage.ToString();
 				this.LabeledIntEntry(listing_Standard.GetRect(24f, 1f), labelDivideSlaveVariety, ref ModSettings_VarietyMatters.slaveExpectedVarietyPercentage, ref textDivideSlaveVariety, 1, 5, 1, 100);
 			}
 
-            string labelPrisonersHaveVarietyNeed = "    Prisoners have variety need (default true):";
+            string labelPrisonersHaveVarietyNeed = "VM_Settings_PrisonersHaveVarietyLabel".Translate();
             listing_Standard.CheckboxLabeled(labelPrisonersHaveVarietyNeed, ref ModSettings_VarietyMatters.prisonersHaveVarietyNeed, null, 0f, 1f);
 
             if (ModSettings_VarietyMatters.prisonersHaveVarietyNeed)
             {
-                string labelDividePrisonerVariety = "    Prisoner expected variety (default 50%):";
+                string labelDividePrisonerVariety = "VM_Settings_PrisonerExpectedVarietyLabel".Translate();
                 string textDividePrisonerVariety = ModSettings_VarietyMatters.prisonerExpectedVarietyPercentage.ToString();
                 this.LabeledIntEntry(listing_Standard.GetRect(24f, 1f), labelDividePrisonerVariety, ref ModSettings_VarietyMatters.prisonerExpectedVarietyPercentage, ref textDividePrisonerVariety, 1, 5, 1, 100);
             }
 
             listing_Standard.GapLine(12f);
-			listing_Standard.Label("Optional Variety Expectation Adjustments Factors:", -1f);
-            listing_Standard.CheckboxLabeled("    Reduce variety mood effect: ", ref ModSettings_VarietyMatters.halveVarietyMoodImpact, null, 0f, 1f);
-            listing_Standard.CheckboxLabeled("    Longer variety meals memory for pawns (Easier): ", ref ModSettings_VarietyMatters.moreVarietyMemory, null, 0f, 1f);
+			listing_Standard.Label("VM_Settings_AdjustmentFactorsHeader".Translate(), -1f);
+            listing_Standard.CheckboxLabeled("VM_Settings_HalveVarietyMoodLabel".Translate(), ref ModSettings_VarietyMatters.halveVarietyMoodImpact, null, 0f, 1f);
+            listing_Standard.CheckboxLabeled("VM_Settings_MoreVarietyMemoryLabel".Translate(), ref ModSettings_VarietyMatters.moreVarietyMemory, null, 0f, 1f);
             listing_Standard.End();
             Widgets.EndScrollView();
 
             Rect rect2 = new Rect(50f + (inRect.width * 0.5f), 0f, inRect.width * 0.4f, 50f);
 			listing_Standard.Begin(rect2);
-			bool resetRacesSettings = listing_Standard.ButtonTextLabeled("Enable/Disable variety for races (Requires HAR):", "Reset Current Races", 0, null, null);
+			bool resetRacesSettings = listing_Standard.ButtonTextLabeled("VM_Settings_RaceSectionHeader".Translate(), "VM_Settings_ResetRacesButton".Translate(), 0, null, null);
 			if (resetRacesSettings || ModSettings_VarietyMatters.raceVariety == null)
 			{
 				ModSettings_VarietyMatters.raceVariety?.Clear();
@@ -220,7 +220,7 @@
 
 					bool value = raceSettings.isVarietyEnabled;
 					string modName = raceSettings.modName;
-					listing_Standard.CheckboxLabeled(GenText.CapitalizeFirst(raceSettings.name), ref value, $"From mod: {modName}", 0f, 1f);
+					listing_Standard.CheckboxLabeled(GenText.CapitalizeFirst(raceSettings.name), ref value, "VM_Settings_FromMod".Translate(modName), 0f, 1f);
 					if (raceSettings.isVarietyEnabled != value)
 					{
 						raceSettings.isVarietyEnabled = value;
@@ -278,7 +278,7 @@
 		// Token: 0x06000016 RID: 22 RVA: 0x00002F68 File Offset: 0x00001168
 		public override string SettingsCategory()
 		{
-			return "Variety Matters Redux";
+			return "VM_Settings_Category".Translate();
 		}
 
 		// Token: 0x04000023 RID: 35

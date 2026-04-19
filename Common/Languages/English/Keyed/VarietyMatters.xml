@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+
+  <!-- Settings UI -->
+  <VM_Settings_Category>Variety Matters Redux</VM_Settings_Category>
+  <VM_Settings_VarietyTrackingHeader>Variety Tracking Options:</VM_Settings_VarietyTrackingHeader>
+  <VM_Settings_TrackByMealNamesAndIngredients>    Track meal names and their ingredients (Easy): </VM_Settings_TrackByMealNamesAndIngredients>
+  <VM_Settings_TrackByMealIngredients>    Track meal ingredients only (Normal): </VM_Settings_TrackByMealIngredients>
+  <VM_Settings_TrackByMealNames>    Track meals names only (Hard): </VM_Settings_TrackByMealNames>
+  <VM_Settings_OtherOptionsHeader>Other Options:</VM_Settings_OtherOptionsHeader>
+  <VM_Settings_NonControlledPawnsLabel>    Non controlled pawns also have variety need: </VM_Settings_NonControlledPawnsLabel>
+  <VM_Settings_FoodDrugsOnceLabel>    Foods that are also drugs are stored in memory just once: </VM_Settings_FoodDrugsOnceLabel>
+  <VM_Settings_FoodDrugsOnceTooltip>Foods that also serve as drugs are stored in memory only once. This allows for a scheduled intake of these substances without diminishing variety, while still enjoying the benefits of having them considered as variety if the pawns likes them as food.</VM_Settings_FoodDrugsOnceTooltip>
+  <VM_Settings_PreferVarietyLabel>    Cooks use different ingredients: </VM_Settings_PreferVarietyLabel>
+  <VM_Settings_PreferVarietyTooltip>Cooks rotate ingredients across meals and mix distinct ThingDefs within a single meal. Mixing only applies to bills with 'Allow mixing ingredients' enabled — bills without mixing still get variety-weighted sort order but remain single-ingredient per slot.</VM_Settings_PreferVarietyTooltip>
+  <VM_Settings_PreferSpoilingLabel>    Cooks prefer spoiling ingredients: </VM_Settings_PreferSpoilingLabel>
+  <VM_Settings_StackByIngredientsLabel>    Stack meals by ingredients: </VM_Settings_StackByIngredientsLabel>
+  <VM_Settings_ClusterSimilarMealsLabel>    Count different quality meals as the same meal type: </VM_Settings_ClusterSimilarMealsLabel>
+  <VM_Settings_ClusterSimilarMealsExample>    ^For example, Fine and Lavish meals will counted as one type</VM_Settings_ClusterSimilarMealsExample>
+  <VM_Settings_NumIngredientsLabel>    Ingredients When Stacking (vanilla = 3):</VM_Settings_NumIngredientsLabel>
+  <VM_Settings_CookingMemoryDepthLabel>    Cooking memory depth (default 10):</VM_Settings_CookingMemoryDepthLabel>
+  <VM_Settings_ExpectationHeader>Expectation Level Base Varieties:</VM_Settings_ExpectationHeader>
+  <VM_Settings_ResetButton>Reset</VM_Settings_ResetButton>
+  <VM_Settings_ExtremelyLowLabel>    Extremely Low (default 4):</VM_Settings_ExtremelyLowLabel>
+  <VM_Settings_VeryLowLabel>    Very Low (default 5):</VM_Settings_VeryLowLabel>
+  <VM_Settings_LowLabel>    Low (default 6):</VM_Settings_LowLabel>
+  <VM_Settings_ModerateLabel>    Moderate (default 8):</VM_Settings_ModerateLabel>
+  <VM_Settings_HighLabel>    High (default 10):</VM_Settings_HighLabel>
+  <VM_Settings_SkyHighLabel>    Sky High (default 12):</VM_Settings_SkyHighLabel>
+  <VM_Settings_NobleLabel>    Noble and Royal (default 15):</VM_Settings_NobleLabel>
+  <VM_Settings_LowExpectationFloorLabel>    Low Expectation Floor (default 3):</VM_Settings_LowExpectationFloorLabel>
+  <VM_Settings_SlavesHaveVarietyLabel>    Slaves have variety need (default true):</VM_Settings_SlavesHaveVarietyLabel>
+  <VM_Settings_SlaveExpectedVarietyLabel>    Slave expected variety (default 65%):</VM_Settings_SlaveExpectedVarietyLabel>
+  <VM_Settings_PrisonersHaveVarietyLabel>    Prisoners have variety need (default true):</VM_Settings_PrisonersHaveVarietyLabel>
+  <VM_Settings_PrisonerExpectedVarietyLabel>    Prisoner expected variety (default 50%):</VM_Settings_PrisonerExpectedVarietyLabel>
+  <VM_Settings_AdjustmentFactorsHeader>Optional Variety Expectation Adjustments Factors:</VM_Settings_AdjustmentFactorsHeader>
+  <VM_Settings_HalveVarietyMoodLabel>    Reduce variety mood effect: </VM_Settings_HalveVarietyMoodLabel>
+  <VM_Settings_MoreVarietyMemoryLabel>    Longer variety meals memory for pawns (Easier): </VM_Settings_MoreVarietyMemoryLabel>
+  <VM_Settings_RaceSectionHeader>Enable/Disable variety for races (Requires HAR):</VM_Settings_RaceSectionHeader>
+  <VM_Settings_ResetRacesButton>Reset Current Races</VM_Settings_ResetRacesButton>
+  <VM_Settings_FromMod>From mod: {0}</VM_Settings_FromMod>
+
+  <!-- Disabled reason tip (US-017) -->
+  <VM_DisabledPrefix>Disabled: </VM_DisabledPrefix>
+  <VM_DisabledReason_DeadOrMissingFaculties>pawn is dead or missing food/mood faculties</VM_DisabledReason_DeadOrMissingFaculties>
+  <VM_DisabledReason_SlaveNotTracked>slaves are excluded in Mod Settings</VM_DisabledReason_SlaveNotTracked>
+  <VM_DisabledReason_PrisonerNotTracked>prisoners are excluded in Mod Settings</VM_DisabledReason_PrisonerNotTracked>
+  <VM_DisabledReason_NonPlayerNotTracked>non-player pawns are excluded in Mod Settings</VM_DisabledReason_NonPlayerNotTracked>
+  <VM_DisabledReason_TraitDisabled>this pawn's trait opts out of variety tracking</VM_DisabledReason_TraitDisabled>
+  <VM_DisabledReason_RaceNotTracked>this race is disabled in Mod Settings</VM_DisabledReason_RaceNotTracked>
+  <VM_DisabledReason_Unknown>unknown</VM_DisabledReason_Unknown>
+
+  <!-- GetTipString template: {0}=expected count, {1}=actual count, {2}=memory depth, {3}=most-recent suffix -->
+  <VM_FoodVarietyTip_Main>\n\nI expect at least {0} different meals; recently I had {1}.\nI have the capacity to recall the last {2} meals I had{3}</VM_FoodVarietyTip_Main>
+  <VM_FoodVarietyTip_NoMemory>, but I don't remember them for some reason..</VM_FoodVarietyTip_NoMemory>
+  <VM_FoodVarietyTip_MostRecent>, the most recent ones were:\n</VM_FoodVarietyTip_MostRecent>
+  <VM_FoodVarietyTip_AppearancePrefix>Appearance </VM_FoodVarietyTip_AppearancePrefix>
+  <VM_FoodVarietyTip_AppearanceOutOf> out of </VM_FoodVarietyTip_AppearanceOutOf>
+  <VM_FoodVarietyTip_ByType> by type</VM_FoodVarietyTip_ByType>
+  <VM_FoodVarietyTip_ByIngredients> by ingredients</VM_FoodVarietyTip_ByIngredients>
+  <VM_FoodVarietyTip_ByMealTypeAndIngredients> by meal type and ingredients</VM_FoodVarietyTip_ByMealTypeAndIngredients>
+  <VM_FoodVarietyTip_ByMealName> by meal name</VM_FoodVarietyTip_ByMealName>
+  <VM_FoodVarietyTip_ByMealNameAndIngredients> by meal name and ingredients</VM_FoodVarietyTip_ByMealNameAndIngredients>
+
+  <!-- Flavor pool: Forgotten (20) — order preserved so seed-based RandChoose picks identically -->
+  <VM_FoodVariety_Forgotten_00>(Has Variety) There's variety in my meals, but I can't recall the specifics.</VM_FoodVariety_Forgotten_00>
+  <VM_FoodVariety_Forgotten_01>(Has Variety) I remember enjoying a variety, though the details escape me.</VM_FoodVariety_Forgotten_01>
+  <VM_FoodVariety_Forgotten_02>(Has Variety) There was something different about this meal, but what was it?</VM_FoodVariety_Forgotten_02>
+  <VM_FoodVariety_Forgotten_03>(Has Variety) I know there's been variety lately, but the details are fuzzy.</VM_FoodVariety_Forgotten_03>
+  <VM_FoodVariety_Forgotten_04>(Has Variety) Variety's there, but the details are as clear as a foggy morning.</VM_FoodVariety_Forgotten_04>
+  <VM_FoodVariety_Forgotten_05>(Has Variety) I recall different foods, but the specifics are just out of reach.</VM_FoodVariety_Forgotten_05>
+  <VM_FoodVariety_Forgotten_06>(Has Variety) There's a sense of variety, but the exact meals are a blur.</VM_FoodVariety_Forgotten_06>
+  <VM_FoodVariety_Forgotten_07>(Has Variety) I remember being excited by different dishes, yet can't recall them.</VM_FoodVariety_Forgotten_07>
+  <VM_FoodVariety_Forgotten_08>(Has Variety) The details are lost, but I'm sure there was a good mix of foods.</VM_FoodVariety_Forgotten_08>
+  <VM_FoodVariety_Forgotten_09>(Has Variety) Variety's been good, though I can't quite remember the meals.</VM_FoodVariety_Forgotten_09>
+  <VM_FoodVariety_Forgotten_10>(Has Variety) Different meals for sure, but it's like trying to remember a dream.</VM_FoodVariety_Forgotten_10>
+  <VM_FoodVariety_Forgotten_11>(Has Variety) A variety of tastes, yet the memories are elusive.</VM_FoodVariety_Forgotten_11>
+  <VM_FoodVariety_Forgotten_12>(Has Variety) I know I enjoyed the variety, but the details are hazy.</VM_FoodVariety_Forgotten_12>
+  <VM_FoodVariety_Forgotten_13>(Has Variety) There was diversity on my plate, but the details slipped away.</VM_FoodVariety_Forgotten_13>
+  <VM_FoodVariety_Forgotten_14>(Has Variety) I remember enjoying the variety, but the meals themselves are forgotten.</VM_FoodVariety_Forgotten_14>
+  <VM_FoodVariety_Forgotten_15>(Has Variety) Definitely a variety, but it's like a forgotten melody.</VM_FoodVariety_Forgotten_15>
+  <VM_FoodVariety_Forgotten_16>(Has Variety) Each meal was different, I think, but I can't pin down the details.</VM_FoodVariety_Forgotten_16>
+  <VM_FoodVariety_Forgotten_17>(Has Variety) Variety was there, but the specifics have faded away.</VM_FoodVariety_Forgotten_17>
+  <VM_FoodVariety_Forgotten_18>(Has Variety) The feeling of variety is there, but the meals are a distant memory.</VM_FoodVariety_Forgotten_18>
+  <VM_FoodVariety_Forgotten_19>(Has Variety) I recall the joy of varied meals, but not what they were.</VM_FoodVariety_Forgotten_19>
+
+  <!-- Flavor pool: NoVariety (20) — order preserved -->
+  <VM_FoodVariety_NoVariety_00>(No Variety) Not this again! I need something different to keep things interesting.</VM_FoodVariety_NoVariety_00>
+  <VM_FoodVariety_NoVariety_01>(No Variety) The same meal, yet again? It's becoming a dull routine.</VM_FoodVariety_NoVariety_01>
+  <VM_FoodVariety_NoVariety_02>(No Variety) Another round of the usual... Where's the variety gone?</VM_FoodVariety_NoVariety_02>
+  <VM_FoodVariety_NoVariety_03>(No Variety) It feels like I'm eating in a loop. Some change would be nice!</VM_FoodVariety_NoVariety_03>
+  <VM_FoodVariety_NoVariety_04>(No Variety) This monotony in meals is disheartening. Craving for something new!</VM_FoodVariety_NoVariety_04>
+  <VM_FoodVariety_NoVariety_05>(No Variety) Eating this again feels like a repetitive chore.</VM_FoodVariety_NoVariety_05>
+  <VM_FoodVariety_NoVariety_06>(No Variety) The same dish over and over? My taste buds are bored.</VM_FoodVariety_NoVariety_06>
+  <VM_FoodVariety_NoVariety_07>(No Variety) Variety is the spice of life, but this is just bland repetition.</VM_FoodVariety_NoVariety_07>
+  <VM_FoodVariety_NoVariety_08>(No Variety) A meal repeated is a meal unappreciated. Yearning for a change.</VM_FoodVariety_NoVariety_08>
+  <VM_FoodVariety_NoVariety_09>(No Variety) Are we stuck in a culinary Groundhog Day? Time for something new.</VM_FoodVariety_NoVariety_09>
+  <VM_FoodVariety_NoVariety_10>(No Variety) Again the same? It's like my taste buds are on a treadmill.</VM_FoodVariety_NoVariety_10>
+  <VM_FoodVariety_NoVariety_11>(No Variety) This lack of diversity in food is really starting to get to me.</VM_FoodVariety_NoVariety_11>
+  <VM_FoodVariety_NoVariety_12>(No Variety) Meal deja vu? A little variety wouldn't hurt!</VM_FoodVariety_NoVariety_12>
+  <VM_FoodVariety_NoVariety_13>(No Variety) The definition of insanity is eating the same meal over and over.</VM_FoodVariety_NoVariety_13>
+  <VM_FoodVariety_NoVariety_14>(No Variety) I feel like a robot with these repetitive meals. Craving some spontaneity.</VM_FoodVariety_NoVariety_14>
+  <VM_FoodVariety_NoVariety_15>(No Variety) My culinary journey seems to be walking in circles.</VM_FoodVariety_NoVariety_15>
+  <VM_FoodVariety_NoVariety_16>(No Variety) It's high time we added some new flavors to this repetitive menu.</VM_FoodVariety_NoVariety_16>
+  <VM_FoodVariety_NoVariety_17>(No Variety) Variety is the missing ingredient in these repetitive meals.</VM_FoodVariety_NoVariety_17>
+  <VM_FoodVariety_NoVariety_18>(No Variety) Another day, the same meal. It's becoming predictably boring.</VM_FoodVariety_NoVariety_18>
+  <VM_FoodVariety_NoVariety_19>(No Variety) Is our chef stuck in a loop? Time to switch things up!</VM_FoodVariety_NoVariety_19>
+
+  <!-- Flavor pool: HasVariety (20) — order preserved -->
+  <VM_FoodVariety_HasVariety_00>(Has Variety) Finally, something different! This definitely counts as variety.</VM_FoodVariety_HasVariety_00>
+  <VM_FoodVariety_HasVariety_01>(Has Variety) A pleasant change in our menu! It's refreshing to have some variety.</VM_FoodVariety_HasVariety_01>
+  <VM_FoodVariety_HasVariety_02>(Has Variety) New flavors! This is the variety I've been craving.</VM_FoodVariety_HasVariety_02>
+  <VM_FoodVariety_HasVariety_03>(Has Variety) Diversity on my plate at last! This is what a good meal looks like.</VM_FoodVariety_HasVariety_03>
+  <VM_FoodVariety_HasVariety_04>(Has Variety) Look at this selection! It's nice to break the monotony.</VM_FoodVariety_HasVariety_04>
+  <VM_FoodVariety_HasVariety_05>(Has Variety) Something out of the ordinary, finally! That's the spice of life.</VM_FoodVariety_HasVariety_05>
+  <VM_FoodVariety_HasVariety_06>(Has Variety) This meal breaks the routine, in the best way possible.</VM_FoodVariety_HasVariety_06>
+  <VM_FoodVariety_HasVariety_07>(Has Variety) A welcome change! It's great to have different options.</VM_FoodVariety_HasVariety_07>
+  <VM_FoodVariety_HasVariety_08>(Has Variety) This new taste is a delightful surprise. I'm glad for the variety.</VM_FoodVariety_HasVariety_08>
+  <VM_FoodVariety_HasVariety_09>(Has Variety) It's a joy to have something other than the usual. Variety matters!</VM_FoodVariety_HasVariety_09>
+  <VM_FoodVariety_HasVariety_10>(Has Variety) What a refreshing lineup of dishes! This really livens up the meal.</VM_FoodVariety_HasVariety_10>
+  <VM_FoodVariety_HasVariety_11>(Has Variety) A culinary adventure on my plate! This is exciting.</VM_FoodVariety_HasVariety_11>
+  <VM_FoodVariety_HasVariety_12>(Has Variety) Such an array of choices! This is what dining should be like.</VM_FoodVariety_HasVariety_12>
+  <VM_FoodVariety_HasVariety_13>(Has Variety) Every taste is a new experience. Loving this variety!</VM_FoodVariety_HasVariety_13>
+  <VM_FoodVariety_HasVariety_14>(Has Variety) This is a feast for the senses! So glad for the change.</VM_FoodVariety_HasVariety_14>
+  <VM_FoodVariety_HasVariety_15>(Has Variety) A smorgasbord of flavors! This is how to keep meals interesting.</VM_FoodVariety_HasVariety_15>
+  <VM_FoodVariety_HasVariety_16>(Has Variety) So many options, it's hard to choose. But that's a good problem!</VM_FoodVariety_HasVariety_16>
+  <VM_FoodVariety_HasVariety_17>(Has Variety) Each meal is a delightful surprise now. This variety is wonderful.</VM_FoodVariety_HasVariety_17>
+  <VM_FoodVariety_HasVariety_18>(Has Variety) The richness of choices here is amazing. Every meal is a discovery.</VM_FoodVariety_HasVariety_18>
+  <VM_FoodVariety_HasVariety_19>(Has Variety) Gone are the days of boring meals. This variety is a game changer!</VM_FoodVariety_HasVariety_19>
+
+</LanguageData>

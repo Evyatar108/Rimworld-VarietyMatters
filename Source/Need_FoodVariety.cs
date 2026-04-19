@@ -177,13 +177,13 @@
 		{
 			switch (reason)
 			{
-				case DisabledReason.DeadOrMissingFaculties: return "pawn is dead or missing food/mood faculties";
-				case DisabledReason.SlaveNotTracked: return "slaves are excluded in Mod Settings";
-				case DisabledReason.PrisonerNotTracked: return "prisoners are excluded in Mod Settings";
-				case DisabledReason.NonPlayerNotTracked: return "non-player pawns are excluded in Mod Settings";
-				case DisabledReason.TraitDisabled: return "this pawn's trait opts out of variety tracking";
-				case DisabledReason.RaceNotTracked: return "this race is disabled in Mod Settings";
-				default: return "unknown";
+				case DisabledReason.DeadOrMissingFaculties: return "VM_DisabledReason_DeadOrMissingFaculties".Translate();
+				case DisabledReason.SlaveNotTracked: return "VM_DisabledReason_SlaveNotTracked".Translate();
+				case DisabledReason.PrisonerNotTracked: return "VM_DisabledReason_PrisonerNotTracked".Translate();
+				case DisabledReason.NonPlayerNotTracked: return "VM_DisabledReason_NonPlayerNotTracked".Translate();
+				case DisabledReason.TraitDisabled: return "VM_DisabledReason_TraitDisabled".Translate();
+				case DisabledReason.RaceNotTracked: return "VM_DisabledReason_RaceNotTracked".Translate();
+				default: return "VM_DisabledReason_Unknown".Translate();
 			}
 		}
 
@@ -230,13 +230,13 @@
 			DisabledReason disabledReason = GetDisabledReason();
 			if (disabledReason != DisabledReason.None)
 			{
-				return "Disabled: " + GetDisabledReasonLabel(disabledReason) + "\n\n" + tipString;
+				return "VM_DisabledPrefix".Translate() + GetDisabledReasonLabel(disabledReason) + "\n\n" + tipString;
 			}
 
             int varietyExpectation = VarietyExpectation.GetVarietyExpectation(this.pawn);
             string varietesCountExpectedText = varietyExpectation.ToString();
 			string actualVarietiesCountText = "0";
-			string mostRecentFoodSourceText = ", but I don't remember them for some reason..";
+			string mostRecentFoodSourceText = "VM_FoodVarietyTip_NoMemory".Translate();
             DietTracker dietTracker = VarietyRecord.GetVarietyRecord(this.pawn);
 			if (dietTracker != null && dietTracker.MostRecentEatenFoodSource != null)
 			{
@@ -248,14 +248,11 @@
 
             string mealMemoryString = ((int)(memoryMult * varietyExpectation)).ToString();
 
-            return string.Concat(new string[]
-			{
-				tipString,
-				"\n\nI expect at least ", varietesCountExpectedText, " different meals; ",
-				"recently I had ", actualVarietiesCountText, ".",
-				"\nI have the capacity to recall the last ", mealMemoryString, " meals I had",
-				mostRecentFoodSourceText
-			});
+            return tipString + "VM_FoodVarietyTip_Main".Translate(
+                varietesCountExpectedText,
+                actualVarietiesCountText,
+                mealMemoryString,
+                mostRecentFoodSourceText);
 		}
 
         private int GetEatenFoodSourceCountKey(EatenFoodSource eatenFoodSource, FoodVarietyInfo foodVarietyInfo)
@@ -300,7 +297,7 @@
 
             var stringBuilder = this._foodSourcesDescBuilder;
             stringBuilder.Clear();
-            stringBuilder.Append(", the most recent ones were:\n");
+            stringBuilder.Append("VM_FoodVarietyTip_MostRecent".Translate());
             var appearancesOfFoodSourcesSoFar = this._appearancesSoFarScratch;
             int maxViewableRecentMeals = 5;
 
@@ -339,20 +336,20 @@
 
                 if (foodVarietyInfo != null && !eatenFoodSource.IsForgotten && foodVarietyInfo.CountInMemory > 1)
                 {
-                    stringBuilder.Append("☆ ").Append("Appearance ").Append(timesAlreadyIngestedSoFar).Append(" out of ").Append(foodVarietyInfo.CountInMemory);
+                    stringBuilder.Append("☆ ").Append("VM_FoodVarietyTip_AppearancePrefix".Translate()).Append(timesAlreadyIngestedSoFar).Append("VM_FoodVarietyTip_AppearanceOutOf".Translate()).Append(foodVarietyInfo.CountInMemory);
 
                     if (ModSettings_VarietyMatters.clusterSimilarMealsTogether && eatenFoodSource.HasMealType)
                     {
                         switch (ModSettings_VarietyMatters.foodTrackingType)
                         {
                             case FoodTrackingType.ByMealNames:
-                                stringBuilder.Append(" by type");
+                                stringBuilder.Append("VM_FoodVarietyTip_ByType".Translate());
                                 break;
                             case FoodTrackingType.ByIngredientsCombination:
-                                stringBuilder.Append(" by ingredients");
+                                stringBuilder.Append("VM_FoodVarietyTip_ByIngredients".Translate());
                                 break;
                             case FoodTrackingType.ByMealNamesAndIngredientsCombination:
-                                stringBuilder.Append(" by meal type and ingredients");
+                                stringBuilder.Append("VM_FoodVarietyTip_ByMealTypeAndIngredients".Translate());
                                 break;
                         }
                     }
@@ -361,13 +358,13 @@
                         switch (ModSettings_VarietyMatters.foodTrackingType)
                         {
                             case FoodTrackingType.ByMealNames:
-                                stringBuilder.Append(" by meal name");
+                                stringBuilder.Append("VM_FoodVarietyTip_ByMealName".Translate());
                                 break;
                             case FoodTrackingType.ByIngredientsCombination:
-                                stringBuilder.Append(" by ingredients");
+                                stringBuilder.Append("VM_FoodVarietyTip_ByIngredients".Translate());
                                 break;
                             case FoodTrackingType.ByMealNamesAndIngredientsCombination:
-                                stringBuilder.Append(" by meal name and ingredients");
+                                stringBuilder.Append("VM_FoodVarietyTip_ByMealNameAndIngredients".Translate());
                                 break;
                         }
                     }
@@ -401,82 +398,86 @@
 
         private string RandChooseForgottenFoodStrings(int seed)
         {
+            // Keys map 1:1 to pre-extraction pool order so the seed picks identically post-Translate.
             return this.RandChoose(
                 seed,
-                "(Has Variety) There's variety in my meals, but I can't recall the specifics.",
-                "(Has Variety) I remember enjoying a variety, though the details escape me.",
-                "(Has Variety) There was something different about this meal, but what was it?",
-                "(Has Variety) I know there's been variety lately, but the details are fuzzy.",
-                "(Has Variety) Variety's there, but the details are as clear as a foggy morning.",
-                "(Has Variety) I recall different foods, but the specifics are just out of reach.",
-                "(Has Variety) There's a sense of variety, but the exact meals are a blur.",
-                "(Has Variety) I remember being excited by different dishes, yet can't recall them.",
-                "(Has Variety) The details are lost, but I'm sure there was a good mix of foods.",
-                "(Has Variety) Variety's been good, though I can't quite remember the meals.",
-                "(Has Variety) Different meals for sure, but it's like trying to remember a dream.",
-                "(Has Variety) A variety of tastes, yet the memories are elusive.",
-                "(Has Variety) I know I enjoyed the variety, but the details are hazy.",
-                "(Has Variety) There was diversity on my plate, but the details slipped away.",
-                "(Has Variety) I remember enjoying the variety, but the meals themselves are forgotten.",
-                "(Has Variety) Definitely a variety, but it's like a forgotten melody.",
-                "(Has Variety) Each meal was different, I think, but I can't pin down the details.",
-                "(Has Variety) Variety was there, but the specifics have faded away.",
-                "(Has Variety) The feeling of variety is there, but the meals are a distant memory.",
-                "(Has Variety) I recall the joy of varied meals, but not what they were."
-            );
+                "VM_FoodVariety_Forgotten_00",
+                "VM_FoodVariety_Forgotten_01",
+                "VM_FoodVariety_Forgotten_02",
+                "VM_FoodVariety_Forgotten_03",
+                "VM_FoodVariety_Forgotten_04",
+                "VM_FoodVariety_Forgotten_05",
+                "VM_FoodVariety_Forgotten_06",
+                "VM_FoodVariety_Forgotten_07",
+                "VM_FoodVariety_Forgotten_08",
+                "VM_FoodVariety_Forgotten_09",
+                "VM_FoodVariety_Forgotten_10",
+                "VM_FoodVariety_Forgotten_11",
+                "VM_FoodVariety_Forgotten_12",
+                "VM_FoodVariety_Forgotten_13",
+                "VM_FoodVariety_Forgotten_14",
+                "VM_FoodVariety_Forgotten_15",
+                "VM_FoodVariety_Forgotten_16",
+                "VM_FoodVariety_Forgotten_17",
+                "VM_FoodVariety_Forgotten_18",
+                "VM_FoodVariety_Forgotten_19"
+            ).Translate();
         }
 
         private string RandChooseNoVarietyStrings(int seed)
         {
+            // Keys map 1:1 to pre-extraction pool order so the seed picks identically post-Translate.
             return this.RandChoose(
                 seed,
-                "(No Variety) Not this again! I need something different to keep things interesting.",
-                "(No Variety) The same meal, yet again? It's becoming a dull routine.",
-                "(No Variety) Another round of the usual... Where's the variety gone?",
-                "(No Variety) It feels like I'm eating in a loop. Some change would be nice!",
-                "(No Variety) This monotony in meals is disheartening. Craving for something new!",
-                "(No Variety) Eating this again feels like a repetitive chore.",
-                "(No Variety) The same dish over and over? My taste buds are bored.",
-                "(No Variety) Variety is the spice of life, but this is just bland repetition.",
-                "(No Variety) A meal repeated is a meal unappreciated. Yearning for a change.",
-                "(No Variety) Are we stuck in a culinary Groundhog Day? Time for something new.",
-                "(No Variety) Again the same? It's like my taste buds are on a treadmill.",
-                "(No Variety) This lack of diversity in food is really starting to get to me.",
-                "(No Variety) Meal deja vu? A little variety wouldn't hurt!",
-                "(No Variety) The definition of insanity is eating the same meal over and over.",
-                "(No Variety) I feel like a robot with these repetitive meals. Craving some spontaneity.",
-                "(No Variety) My culinary journey seems to be walking in circles.",
-                "(No Variety) It's high time we added some new flavors to this repetitive menu.",
-                "(No Variety) Variety is the missing ingredient in these repetitive meals.",
-                "(No Variety) Another day, the same meal. It's becoming predictably boring.",
-                "(No Variety) Is our chef stuck in a loop? Time to switch things up!"
-                );
+                "VM_FoodVariety_NoVariety_00",
+                "VM_FoodVariety_NoVariety_01",
+                "VM_FoodVariety_NoVariety_02",
+                "VM_FoodVariety_NoVariety_03",
+                "VM_FoodVariety_NoVariety_04",
+                "VM_FoodVariety_NoVariety_05",
+                "VM_FoodVariety_NoVariety_06",
+                "VM_FoodVariety_NoVariety_07",
+                "VM_FoodVariety_NoVariety_08",
+                "VM_FoodVariety_NoVariety_09",
+                "VM_FoodVariety_NoVariety_10",
+                "VM_FoodVariety_NoVariety_11",
+                "VM_FoodVariety_NoVariety_12",
+                "VM_FoodVariety_NoVariety_13",
+                "VM_FoodVariety_NoVariety_14",
+                "VM_FoodVariety_NoVariety_15",
+                "VM_FoodVariety_NoVariety_16",
+                "VM_FoodVariety_NoVariety_17",
+                "VM_FoodVariety_NoVariety_18",
+                "VM_FoodVariety_NoVariety_19"
+            ).Translate();
         }
 
         private string RandChooseHasVarietyStrings(int seed)
         {
+            // Keys map 1:1 to pre-extraction pool order so the seed picks identically post-Translate.
             return this.RandChoose(
                 seed,
-                "(Has Variety) Finally, something different! This definitely counts as variety.",
-                "(Has Variety) A pleasant change in our menu! It's refreshing to have some variety.",
-                "(Has Variety) New flavors! This is the variety I've been craving.",
-                "(Has Variety) Diversity on my plate at last! This is what a good meal looks like.",
-                "(Has Variety) Look at this selection! It's nice to break the monotony.",
-                "(Has Variety) Something out of the ordinary, finally! That's the spice of life.",
-                "(Has Variety) This meal breaks the routine, in the best way possible.",
-                "(Has Variety) A welcome change! It's great to have different options.",
-                "(Has Variety) This new taste is a delightful surprise. I'm glad for the variety.",
-                "(Has Variety) It's a joy to have something other than the usual. Variety matters!",
-                "(Has Variety) What a refreshing lineup of dishes! This really livens up the meal.",
-                "(Has Variety) A culinary adventure on my plate! This is exciting.",
-                "(Has Variety) Such an array of choices! This is what dining should be like.",
-                "(Has Variety) Every taste is a new experience. Loving this variety!",
-                "(Has Variety) This is a feast for the senses! So glad for the change.",
-                "(Has Variety) A smorgasbord of flavors! This is how to keep meals interesting.",
-                "(Has Variety) So many options, it's hard to choose. But that's a good problem!",
-                "(Has Variety) Each meal is a delightful surprise now. This variety is wonderful.",
-                "(Has Variety) The richness of choices here is amazing. Every meal is a discovery.",
-                "(Has Variety) Gone are the days of boring meals. This variety is a game changer!");
+                "VM_FoodVariety_HasVariety_00",
+                "VM_FoodVariety_HasVariety_01",
+                "VM_FoodVariety_HasVariety_02",
+                "VM_FoodVariety_HasVariety_03",
+                "VM_FoodVariety_HasVariety_04",
+                "VM_FoodVariety_HasVariety_05",
+                "VM_FoodVariety_HasVariety_06",
+                "VM_FoodVariety_HasVariety_07",
+                "VM_FoodVariety_HasVariety_08",
+                "VM_FoodVariety_HasVariety_09",
+                "VM_FoodVariety_HasVariety_10",
+                "VM_FoodVariety_HasVariety_11",
+                "VM_FoodVariety_HasVariety_12",
+                "VM_FoodVariety_HasVariety_13",
+                "VM_FoodVariety_HasVariety_14",
+                "VM_FoodVariety_HasVariety_15",
+                "VM_FoodVariety_HasVariety_16",
+                "VM_FoodVariety_HasVariety_17",
+                "VM_FoodVariety_HasVariety_18",
+                "VM_FoodVariety_HasVariety_19"
+            ).Translate();
         }
 
         private string GetVarietyInfoBasedOnNoVarietyReason(NoVarietyReason noVarietyReason, int seed)
