@@ -409,9 +409,19 @@ namespace VarietyMatters
 	// Records cook-recipe history at the true "meal produced" event, not at search time.
 	// F-029: `Bill.Notify_IterationCompleted` fires once per produced meal with the actually-consumed
 	// ingredients, bypassing the speculative-probe pollution that broke F-025/F-027.
-	[HarmonyLib.HarmonyPatch(typeof(RimWorld.Bill), nameof(RimWorld.Bill.Notify_IterationCompleted))]
+	// F-033: target the Bill_Production / Bill_ProductionWithUft OVERRIDES directly. The base Bill
+	// method is virtual; cooking uses Bill_Production which overrides it. Harmony patches at the
+	// method level, not call-site — a patch on the base won't fire when the override is dispatched
+	// via vtable. TargetMethods enumerates both concrete cooking bill types in one class.
+	[HarmonyLib.HarmonyPatch]
 	internal static class Patch_Bill_Notify_IterationCompleted
 	{
+		private static System.Collections.Generic.IEnumerable<System.Reflection.MethodBase> TargetMethods()
+		{
+			yield return HarmonyLib.AccessTools.Method(typeof(RimWorld.Bill_Production), nameof(RimWorld.Bill_Production.Notify_IterationCompleted));
+			yield return HarmonyLib.AccessTools.Method(typeof(RimWorld.Bill_ProductionWithUft), nameof(RimWorld.Bill_ProductionWithUft.Notify_IterationCompleted));
+		}
+
 		[HarmonyLib.HarmonyPostfix]
 		private static void Postfix(RimWorld.Bill __instance, Verse.Pawn billDoer, System.Collections.Generic.List<Verse.Thing> ingredients)
 		{
