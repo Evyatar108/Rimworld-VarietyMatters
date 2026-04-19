@@ -3,6 +3,7 @@
 	Compatibility: Human Alien Races and other runtime-generated races no longer throw a NullReferenceException in GetRaceKey when a ThingDef has no modContentPack. Existing saves may need to click "Reset Current Races" once in Mod Settings to repopulate the race list.
 	Hardened VarietyProvider reason-path audit (internal): documented the invariant that every food-rejection path reports a specific NoVarietyReason, reducing the chance of spurious "Variety reason mismatch" diagnostics.
 	Silenced "DietTracker:: Variety reason mismatch" log spam for non-dev-mode players — the diagnostic now fires only when Dev Mode is enabled.
+	Compatibility: warns once at startup if Vanilla Food Variety Expanded is loaded alongside VarietyMatters — both mods transpile CompIngredients.MergeIngredients, which causes undefined stacking behavior. Disable one of them.
 	New "Low Expectation Floor" setting (default 3) clamps the minimum variety expectation. Tribal and Naked-Brutality starts no longer crater to -7 variety mood on day 1 under vanilla 1/2/3 expectation tiers. Adjustable in Mod Settings.
 	Performance pass across cooking, food-scoring, and need-tooltip hot paths. Lower per-tick allocation overhead in late-game colonies.
 	Food-scoring postfix early-exits on mod-settings gates before fetching the pawn's diet tracker — saves a lookup per meal evaluation per pawn.

@@ -19,6 +19,13 @@
             GetSettings<ModSettings_VarietyMatters>();
 			Harmony harmony = new Harmony("rimworld.varietymatters");
 			harmony.PatchAll(Assembly.GetExecutingAssembly());
+
+			// US-016: warn once at startup if Vanilla Food Variety Expanded is co-loaded —
+			// both mods transpile CompIngredients.MergeIngredients and stacking behavior is undefined.
+			if (LoadedModManager.RunningModsListForReading.Any(m => m.PackageId == "vanillaexpanded.vanillafoodvarietyexpanded"))
+			{
+				Log.Warning("VarietyMatters: Vanilla Food Variety Expanded is also loaded. Both mods transpile CompIngredients.MergeIngredients, which causes undefined stacking behavior. Disable one of them to avoid issues.");
+			}
 		}
 
 		// Token: 0x06000013 RID: 19 RVA: 0x00002778 File Offset: 0x00000978
