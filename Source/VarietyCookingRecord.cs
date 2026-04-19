@@ -85,18 +85,6 @@ namespace VarietyMatters
                 lastMeal.Add(label);
             }
 
-            // F-028 trace.
-            if (Prefs.DevMode)
-            {
-                System.Text.StringBuilder sb = new System.Text.StringBuilder();
-                for (int i = 0; i < chosen.Count; i++)
-                {
-                    if (sb.Length > 0) sb.Append(",");
-                    sb.Append(chosen[i].Thing.def.defName).Append("x").Append(chosen[i].Count);
-                }
-                Log.Message($"[VarietyMatters F-028] UpdateCookingRecord chef={chef.LabelShort} chosen=[{sb}] lastMealSet.Count={lastMeal.Count}");
-            }
-
             int depth = Mathf.Max(1, ModSettings_VarietyMatters.cookingMemoryDepth);
             if (listEx.entries.Count > depth)
             {

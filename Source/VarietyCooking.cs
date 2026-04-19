@@ -150,21 +150,13 @@ namespace VarietyMatters
 			return false;
 		}
 
-		[HarmonyPatch(typeof(WorkGiver_DoBill), "TryFindBestBillIngredientsInSet_AllowMix")]
-		[HarmonyPostfix]
-		private static void UpdateVariety_AllowMix(bool __result, Bill bill, List<ThingCount> chosen)
-		{
-			if (!__result) return;
-			if (ModSettings_VarietyMatters.foodTrackingType == New.FoodTrackingType.ByMealNames || !ModSettings_VarietyMatters.preferVariety) return;
-			if (bill.recipe.workSkill != SkillDefOf.Cooking) return;
-			ThingDef producedThingDef = bill.recipe.ProducedThingDef;
-			if (producedThingDef?.ingestible == null) return;
-			if (bill.recipe.specialProducts != null) return;
-
-			chefByBill.TryGetValue(bill, out Pawn chef);
-			var cookingRecord = (bill.billStack?.billGiver as Thing)?.Map?.GetComponent<VarietyCookingRecord>();
-			cookingRecord?.UpdateCookingRecord(chef, chosen);
-		}
+		// Intentionally empty: prior UpdateVariety_AllowMix postfix recorded speculative picks from
+		// TryFindBestBillIngredientsInSet_AllowMix, which fires on both real work scans AND menu
+		// probes / region-BFS probes that never actually result in a cook job. That polluted the
+		// recent-meal list with phantom picks and broke the rotation formula (F-027 diagnosed via
+		// F-028 trace). The real recording now happens on `Bill.Notify_IterationCompleted` — see
+		// BillPatches below — which fires exactly once per produced meal with the actual
+		// ingredients consumed.
 
 		// RC6: NoMix bills are structurally single-ingredient — vanilla picks one ThingDef per slot,
 		// so the per-slot cap (RC1-RC5) cannot apply and mixing cannot emerge at meal level.
@@ -193,22 +185,8 @@ namespace VarietyMatters
 			}
 		}
 
-		// Token: 0x06000033 RID: 51 RVA: 0x000043BC File Offset: 0x000025BC
-		[HarmonyPatch(typeof(WorkGiver_DoBill), "TryFindBestBillIngredientsInSet_NoMix")]
-		[HarmonyPostfix]
-		private static void ChosenVariety_NoMix(bool __result, Bill bill, List<ThingCount> chosen, bool alreadySorted)
-		{
-			if (!(__result && alreadySorted)) return;
-			if (ModSettings_VarietyMatters.foodTrackingType == New.FoodTrackingType.ByMealNames || !ModSettings_VarietyMatters.preferVariety) return;
-			if (bill.recipe.workSkill != SkillDefOf.Cooking) return;
-			ThingDef producedThingDef = bill.recipe.ProducedThingDef;
-			if (producedThingDef?.ingestible == null) return;
-			if (bill.recipe.specialProducts != null) return;
-
-			chefByBill.TryGetValue(bill, out Pawn chef);
-			var cookingRecord = (bill.billStack?.billGiver as Thing)?.Map?.GetComponent<VarietyCookingRecord>();
-			cookingRecord?.UpdateCookingRecord(chef, chosen);
-		}
+		// Intentionally empty (see comment on UpdateVariety_AllowMix above). NoMix postfix is also
+		// dropped; Bill.Notify_IterationCompleted handles both paths uniformly.
 
 		// Pre-scan helper for E' Phase A. Returns the count of distinct ThingDefs in availableThings matching this slot's filter. Predicate MUST match the Pass-1 top-K loop in TryFillIngredientSlotWithCap — they share _distinctDefsScratch, so any leaked reference would observe Phase-B overwrites. Returns int only.
 		private static int CountEligibleDefs(List<Thing> availableThings, IngredientCount ic, Bill bill)
@@ -385,31 +363,6 @@ namespace VarietyMatters
 
 			bool preferSpoiling = ModSettings_VarietyMatters.preferSpoiling;
 
-			// F-028 deep trace — fires only in DevMode. Revert after diagnosis.
-			bool trace = Prefs.DevMode;
-			if (trace)
-			{
-				string chefName = chef?.LabelShort ?? "<null>";
-				string lastMeal = "<null>";
-				if (cookingRecord != null && chef != null)
-				{
-					System.Text.StringBuilder sb = new System.Text.StringBuilder();
-					foreach (Thing t in availableThings)
-					{
-						if (cookingRecord.IsDefInLastMeal(chef, t.def.label))
-						{
-							if (sb.Length > 0) sb.Append(",");
-							sb.Append(t.def.label);
-						}
-					}
-					lastMeal = sb.Length > 0 ? sb.ToString() : "(empty)";
-				}
-				string recentSummary = hasVarietyPenalty
-					? string.Join(",", recent.list.GetRange(recent.startIndex, recent.count))
-					: "(empty)";
-				Log.Message($"[VarietyMatters F-028] SortIngredients chef={chefName} availThings={availableThings.Count} hasPenalty={hasVarietyPenalty} lastMealDefsInAvail={{{lastMeal}}} recent={{{recentSummary}}}");
-			}
-
 			// F-027 rotation:
 			//   key = distance
 			//       + immediateRepeatPenalty × I(def in last meal)   // strong — breaks close-pile distance ties
@@ -459,21 +412,40 @@ namespace VarietyMatters
 			}
 
 			availableThings.Sort(_sortKeyComparison);
+		}
+	}
 
-			if (trace)
+	// Records cook-recipe history at the true "meal produced" event, not at search time.
+	// F-029: `Bill.Notify_IterationCompleted` fires once per produced meal with the actually-consumed
+	// ingredients, bypassing the speculative-probe pollution that broke F-025/F-027.
+	[HarmonyLib.HarmonyPatch(typeof(RimWorld.Bill), nameof(RimWorld.Bill.Notify_IterationCompleted))]
+	internal static class Patch_Bill_Notify_IterationCompleted
+	{
+		[HarmonyLib.HarmonyPostfix]
+		private static void Postfix(RimWorld.Bill __instance, Verse.Pawn billDoer, System.Collections.Generic.List<Verse.Thing> ingredients)
+		{
+			if (__instance == null || billDoer == null || ingredients == null || ingredients.Count == 0) return;
+			if (ModSettings_VarietyMatters.foodTrackingType == New.FoodTrackingType.ByMealNames || !ModSettings_VarietyMatters.preferVariety) return;
+			if (__instance.recipe?.workSkill != RimWorld.SkillDefOf.Cooking) return;
+			Verse.ThingDef producedThingDef = __instance.recipe?.ProducedThingDef;
+			if (producedThingDef?.ingestible == null) return;
+			if (__instance.recipe.specialProducts != null) return;
+
+			Verse.Thing billGiver = __instance.billStack?.billGiver as Verse.Thing;
+			var cookingRecord = billGiver?.Map?.GetComponent<VarietyCookingRecord>();
+			if (cookingRecord == null) return;
+
+			// Convert ingredients (List<Thing>) into the ThingCount shape UpdateCookingRecord expects.
+			// Per-call allocation here is acceptable — Notify_IterationCompleted fires once per produced
+			// meal, not per scan.
+			var asCounts = new System.Collections.Generic.List<Verse.ThingCount>(ingredients.Count);
+			for (int i = 0; i < ingredients.Count; i++)
 			{
-				int limit = System.Math.Min(availableThings.Count, 8);
-				System.Text.StringBuilder sb = new System.Text.StringBuilder("[VarietyMatters F-028] sorted top-" + limit + ": ");
-				for (int i = 0; i < limit; i++)
-				{
-					Thing t = availableThings[i];
-					int count = 0;
-					if (hasVarietyPenalty) _penaltyPerDefScratch.TryGetValue(t.def, out count);
-					bool inLast = cookingRecord != null && chef != null && cookingRecord.IsDefInLastMeal(chef, t.def.label);
-					sb.Append(t.def.defName + "[key=" + _sortKeysScratch[t].ToString("F1") + ",m=" + count + ",last=" + (inLast ? "Y" : "N") + "] ");
-				}
-				Log.Message(sb.ToString());
+				Verse.Thing t = ingredients[i];
+				if (t == null) continue;
+				asCounts.Add(new Verse.ThingCount(t, t.stackCount));
 			}
+			cookingRecord.UpdateCookingRecord(billDoer, asCounts);
 		}
 	}
 }
