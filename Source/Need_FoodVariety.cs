@@ -25,9 +25,11 @@
 		private static HashSet<string> _enabledRaceKeys = new HashSet<string>();
 		private static int _raceKeysVersion = -1;
 
-		// Hover-overlay scratch (US-019).
-		// _foodDefsScratch: cached icon sequence, rebuilt only on (DietTracker.Version, memoryMultiplier) change.
-		private readonly List<ThingDef> _foodDefsScratch = new List<ThingDef>();
+		// Hover-overlay scratch (US-019 / F-019).
+		// _mealRowsScratch: per-meal info for the hover overlay. Rebuilt only on (DietTracker.Version, memoryMultiplier) change.
+		// _appearancesSoFarRowsScratch: per-meal-key appearances-so-far counter, reused each rebuild.
+		private readonly List<MealRowInfo> _mealRowsScratch = new List<MealRowInfo>();
+		private readonly Dictionary<string, int> _appearancesSoFarRowsScratch = new Dictionary<string, int>();
 		private int _lastIconsVersion = -1;
 		private float _lastIconsMemoryMult = -1f;
 		private int _iconOverlayHash;
@@ -36,7 +38,25 @@
 		private float _overlayWidth = 320f;
 		private float _overlayHeight = 120f;
 		private const float OverlayPadding = 6f;
-		private const float TileMaxSize = 32f;
+		private const float MealIconSize = 32f;
+		private const float IngredientIconSize = 20f;
+		private const float RowHeight = 32f;
+		private const float RowGap = 4f;
+		private const float IngredientGap = 2f;
+		private const float MealIngredientGap = 6f;
+
+		private static readonly Color HasVarietyBorder = new Color(0.35f, 0.85f, 0.35f);
+		private static readonly Color NoVarietyBorder = new Color(0.85f, 0.35f, 0.35f);
+		private static readonly Color ForgottenBorder = new Color(0.55f, 0.55f, 0.55f);
+		private static readonly Color RowBgTransparent = new Color(0f, 0f, 0f, 0f);
+
+		private struct MealRowInfo
+		{
+			public ThingDef MealDef;            // null for forgotten
+			public List<ThingDef> Ingredients;  // null/empty for forgotten
+			public Color BorderColor;
+			public bool IsForgotten;
+		}
 
 		// Token: 0x17000002 RID: 2
 		// (get) Token: 0x06000018 RID: 24 RVA: 0x00002F8C File Offset: 0x0000118C
@@ -258,22 +278,20 @@
 
 			this._overlayWidth = Math.Min(320f, UI.screenWidth * 0.3f);
 
-			// Measure content to size the overlay dynamically (prior fixed OverlayHeight clipped long tips and pushed icons off-screen).
+			// Size overlay from measured content: header text + per-meal icon rows + padding.
 			Text.Font = GameFont.Small;
 			float innerWidth = this._overlayWidth - 2f * OverlayPadding;
-			string tip = this.GetTipString();
-			float textHeight = Text.CalcHeight(tip, innerWidth);
-			float iconHeight = 0f;
-			if (innerWidth >= 200f)
+			string header = this.BuildOverlayHeader();
+			float headerHeight = Text.CalcHeight(header, innerWidth);
+
+			RebuildMealRowsIfNeeded();
+			float rowsHeight = this._mealRowsScratch.Count * (RowHeight + RowGap);
+			if (this._mealRowsScratch.Count > 0)
 			{
-				int iconCount = CountIconCandidates();
-				if (iconCount > 0)
-				{
-					float tileWidth = Math.Min(innerWidth / iconCount, TileMaxSize);
-					iconHeight = 6f + (tileWidth - 2f);
-				}
+				rowsHeight += 4f;   // small gap between header and first row
 			}
-			this._overlayHeight = textHeight + iconHeight + 2f * OverlayPadding;
+
+			this._overlayHeight = 2f * OverlayPadding + headerHeight + rowsHeight;
 
 			Vector2 mouse = Event.current.mousePosition;
 			Rect overlayRect = new Rect(mouse.x + 12f, mouse.y + 12f, this._overlayWidth, this._overlayHeight);
@@ -285,29 +303,80 @@
 			Find.WindowStack.ImmediateWindow(this._iconOverlayHash, overlayRect, WindowLayer.Super, this._drawHoverOverlayAction, doBackground: true);
 		}
 
-		private int CountIconCandidates()
+		private string BuildOverlayHeader()
+		{
+			// For disabled pawns, keep the full GetTipString (includes "Disabled: <reason>" prepend).
+			// For active pawns, use the base Need tip (percentage + description) and leave per-meal narrative to the icon rows.
+			DisabledReason reason = this.GetDisabledReason();
+			if (reason != DisabledReason.None)
+			{
+				return this.GetTipString();
+			}
+			string baseTip = base.GetTipString();
+			int expected = VarietyExpectation.GetVarietyExpectation(this.pawn);
+			int actual = 0;
+			if (VarietyRecord.TryGetVarietyRecord(this.pawn, out DietTracker tracker) && tracker != null)
+			{
+				actual = tracker.TotalVariety;
+			}
+			int memCapacity = (int)(ModSettings_VarietyMatters.memoryMultiplier * expected);
+			string stats = "VM_OverlayStats".Translate(expected, actual, memCapacity);
+			return baseTip + "\n\n" + stats;
+		}
+
+		private void RebuildMealRowsIfNeeded()
 		{
 			if (!VarietyRecord.TryGetVarietyRecord(this.pawn, out DietTracker tracker) || tracker == null)
 			{
-				return 0;
+				this._mealRowsScratch.Clear();
+				this._lastIconsVersion = -1;
+				this._lastIconsMemoryMult = -1f;
+				return;
 			}
 			int version = tracker.Version;
 			float memMult = ModSettings_VarietyMatters.memoryMultiplier;
-			if (version != this._lastIconsVersion || memMult != this._lastIconsMemoryMult)
+			if (version == this._lastIconsVersion && memMult == this._lastIconsMemoryMult && this._mealRowsScratch.Count > 0)
 			{
-				this._foodDefsScratch.Clear();
-				foreach (var tuple in tracker.GetFoodVarietyInfoForPawnInIngestionOrder())
-				{
-					EatenFoodSource src = tuple.Item1;
-					if (src == null || src.IsForgotten) continue;
-					ThingDef def = src.ThingDef;
-					if (def == null) continue;
-					this._foodDefsScratch.Add(def);
-				}
-				this._lastIconsVersion = version;
-				this._lastIconsMemoryMult = memMult;
+				return;
 			}
-			return this._foodDefsScratch.Count;
+
+			this._mealRowsScratch.Clear();
+			this._appearancesSoFarRowsScratch.Clear();
+
+			foreach (var tuple in tracker.GetFoodVarietyInfoForPawnInIngestionOrder())
+			{
+				EatenFoodSource src = tuple.Item1;
+				FoodVarietyInfo info = tuple.Item2;
+				NoVarietyReason? noReason = tuple.Item3;
+
+				MealRowInfo row = default;
+				if (src == null || src.IsForgotten || src.ThingDef == null)
+				{
+					row.MealDef = null;
+					row.Ingredients = null;
+					row.BorderColor = ForgottenBorder;
+					row.IsForgotten = true;
+					this._mealRowsScratch.Add(row);
+					continue;
+				}
+
+				row.MealDef = src.ThingDef;
+				row.Ingredients = src.IngredientsDefs;
+				row.IsForgotten = false;
+
+				string key = src.GetFoodSourceKey();
+				this._appearancesSoFarRowsScratch.TryGetValue(key, out int seenSoFar);
+				this._appearancesSoFarRowsScratch[key] = seenSoFar + 1;
+
+				// Has-variety = first appearance in iteration AND there's a FoodVarietyInfo entry AND no explicit no-reason.
+				bool hasVariety = info != null && noReason == null && seenSoFar == 0;
+				row.BorderColor = hasVariety ? HasVarietyBorder : NoVarietyBorder;
+
+				this._mealRowsScratch.Add(row);
+			}
+
+			this._lastIconsVersion = version;
+			this._lastIconsMemoryMult = memMult;
 		}
 
 		private void DrawHoverOverlay()
@@ -316,32 +385,76 @@
 			Text.Anchor = TextAnchor.UpperLeft;
 			Rect inner = new Rect(OverlayPadding, OverlayPadding, this._overlayWidth - 2f * OverlayPadding, this._overlayHeight - 2f * OverlayPadding);
 
-			string tip = this.GetTipString();
-			float textHeight = Text.CalcHeight(tip, inner.width);
-			Rect textRect = new Rect(inner.x, inner.y, inner.width, textHeight);
-			Widgets.Label(textRect, tip);
+			string header = this.BuildOverlayHeader();
+			float headerHeight = Text.CalcHeight(header, inner.width);
+			Rect headerRect = new Rect(inner.x, inner.y, inner.width, headerHeight);
+			Widgets.Label(headerRect, header);
 
-			if (inner.width < 200f)
+			if (this._mealRowsScratch.Count == 0)
 			{
 				return;
 			}
 
-			int count = CountIconCandidates();
-			if (count == 0) return;
+			float y = inner.y + headerHeight + 4f;
+			for (int i = 0; i < this._mealRowsScratch.Count; i++)
+			{
+				DrawMealRow(new Rect(inner.x, y, inner.width, RowHeight), this._mealRowsScratch[i]);
+				y += RowHeight + RowGap;
+			}
+		}
 
-			float tileWidth = Math.Min(inner.width / count, TileMaxSize);
-			float tileY = inner.y + textHeight + 6f;
+		private static void DrawMealRow(Rect rect, MealRowInfo row)
+		{
+			// Meal icon slot (left).
+			Rect mealSlot = new Rect(rect.x, rect.y, MealIconSize, MealIconSize);
+			Widgets.DrawBoxSolidWithOutline(mealSlot, RowBgTransparent, row.BorderColor, 2);
+			Rect mealInner = mealSlot.ContractedBy(3f);
+			if (row.IsForgotten)
+			{
+				Text.Anchor = TextAnchor.MiddleCenter;
+				GUI.color = row.BorderColor;
+				Widgets.Label(mealInner, "?");
+				GUI.color = Color.white;
+				Text.Anchor = TextAnchor.UpperLeft;
+				if (Mouse.IsOver(mealSlot))
+				{
+					TooltipHandler.TipRegion(mealSlot, "VM_ForgottenMealTip".Translate());
+				}
+				return;
+			}
+			if (row.MealDef != null && row.MealDef.uiIcon != null)
+			{
+				Widgets.DrawTextureFitted(mealInner, row.MealDef.uiIcon, 1f);
+			}
+			if (Mouse.IsOver(mealSlot) && row.MealDef != null)
+			{
+				TooltipHandler.TipRegion(mealSlot, row.MealDef.LabelCap);
+			}
 
+			// Ingredient icons (right).
+			if (row.Ingredients == null || row.Ingredients.Count == 0)
+			{
+				return;
+			}
+			float x = rect.x + MealIconSize + MealIngredientGap;
+			float iy = rect.y + (MealIconSize - IngredientIconSize) * 0.5f;
+			float availWidth = rect.xMax - x;
+			int maxSlots = Math.Max(0, (int)((availWidth + IngredientGap) / (IngredientIconSize + IngredientGap)));
+			int count = Math.Min(row.Ingredients.Count, maxSlots);
 			for (int i = 0; i < count; i++)
 			{
-				float x = inner.x + i * tileWidth;
-				if (x + tileWidth > inner.xMax + 0.1f) break;
-				Rect tile = new Rect(x, tileY, tileWidth - 2f, tileWidth - 2f);
-				ThingDef def = this._foodDefsScratch[i];
-				if (def.uiIcon != null)
+				ThingDef ing = row.Ingredients[i];
+				if (ing == null) continue;
+				Rect ingRect = new Rect(x, iy, IngredientIconSize, IngredientIconSize);
+				if (ing.uiIcon != null)
 				{
-					Widgets.DrawTextureFitted(tile, def.uiIcon, 1f);
+					Widgets.DrawTextureFitted(ingRect, ing.uiIcon, 1f);
 				}
+				if (Mouse.IsOver(ingRect))
+				{
+					TooltipHandler.TipRegion(ingRect, ing.LabelCap);
+				}
+				x += IngredientIconSize + IngredientGap;
 			}
 		}
 

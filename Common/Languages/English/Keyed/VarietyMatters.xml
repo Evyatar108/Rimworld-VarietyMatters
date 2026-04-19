@@ -40,6 +40,10 @@
   <VM_Settings_ResetRacesButton>Reset Current Races</VM_Settings_ResetRacesButton>
   <VM_Settings_FromMod>From mod: {0}</VM_Settings_FromMod>
 
+  <!-- Hover overlay (F-019) -->
+  <VM_OverlayStats>Expected {0} / Recent {1} / Memory {2}</VM_OverlayStats>
+  <VM_ForgottenMealTip>Forgotten meal — details faded from memory</VM_ForgottenMealTip>
+
   <!-- Disabled reason tip (US-017) -->
   <VM_DisabledPrefix>Disabled: </VM_DisabledPrefix>
   <VM_DisabledReason_DeadOrMissingFaculties>pawn is dead or missing food/mood faculties</VM_DisabledReason_DeadOrMissingFaculties>
