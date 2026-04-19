@@ -77,6 +77,15 @@
             base.ExposeData();
 
 			ModSettings_VarietyMatters.raceVarietyVersion++;
+
+			// Post-load: if the active tracking mode is ByIngredientOverlap, every tracker's
+			// per-meal varietyScore may be stale (old save wrote 1f default, or user switched
+			// modes between save and load). Rebuild totals from stored IngredientsDefs/AteAtTick.
+			if (Scribe.mode == LoadSaveMode.PostLoadInit
+				&& ModSettings_VarietyMatters.foodTrackingType == FoodTrackingType.ByIngredientOverlap)
+			{
+				VarietyRecord.ReCountAll();
+			}
 		}
 
 		public static FoodTrackingType foodTrackingType = FoodTrackingType.ByMealNamesAndIngredientsCombination;

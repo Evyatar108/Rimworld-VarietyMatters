@@ -86,6 +86,22 @@
 			VarietyAdjuster.AdjustVarietyLevel(tracker);
 		}
 
+		// Rebuild every tracker's cached totals + per-meal variety scores. Invoked when a
+		// setting that affects scoring flips (e.g. foodTrackingType -> ByIngredientOverlap)
+		// so prior meals get a retroactive Jaccard score instead of the default 1f.
+		public static void ReCountAll()
+		{
+			if (dietRecord == null)
+			{
+				return;
+			}
+
+			foreach (DietTracker tracker in dietRecord.Values)
+			{
+				tracker?.ReCount();
+			}
+		}
+
 		// Token: 0x06000043 RID: 67 RVA: 0x0000493C File Offset: 0x00002B3C
 		public static void RemoveTrackedPawn(Pawn trackedPawn)
 		{

@@ -5,6 +5,7 @@
         ByMealNames,
         ByIngredientsCombination,
         ByMealNamesAndIngredientsCombination,
+        ByIngredientOverlap,
         // TODO
         // ByMealNamesAndAtLeastOneIngredient,
         // ByMealNamesAndAllIngredients,
