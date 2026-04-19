@@ -385,6 +385,17 @@ namespace VarietyMatters
 
 			bool preferSpoiling = ModSettings_VarietyMatters.preferSpoiling;
 
+			// F-026 dev trace — confirm formula fires with populated penalty dict.
+			bool trace = Prefs.DevMode;
+			if (trace)
+			{
+				string chefName = chef?.LabelShort ?? "<null>";
+				string recentSummary = hasVarietyPenalty
+					? $"count={recent.count} last={string.Join(",", recent.list.GetRange(recent.startIndex, recent.count))}"
+					: "(empty/null)";
+				Log.Message($"[VarietyMatters F-026] SortIngredients: chef={chefName} availThings={availableThings.Count} hasPenalty={hasVarietyPenalty} recent={{{recentSummary}}}");
+			}
+
 			// F-025 rotation: derived weights from single "variety pull" knob.
 			// varietyPull = tiles we'd walk further to use an unused ingredient vs a recently-used one.
 			// repeatPenalty stays linear + small so distance still decides among equally-unused defs.
@@ -427,6 +438,20 @@ namespace VarietyMatters
 			}
 
 			availableThings.Sort(_sortKeyComparison);
+
+			if (trace)
+			{
+				int limit = System.Math.Min(availableThings.Count, 8);
+				System.Text.StringBuilder sb = new System.Text.StringBuilder("[VarietyMatters F-026] sorted (top 8): ");
+				for (int i = 0; i < limit; i++)
+				{
+					Thing t = availableThings[i];
+					int matches = 0;
+					if (hasVarietyPenalty) _penaltyPerDefScratch.TryGetValue(t.def, out matches);
+					sb.Append($"{t.def.defName}(key={_sortKeysScratch[t]:F1},m={matches}) ");
+				}
+				Log.Message(sb.ToString());
+			}
 		}
 	}
 }
