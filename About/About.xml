@@ -3,7 +3,11 @@
   <name>Variety Matters Redux</name>
   <author>Evyatar108</author>
   <packageId>Evyatar108.VarietyMattersImprovedRedux</packageId>
-  <description>Pawns now have a new need: variety in their diet. This mod introduces a unique gameplay dynamic where pawns require different types of food to stay mentally healthy and happy. Instead of just eating for survival, pawns will now seek out a diverse range of meals to satisfy their craving for variety. This new need adds an engaging layer of complexity to the colony's food management.
+  <description>Cooks actually rotate ingredients instead of smashing the same three berries into every meal. Variety Matters Redux hooks the bill solver (BestVariety_AllowMix) so each meal draws from different ingredient stacks, and pawns track what they've eaten across a sliding window to drive a 13-stage variety thought — compared to the 2 mood stages offered by Vanilla Food Variety Expanded.
+
+Pawns gain a Variety need that rises with repetitive meals and falls when their diet genuinely diversifies. Expectations scale by wealth tier, and per-race settings let you tune or disable the need for animals, mechanoids, and modded xenotypes. Under the hood, no per-meal allocations in the cooking hot path, save-compatible scribe layout, and defensive compat with Human Alien Races and Meals Over Preserved Foods.
+
+If you want cooks that diversify ingredients rather than just label meals differently, this is the one.
   </description>
   <supportedVersions>
     <li>1.4</li>
