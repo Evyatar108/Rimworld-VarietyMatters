@@ -107,65 +107,83 @@
 		{
 			get
 			{
-				return !this.Disabled;
+				return true;
 			}
 		}
 
 		// Token: 0x17000005 RID: 5
 		// (get) Token: 0x0600001B RID: 27 RVA: 0x0000304C File Offset: 0x0000124C
-		public bool Disabled
+		public bool Disabled => GetDisabledReason() != DisabledReason.None;
+
+		public DisabledReason GetDisabledReason()
 		{
-			get
+			if (this.pawn.Dead)
 			{
-				if (this.pawn.Dead)
-				{
-					return true;
-				}
-				if (this.pawn.needs?.food == null || this.pawn.needs?.mood == null)
-				{
-					return true;
-				}
+				return DisabledReason.DeadOrMissingFaculties;
+			}
+			if (this.pawn.needs?.food == null || this.pawn.needs?.mood == null)
+			{
+				return DisabledReason.DeadOrMissingFaculties;
+			}
 
-				if (!ModSettings_VarietyMatters.slavesHaveVarietyNeed && this.pawn.IsSlave)
+			if (!ModSettings_VarietyMatters.slavesHaveVarietyNeed && this.pawn.IsSlave)
+			{
+				return DisabledReason.SlaveNotTracked;
+			}
+
+			if (!ModSettings_VarietyMatters.prisonersHaveVarietyNeed && this.pawn.IsPrisoner)
+			{
+				return DisabledReason.PrisonerNotTracked;
+			}
+
+			if (!this.pawn.Faction?.IsPlayer == true && !ModSettings_VarietyMatters.nonControlledPawnsHaveVarietyNeed)
+			{
+				return DisabledReason.NonPlayerNotTracked;
+			}
+
+			if (!TraitDef_ModExtension.NeedsVariety(this.pawn))
+			{
+				return DisabledReason.TraitDisabled;
+			}
+
+			int version = ModSettings_VarietyMatters.raceVarietyVersion;
+			if (version != _raceKeysVersion)
+			{
+				_enabledRaceKeys.Clear();
+				var raceVariety = ModSettings_VarietyMatters.raceVariety;
+				if (raceVariety != null)
 				{
-					return true;
-				}
-
-                if (!ModSettings_VarietyMatters.prisonersHaveVarietyNeed && this.pawn.IsPrisoner)
-                {
-                    return true;
-                }
-
-                if (!this.pawn.Faction?.IsPlayer == true && !ModSettings_VarietyMatters.nonControlledPawnsHaveVarietyNeed)
-                {
-                    return true;
-                }
-
-				if (!TraitDef_ModExtension.NeedsVariety(this.pawn))
-				{
-					return true;
-				}
-
-				int version = ModSettings_VarietyMatters.raceVarietyVersion;
-				if (version != _raceKeysVersion)
-				{
-					_enabledRaceKeys.Clear();
-					var raceVariety = ModSettings_VarietyMatters.raceVariety;
-					if (raceVariety != null)
+					foreach (var kv in raceVariety)
 					{
-						foreach (var kv in raceVariety)
+						if (kv.Value != null && kv.Value.isVarietyEnabled)
 						{
-							if (kv.Value != null && kv.Value.isVarietyEnabled)
-							{
-								_enabledRaceKeys.Add(kv.Key);
-							}
+							_enabledRaceKeys.Add(kv.Key);
 						}
 					}
-					_raceKeysVersion = version;
 				}
+				_raceKeysVersion = version;
+			}
 
-				string raceKey = ModSettings_VarietyMatters.GetRaceKey(this.pawn.def);
-				return !_enabledRaceKeys.Contains(raceKey);
+			string raceKey = ModSettings_VarietyMatters.GetRaceKey(this.pawn.def);
+			if (!_enabledRaceKeys.Contains(raceKey))
+			{
+				return DisabledReason.RaceNotTracked;
+			}
+
+			return DisabledReason.None;
+		}
+
+		private static string GetDisabledReasonLabel(DisabledReason reason)
+		{
+			switch (reason)
+			{
+				case DisabledReason.DeadOrMissingFaculties: return "pawn is dead or missing food/mood faculties";
+				case DisabledReason.SlaveNotTracked: return "slaves are excluded in Mod Settings";
+				case DisabledReason.PrisonerNotTracked: return "prisoners are excluded in Mod Settings";
+				case DisabledReason.NonPlayerNotTracked: return "non-player pawns are excluded in Mod Settings";
+				case DisabledReason.TraitDisabled: return "this pawn's trait opts out of variety tracking";
+				case DisabledReason.RaceNotTracked: return "this race is disabled in Mod Settings";
+				default: return "unknown";
 			}
 		}
 
@@ -208,6 +226,13 @@
 		public override string GetTipString()
 		{
 			string tipString = base.GetTipString();
+
+			DisabledReason disabledReason = GetDisabledReason();
+			if (disabledReason != DisabledReason.None)
+			{
+				return "Disabled: " + GetDisabledReasonLabel(disabledReason) + "\n\n" + tipString;
+			}
+
             int varietyExpectation = VarietyExpectation.GetVarietyExpectation(this.pawn);
             string varietesCountExpectedText = varietyExpectation.ToString();
 			string actualVarietiesCountText = "0";
