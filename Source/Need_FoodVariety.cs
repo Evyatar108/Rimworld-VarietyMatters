@@ -375,6 +375,11 @@
 				this._mealRowsScratch.Add(row);
 			}
 
+			// Display newest-first: forward iteration above was needed to compute has-variety status
+			// (first chronological occurrence = variety). Reverse after so the overlay reads
+			// most-recent → oldest, matching the text GetTipString convention.
+			this._mealRowsScratch.Reverse();
+
 			this._lastIconsVersion = version;
 			this._lastIconsMemoryMult = memMult;
 		}
