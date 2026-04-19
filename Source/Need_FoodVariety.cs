@@ -34,7 +34,7 @@
 		private Action _drawHoverOverlayAction;
 
 		private float _overlayWidth = 320f;
-		private const float OverlayHeight = 260f;
+		private float _overlayHeight = 120f;
 		private const float OverlayPadding = 6f;
 		private const float TileMaxSize = 32f;
 
@@ -257,8 +257,26 @@
 			}
 
 			this._overlayWidth = Math.Min(320f, UI.screenWidth * 0.3f);
+
+			// Measure content to size the overlay dynamically (prior fixed OverlayHeight clipped long tips and pushed icons off-screen).
+			Text.Font = GameFont.Small;
+			float innerWidth = this._overlayWidth - 2f * OverlayPadding;
+			string tip = this.GetTipString();
+			float textHeight = Text.CalcHeight(tip, innerWidth);
+			float iconHeight = 0f;
+			if (innerWidth >= 200f)
+			{
+				int iconCount = CountIconCandidates();
+				if (iconCount > 0)
+				{
+					float tileWidth = Math.Min(innerWidth / iconCount, TileMaxSize);
+					iconHeight = 6f + (tileWidth - 2f);
+				}
+			}
+			this._overlayHeight = textHeight + iconHeight + 2f * OverlayPadding;
+
 			Vector2 mouse = Event.current.mousePosition;
-			Rect overlayRect = new Rect(mouse.x + 12f, mouse.y + 12f, this._overlayWidth, OverlayHeight);
+			Rect overlayRect = new Rect(mouse.x + 12f, mouse.y + 12f, this._overlayWidth, this._overlayHeight);
 			if (overlayRect.xMax > UI.screenWidth) overlayRect.x = UI.screenWidth - overlayRect.width;
 			if (overlayRect.yMax > UI.screenHeight) overlayRect.y = UI.screenHeight - overlayRect.height;
 			if (overlayRect.x < 0f) overlayRect.x = 0f;
@@ -267,27 +285,12 @@
 			Find.WindowStack.ImmediateWindow(this._iconOverlayHash, overlayRect, WindowLayer.Super, this._drawHoverOverlayAction, doBackground: true);
 		}
 
-		private void DrawHoverOverlay()
+		private int CountIconCandidates()
 		{
-			Text.Font = GameFont.Small;
-			Text.Anchor = TextAnchor.UpperLeft;
-			Rect inner = new Rect(OverlayPadding, OverlayPadding, this._overlayWidth - 2f * OverlayPadding, OverlayHeight - 2f * OverlayPadding);
-
-			string tip = this.GetTipString();
-			float textHeight = Text.CalcHeight(tip, inner.width);
-			Rect textRect = new Rect(inner.x, inner.y, inner.width, textHeight);
-			Widgets.Label(textRect, tip);
-
-			if (inner.width < 200f)
-			{
-				return;
-			}
-
 			if (!VarietyRecord.TryGetVarietyRecord(this.pawn, out DietTracker tracker) || tracker == null)
 			{
-				return;
+				return 0;
 			}
-
 			int version = tracker.Version;
 			float memMult = ModSettings_VarietyMatters.memoryMultiplier;
 			if (version != this._lastIconsVersion || memMult != this._lastIconsMemoryMult)
@@ -304,8 +307,26 @@
 				this._lastIconsVersion = version;
 				this._lastIconsMemoryMult = memMult;
 			}
+			return this._foodDefsScratch.Count;
+		}
 
-			int count = this._foodDefsScratch.Count;
+		private void DrawHoverOverlay()
+		{
+			Text.Font = GameFont.Small;
+			Text.Anchor = TextAnchor.UpperLeft;
+			Rect inner = new Rect(OverlayPadding, OverlayPadding, this._overlayWidth - 2f * OverlayPadding, this._overlayHeight - 2f * OverlayPadding);
+
+			string tip = this.GetTipString();
+			float textHeight = Text.CalcHeight(tip, inner.width);
+			Rect textRect = new Rect(inner.x, inner.y, inner.width, textHeight);
+			Widgets.Label(textRect, tip);
+
+			if (inner.width < 200f)
+			{
+				return;
+			}
+
+			int count = CountIconCandidates();
 			if (count == 0) return;
 
 			float tileWidth = Math.Min(inner.width / count, TileMaxSize);
