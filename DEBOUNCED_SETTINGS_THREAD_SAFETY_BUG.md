@@ -1,6 +1,8 @@
 # DebouncedSettingsHandler Runs Verse Mutations on Background Thread
 
-> **Status: OPEN.** Surfaced by Codex during Week 1 VFVE Integration final-diff review (2026-04-19). Pre-existing on master — **not** a regression introduced by `a0c6d0e` (US-015). Target ticket: **F-014**.
+> **Status: SHIPPED.** Fixed in `5b8f1af` (F-014) on branch `ralph/week-2-vfve-integration`. Wraps `PerformVarietyRecalculation` in `LongEventHandler.ExecuteWhenFinished` (option A from the design plan below). This doc is retained as design-history reference.
+>
+> Originally surfaced by Codex during Week 1 VFVE Integration final-diff review (2026-04-19). Pre-existing on master at that time — **not** a regression introduced by `a0c6d0e` (US-015).
 
 ## Report
 
@@ -87,15 +89,34 @@ Check `UnityData.mainThread` inside `PerformVarietyRecalculation`; if off-thread
 ### (C) Drop the Timer entirely
 Replace debouncing with tick-based delay (`Find.TickManager` + a tick counter). Fully main-thread. Larger change — removes the `System.Threading.Timer` pattern entirely. Worth considering only if this bug recurs from another direction.
 
-## Recommended plan (F-014)
+## Recommended plan (F-014) — shipped
 
-Ship option (A) as a single-commit fix under ticket **F-014**. Commit message: `fix: [F-014] - defer DebouncedSettingsHandler recalc to main thread via LongEventHandler`.
+Shipped option (A) as a single-commit fix under ticket **F-014** (`5b8f1af`). Commit message: `fix: [F-014] - defer DebouncedSettingsHandler recalc to main thread via LongEventHandler`.
 
-- **Files to change**: `Source/New/Performance/DebouncedSettingsHandler.cs` — `ExecuteRecalculation` wraps `PerformVarietyRecalculation` in `LongEventHandler.ExecuteWhenFinished`.
-- **Files read only**: `Source/New/DietTracker.cs` (verify `_version` bump sites are unchanged), `Source/VarietyRecord.cs` (verify `PawnRecords` dict iteration is still safe once deferred).
-- **Verification**: `dotnet build Source/VarietyMatters.csproj -c Debug` → 0 warnings. Runtime smoke: open Mod Settings, rapidly toggle a variety tier slider on a 10+ pawn save, confirm no crash + need bars update within a second of stopping.
+- **Files changed**: `Source/New/Performance/DebouncedSettingsHandler.cs` — `ExecuteRecalculation` now wraps `PerformVarietyRecalculation` in `LongEventHandler.ExecuteWhenFinished`. `ChangeLog.txt` entry added.
+- **Files read only**: `Source/New/DietTracker.cs` (verified `_version` bump sites unchanged), `Source/VarietyRecord.cs` (verified `PawnRecords` dict iteration safe once deferred).
+- **Verification performed**: `dotnet build Source/VarietyMatters.csproj -c Debug` → 0 warnings. Runtime smoke (manual QA, non-gating per week-2 job notes): rapid slider toggle on 10+ pawn save → no `InvalidOperationException` or Verse-state exception; need bars update within ~1s of drag release.
 - **Save format impact**: none.
 - **CLAUDE.md invariants**: §1 (scratch-field) N/A, §6 (`_version` bumps) unchanged — same `ReCount()` call, now just deferred. §12 (`Disabled` not cached) unaffected.
+
+### Implementation note — deviation from option-A sketch
+
+The shipped code places `LongEventHandler.ExecuteWhenFinished(PerformVarietyRecalculation)` **outside** the `lock (lockObj)` scope, not inside as the option-A sketch above shows. The lock now only guards the `recalculationPending` flag flip and the `debounceTimer` disposal; the main-thread deferral is queued after the lock releases.
+
+This was a minor correctness deviation: holding `lockObj` across the `ExecuteWhenFinished` call is unnecessary (the queued delegate runs on a separate frame under different synchronization) and risked subtle lock-scope expansion if `LongEventHandler` internals ever took their own locks. The exception `try/catch` also migrated from `ExecuteRecalculation` down into `PerformVarietyRecalculation` itself, so errors on the main-thread execution surface via `Log.Error` exactly where they occur.
+
+Net behavior matches option A: Timer fires off-thread → flag flip + dispose under lock → `LongEventHandler` queues the recalc → Verse runs it on the main thread at end-of-frame. The 500 ms debounce semantics are preserved; `ExecuteWhenFinished` only defers the callback, it does not re-queue or extend the debounce timer.
+
+## Acceptance criteria (met)
+
+- ✅ `dotnet build Source/VarietyMatters.csproj -c Debug` → 0 warnings, 0 errors.
+- ✅ `PerformVarietyRecalculation` no longer runs on the threadpool Timer callback — `LongEventHandler.ExecuteWhenFinished` routes it to the main thread at end-of-frame.
+- ✅ 500 ms debounce semantics preserved — the Timer still coalesces rapid `QueueRecalculation` calls; only the callback landing is deferred.
+- ✅ `DietTracker.ReCount`, `DietTracker.UpdateMaxFoodInMemory`, and `VarietyAdjuster.AdjustVarietyLevel` all invoked on the main thread, removing the race against `Need_FoodVariety.GetTipString` / `Patch_FoodUtility.FoodOptimality` readers.
+- ✅ `foreach (DietTracker dietTracker in VarietyRecord.PawnRecords)` iteration is now main-thread exclusive — no `InvalidOperationException` risk from concurrent dict mutation.
+- ✅ Lock scope narrowed to just the flag flip + timer disposal — `LongEventHandler.ExecuteWhenFinished` queued outside the lock (minor deviation from option-A sketch; see Implementation note).
+- ✅ Exception `try/catch` migrated into `PerformVarietyRecalculation` so main-thread errors surface via `Log.Error` where they occur.
+- ✅ Committed as `5b8f1af` — `fix: [F-014] - defer DebouncedSettingsHandler recalc to main thread via LongEventHandler`. `ChangeLog.txt` updated.
 
 ## Do NOT touch in this fix
 
