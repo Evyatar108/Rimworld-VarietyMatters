@@ -83,6 +83,9 @@
 
 			tracker.AddFoodSource(foodSource);
 
+			Current.Game.GetComponent<FavouriteFoodRecord>()?.OnMealIngested(
+				trackedPawn, foodSource, foodSource.VarietyScore, VarietyAdjuster.BaselineForTierPublic(trackedPawn));
+
 			VarietyAdjuster.AdjustVarietyLevel(tracker);
 		}
 

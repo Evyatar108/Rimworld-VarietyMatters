@@ -2,6 +2,7 @@ namespace VarietyMatters
 {
     using System;
     using HarmonyLib;
+    using VarietyMatters.New;
     using Verse;
 
     [HarmonyPatch]
@@ -12,6 +13,7 @@ namespace VarietyMatters
         private static void Postfix_Kill(Pawn __instance)
         {
             VarietyRecord.RemoveTrackedPawn(__instance);
+            FavouriteFoodRecord.RemoveTrackedPawn(__instance);
         }
 
         [HarmonyPatch(typeof(Pawn), nameof(Pawn.Destroy), new Type[] { typeof(DestroyMode) })]
@@ -19,6 +21,7 @@ namespace VarietyMatters
         private static void Postfix_Destroy(Pawn __instance)
         {
             VarietyRecord.RemoveTrackedPawn(__instance);
+            FavouriteFoodRecord.RemoveTrackedPawn(__instance);
         }
     }
 }

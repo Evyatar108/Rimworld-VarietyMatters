@@ -229,4 +229,10 @@
   <VM_FoodVariety_HasVariety_18>(Has Variety) The richness of choices here is amazing. Every meal is a discovery.</VM_FoodVariety_HasVariety_18>
   <VM_FoodVariety_HasVariety_19>(Has Variety) Gone are the days of boring meals. This variety is a game changer!</VM_FoodVariety_HasVariety_19>
 
+  <!-- Favourite foods (US-034 storage + US-035 mood/UI). Discovery message fires on first-ever
+       crystallization in a slot; replacement letter fires when a rival ousts an existing favourite. -->
+  <VM_Fav_DiscoveryMessage>{0} has discovered a favourite food: {1}.</VM_Fav_DiscoveryMessage>
+  <VM_Fav_ReplacementLetterTitle>New favourite food</VM_Fav_ReplacementLetterTitle>
+  <VM_Fav_ReplacementLetterBody>{0} used to love {1}, but after eating it too often they've moved on. {2} is their new favourite.</VM_Fav_ReplacementLetterBody>
+
 </LanguageData>
