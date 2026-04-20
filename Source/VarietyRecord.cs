@@ -98,7 +98,11 @@
 
 			foreach (DietTracker tracker in dietRecord.Values)
 			{
-				tracker?.ReCount();
+				if (tracker?.Pawn != null && !tracker.Pawn.Dead)
+				{
+					tracker.ReCount();
+					VarietyAdjuster.AdjustVarietyLevel(tracker);
+				}
 			}
 		}
 
