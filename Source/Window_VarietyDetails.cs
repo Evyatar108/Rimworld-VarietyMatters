@@ -426,7 +426,7 @@ namespace VarietyMatters
                 Text.Font = GameFont.Small;
                 Widgets.Label(badgeRect, "VM_Details_ScoreBadge".Translate(pct));
                 GUI.color = Color.white;
-                TooltipIfOver(badgeRect, "VM_Details_ScoreTooltip".Translate(pct));
+                TooltipIfOver(badgeRect, "VM_Details_ScoreTooltipNoIngredients".Translate(pct));
             }
 
             // Ingredient icons (right of status). Filling row from status.xMax to inner.xMax.
