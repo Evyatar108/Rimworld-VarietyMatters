@@ -36,13 +36,22 @@
         // Previously held past-meal ThingDef set for the in-score meal-def-new bonus (dropped
         // in US-026 when the bonus moved to mood-tick read time via IsMealDefFreshInWindow).
 
-        // US-025 meal-def-new bonus constants. A meal whose ThingDef has not been seen in the
-        // decay window contributes an additive variety bonus proportional to its ingredient count,
-        // capped. Bumped in US-026 tuning pass (vanilla/modded balance) from (0.05 / 0.25) so
-        // nobles can reach moderate mood with active meal-tier rotation in vanilla colonies:
-        // 3-ing simple → +0.21; 5-ing lavish → +0.35 cap.
-        public const float MealDefBonusPerIngredient = 0.07f;
-        public const float MealDefBonusCap = 0.35f;
+        // US-025 meal-def-new bonus — step table keyed on recipe slot count. A meal whose ThingDef
+        // has not been seen in the scoring window contributes an additive variety bonus sized by
+        // recipe complexity: simple meals (1 slot) get nothing, vanilla fine/lavish (2 slots) sit
+        // at the main tier (0.20), modded 3+ slot recipes earn progressively more up to the 5+
+        // cap at 0.40. Step table (not linear) so the player's mental model is "cook fancier
+        // recipes for more bonus" without per-ingredient fiddliness. Index = min(slots, 5); a
+        // "capped" tooltip label fires only when modded 6+ slot recipes are clamped.
+        private static readonly float[] _mealDefBonusBySlot = { 0f, 0f, 0.05f, 0.12f, 0.20f, 0.30f };
+        public const int MaxBonusSlots = 5;
+
+        public static float GetMealDefBonus(int slots)
+        {
+            if (slots < 0) return 0f;
+            int idx = slots >= _mealDefBonusBySlot.Length ? _mealDefBonusBySlot.Length - 1 : slots;
+            return _mealDefBonusBySlot[idx];
+        }
 
         // Breakdown cache. Keyed on (meal ref, _version) so any tracker mutation that bumps
         // _version invalidates it. UX consumers receive live refs; treat as read-only.

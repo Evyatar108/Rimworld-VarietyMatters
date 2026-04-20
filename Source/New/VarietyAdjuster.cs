@@ -76,29 +76,29 @@ namespace VarietyMatters.New
             if (mealDefFresh)
             {
                 int complexity = ingredientsCount > 0 ? ingredientsCount : 1;
-                bonus = Mathf.Min(
-                    DietTracker.MealDefBonusCap,
-                    DietTracker.MealDefBonusPerIngredient * complexity);
+                bonus = DietTracker.GetMealDefBonus(complexity);
             }
             return Mathf.Clamp01(curved + bonus);
         }
 
         // Baseline derived from per-tier Mod Settings so the player's tuning of
         // extremelyLowVariety..nobleVariety drives both memory capacity AND palate threshold
-        // consistently. Formula: baseline = clamp((rawSetting − 3) / 20, 0, 0.9).
-        //   Defaults: ExLow=4 → 0.05, VLow=5 → 0.10, Low=6 → 0.15, Mod=8 → 0.25,
-        //             High=10 → 0.35, SkyHi=12 → 0.45, Noble=15 → 0.60.
-        // Reads the *raw* tier setting (no slave / prisoner / gourmand modifiers) — those apply
-        // to variety count (GetVarietyExpectation) but not to palate refinement, which is purely
-        // a tier-identity property. Slave/prisoner multipliers still apply to the baseline below,
-        // consistent with how they already modulate expected variety count.
+        // consistently. Formula: baseline = clamp((rawSetting − 3) / 25, 0, 0.50).
+        //   Defaults: ExLow=4 → 0.04, VLow=5 → 0.08, Low=6 → 0.12, Mod=8 → 0.20,
+        //             High=10 → 0.28, SkyHi=12 → 0.36, Noble=15 → 0.48.
+        // Cap at 0.50 so Noble can realistically reach >40% mood at moderate pantry sizes
+        // (Y≥30) — earlier clamp 0.9 locked Noble at 0% below Y=50. Reads the *raw* tier setting
+        // (no slave / prisoner / gourmand modifiers) — those apply to variety count
+        // (GetVarietyExpectation) but not to palate refinement, which is purely a tier-identity
+        // property. Slave/prisoner multipliers still apply to the baseline below, consistent with
+        // how they already modulate expected variety count.
         private static float BaselineForTier(Pawn pawn)
         {
             if (pawn == null) return 0f;
             ExpectationDef tier = ExpectationsUtility.CurrentExpectationFor(pawn);
             if (tier == null) return 0f;
             int raw = GetRawTierVariety(tier);
-            float tierBaseline = Mathf.Clamp((raw - 3) / 20f, 0f, 0.9f);
+            float tierBaseline = Mathf.Clamp((raw - 3) / 25f, 0f, 0.50f);
 
             if (pawn.IsSlave)
             {

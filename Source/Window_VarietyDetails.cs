@@ -530,8 +530,7 @@ namespace VarietyMatters
                 complexity = VarietyAdjuster.GetRecipeSlotComplexity(row.MealDef, row.Ingredients);
                 if (mealDefFresh)
                 {
-                    mealDefBonusPct = (int)Math.Round(
-                        Mathf.Min(DietTracker.MealDefBonusCap, DietTracker.MealDefBonusPerIngredient * complexity) * 100f);
+                    mealDefBonusPct = (int)Math.Round(DietTracker.GetMealDefBonus(complexity) * 100f);
                 }
             }
 
@@ -580,10 +579,11 @@ namespace VarietyMatters
             // effective-score term added at mood-tick. These tooltip lines are purely informational.
             if (row.MealDef != null && mealDefFresh)
             {
-                float bonus = Mathf.Min(DietTracker.MealDefBonusCap,
-                    DietTracker.MealDefBonusPerIngredient * complexity);
-                bool capped = bonus >= DietTracker.MealDefBonusCap - 0.0001f
-                    && DietTracker.MealDefBonusPerIngredient * complexity > DietTracker.MealDefBonusCap;
+                float bonus = DietTracker.GetMealDefBonus(complexity);
+                // "Capped" note only when modded recipes exceed the top of the step table
+                // (DietTracker.MaxBonusSlots). 5-slot lavish sits exactly at the max without
+                // being "clamped" — don't show capped for the canonical lavish case.
+                bool capped = complexity > DietTracker.MaxBonusSlots;
                 int bonusPct = (int)Math.Round(bonus * 100f);
                 sb.AppendLine();
                 string key = capped ? "VM_Overlap_MealDefNewBonusCapped" : "VM_Overlap_MealDefNewBonus";
