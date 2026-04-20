@@ -90,10 +90,15 @@ namespace VarietyMatters
             this.DrawHeader(headerRect);
             y += HeaderHeight + SectionGap;
 
-            // Aggregate stats panel.
-            Rect aggRect = new Rect(inRect.x, y, inRect.width, AggregateHeight);
+            // Aggregate stats panel. Overlap mode adds a "Palate memory: last X days"
+            // subheader row, so the panel needs extra vertical space or the Forgotten count
+            // at the bottom clips the first meal-list row.
+            float aggH = ModSettings_VarietyMatters.foodTrackingType == FoodTrackingType.ByIngredientOverlap
+                ? AggregateHeight + 28f
+                : AggregateHeight;
+            Rect aggRect = new Rect(inRect.x, y, inRect.width, aggH);
             this.DrawAggregate(aggRect);
-            y += AggregateHeight + SectionGap;
+            y += aggH + SectionGap;
 
             // Scrollable meal list.
             Rect listRect = new Rect(inRect.x, y, inRect.width, inRect.yMax - y);
