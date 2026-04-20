@@ -418,19 +418,11 @@
                 return 1f;
             }
 
-            float ingredientScore = 1f - (float)overlap / total;
-
-            // US-025 meal-def-new bonus: awarded only when this meal's ThingDef hasn't been seen
-            // in the decay window. Bonus scales linearly with the meal's ingredient count
-            // (complexity proxy), capped at MealDefBonusCap. Paste/kibble/raw (empty ingredients)
-            // use complexity = 1, so they still qualify for a small bonus on first sighting.
-            int complexity = (inc != null && inc.Count > 0) ? inc.Count : 1;
-            bool mealDefNew = target.ThingDef != null && !_recentMealDefsScratch.Contains(target.ThingDef);
-            float mealBonus = mealDefNew
-                ? Mathf.Min(MealDefBonusCap, MealDefBonusPerIngredient * complexity)
-                : 0f;
-
-            return Mathf.Clamp01(ingredientScore + mealBonus);
+            // Returns ingredient-only overlap score. The meal-def-new bonus (US-025) is applied
+            // AT MOOD-TICK READ TIME (VarietyAdjuster) AFTER the baseline curve — so novelty cuts
+            // through a noble's refined palate instead of getting dampened alongside the ingredient
+            // signal. Bonus is recomputed from IsMealDefFreshInWindow; we don't store it here.
+            return 1f - (float)overlap / total;
         }
 
         // US-025 helper for UX tooltip. Returns whether the meal's ThingDef is absent from the
