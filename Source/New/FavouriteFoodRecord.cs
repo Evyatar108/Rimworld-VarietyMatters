@@ -12,11 +12,13 @@ namespace VarietyMatters.New
     public class CandidateProgress : IExposable
     {
         public int count;
+        public int firstCreditTick = -1;
         public int lastCreditTick = -1;
 
         public void ExposeData()
         {
             Scribe_Values.Look(ref this.count, "count", 0);
+            Scribe_Values.Look(ref this.firstCreditTick, "firstCreditTick", -1);
             Scribe_Values.Look(ref this.lastCreditTick, "lastCreditTick", -1);
         }
     }
@@ -300,20 +302,17 @@ namespace VarietyMatters.New
 
             if (!progressMap.TryGetValue(ing.defName, out CandidateProgress progress))
             {
-                progress = new CandidateProgress { count = 0, lastCreditTick = -1 };
+                progress = new CandidateProgress { count = 0, firstCreditTick = -1, lastCreditTick = -1 };
                 progressMap[ing.defName] = progress;
             }
 
-            // Day-spread gate: ≥ 120000 ticks (2 in-game days) since last credit for this ingredient.
-            if (progress.lastCreditTick >= 0 && (nowTick - progress.lastCreditTick) < DaySpreadTicks)
-            {
-                return;
-            }
             progress.count++;
+            if (progress.firstCreditTick < 0) progress.firstCreditTick = nowTick;
             progress.lastCreditTick = nowTick;
 
             int threshold = GetThresholdForSaturation(slot.saturation, slot.favourite != null);
-            if (progress.count >= threshold)
+            if (progress.count >= threshold
+                && (progress.lastCreditTick - progress.firstCreditTick) >= DaySpreadTicks)
             {
                 this.Crystallize(pawn, slot, progressMap, ing);
             }
