@@ -25,6 +25,11 @@
 		private static HashSet<string> _enabledRaceKeys = new HashSet<string>();
 		private static int _raceKeysVersion = -1;
 
+		// US-035 favourites-line scratch. Shared by BuildFavouritesLine (GetTipString +
+		// BuildOverlayHeader). Cleared on entry.
+		private static readonly List<string> _favNameScratch = new List<string>();
+		private static readonly StringBuilder _favLineSb = new StringBuilder();
+
 		// Hover-overlay scratch (US-019 / F-019).
 		// _mealRowsScratch: per-meal info for the hover overlay. Rebuilt only on (DietTracker.Version, memoryMultiplier) change.
 		// _appearancesSoFarRowsScratch: per-meal-key appearances-so-far counter, reused each rebuild.
@@ -385,7 +390,63 @@
 			}
 			int memCapacity = (int)(ModSettings_VarietyMatters.memoryMultiplier * expected);
 			string stats = "VM_OverlayStats".Translate(expected, actual, memCapacity);
+			string favs = BuildFavouritesLine(this.pawn);
+			if (!string.IsNullOrEmpty(favs))
+			{
+				return baseTip + "\n\n" + stats + "\n" + favs;
+			}
 			return baseTip + "\n\n" + stats;
+		}
+
+		// US-035. Shared favourites-text builder. Returns empty when the feature is disabled
+		// or the pawn has no crystallized favourites. Output shape is stable so GetTipString
+		// and BuildOverlayHeader produce identical lines for the same state.
+		internal static string BuildFavouritesLine(Pawn pawn)
+		{
+			if (!ModSettings_VarietyMatters.favouritesEnabled) return string.Empty;
+			if (pawn == null) return string.Empty;
+			FavouriteFoodRecord comp = Current.Game?.GetComponent<FavouriteFoodRecord>();
+			if (comp == null) return string.Empty;
+			PawnFavData data = comp.TryGet(pawn);
+			if (data == null) return string.Empty;
+
+			_favNameScratch.Clear();
+			if (data.meatSlot?.favourite != null) _favNameScratch.Add(data.meatSlot.favourite.LabelCap);
+			if (data.vegSlot?.favourite != null) _favNameScratch.Add(data.vegSlot.favourite.LabelCap);
+			if (data.wildSlot?.favourite != null) _favNameScratch.Add(data.wildSlot.favourite.LabelCap);
+			if (_favNameScratch.Count == 0)
+			{
+				return string.Empty;
+			}
+
+			StringBuilder sb = _favLineSb;
+			sb.Clear();
+			sb.Append("VM_Fav_LinePrefix".Translate());
+			for (int i = 0; i < _favNameScratch.Count; i++)
+			{
+				sb.Append(i == 0 ? " " : ", ");
+				sb.Append(_favNameScratch[i]);
+			}
+			AppendSaturationHint(sb, data.meatSlot);
+			AppendSaturationHint(sb, data.vegSlot);
+			AppendSaturationHint(sb, data.wildSlot);
+			_favNameScratch.Clear();
+			return sb.ToString();
+		}
+
+		private static void AppendSaturationHint(StringBuilder sb, SlotState slot)
+		{
+			if (slot?.favourite == null) return;
+			if (slot.saturation == 3)
+			{
+				sb.Append("\n  • ").Append(slot.favourite.LabelCap).Append(": ")
+				  .Append("VM_Fav_Hint_Opening".Translate());
+			}
+			else if (slot.saturation >= 4)
+			{
+				sb.Append("\n  • ").Append(slot.favourite.LabelCap).Append(": ")
+				  .Append("VM_Fav_Hint_Tiring".Translate());
+			}
 		}
 
 		private void RebuildMealRowsIfNeeded()
@@ -583,11 +644,13 @@
 
             string mealMemoryString = ((int)(memoryMult * varietyExpectation)).ToString();
 
-            return tipString + "VM_FoodVarietyTip_Main".Translate(
+            string baseTip = tipString + "VM_FoodVarietyTip_Main".Translate(
                 varietesCountExpectedText,
                 actualVarietiesCountText,
                 mealMemoryString,
                 mostRecentFoodSourceText);
+            string favs = BuildFavouritesLine(this.pawn);
+            return string.IsNullOrEmpty(favs) ? baseTip : baseTip + "\n\n" + favs;
 		}
 
         private int GetEatenFoodSourceCountKey(EatenFoodSource eatenFoodSource, FoodVarietyInfo foodVarietyInfo)

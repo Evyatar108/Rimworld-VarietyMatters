@@ -41,5 +41,10 @@
         // AND null-guard the field itself before calling pawn.genes.HasActiveGene(...).
         [MayRequireBiotech]
         public static GeneDef VM_NoVarietyNeed;
+
+        // US-035 favourite-food mood thought. Fired on a fresh meal matching a crystallized
+        // slot favourite. Mood amount (+3) and duration (1 day) are hardcoded in XML — runtime
+        // tuning is v2 scope.
+        public static ThoughtDef VM_AteFavourite;
     }
 }

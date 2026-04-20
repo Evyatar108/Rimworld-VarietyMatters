@@ -19,6 +19,11 @@ namespace VarietyMatters
         // this struct, the three Profile instances, ApplyProfile, MatchesProfile, and (if
         // defaults change) ModSettings field initializers. The `moreVarietyMemory` toggle is
         // DEPRECATED and no longer part of the profile.
+        //
+        // US-035 `favouritesEnabled` is DELIBERATELY EXCLUDED from this struct / ApplyProfile /
+        // MatchesProfile. It is a feature kill-switch, not a difficulty lever — flipping a
+        // preset should never silently disable discovered favourites or wipe per-pawn state.
+        // Toggling it also must NOT move the active-preset highlight. Leave it out.
         private struct Profile
         {
             public int extremelyLowMemory, veryLowMemory, lowMemory,
@@ -85,6 +90,7 @@ namespace VarietyMatters
             { "expectations", false },
             { "bonus", false },
             { "cook", false },
+            { "favourites", false },
             { "scoring", false },
         };
 
@@ -168,6 +174,10 @@ namespace VarietyMatters
             if (DrawSectionHeader(listing_Standard, "cook", "VM_Settings_Section_CookBehavior"))
             {
                 DrawCookSection(listing_Standard);
+            }
+            if (DrawSectionHeader(listing_Standard, "favourites", "VM_Settings_Section_Favourites"))
+            {
+                DrawFavouritesSection(listing_Standard);
             }
             if (DrawSectionHeader(listing_Standard, "scoring", "VM_Settings_Section_Scoring"))
             {
@@ -561,6 +571,18 @@ namespace VarietyMatters
         private void DrawScoringSection(Listing_Standard ls)
         {
             ls.Label("VM_Settings_Scoring_Body".Translate(), -1f);
+            ls.Gap(8f);
+        }
+
+        // US-035 favourite-foods section. One toggle only (the feature kill-switch). Not part
+        // of Profile — toggling it must NOT move the active-preset indicator.
+        private void DrawFavouritesSection(Listing_Standard ls)
+        {
+            ls.Label("VM_Settings_Favourites_Body".Translate(), -1f);
+            ls.Gap(4f);
+            ls.CheckboxLabeled("VM_Settings_Favourites_EnabledLabel".Translate(),
+                ref ModSettings_VarietyMatters.favouritesEnabled,
+                "VM_Settings_Favourites_EnabledTooltip".Translate(), 0f, 1f);
             ls.Gap(8f);
         }
 

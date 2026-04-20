@@ -139,11 +139,62 @@ namespace VarietyMatters
                 Widgets.Label(statRect, string.Format("{0} {1}", need.LabelCap, (need.CurLevelPercentage).ToStringPercent()));
             }
 
-            // Favourites placeholder slot — reserved for §2a. Drawn as a dim "Favourites: —" line for now.
-            statRect.y += 24f;
-            GUI.color = new Color(1f, 1f, 1f, 0.45f);
-            Widgets.Label(statRect, "VM_Favourites_Placeholder".Translate());
-            GUI.color = Color.white;
+            // US-035 favourites row. Kill-switch hides the row entirely. Otherwise draws
+            // "Favourites:" + per-slot uiIcon + ingredient label (inline). Empty state shows a
+            // dim "—" so the player sees the feature is active but no favourite has crystallized yet.
+            if (ModSettings_VarietyMatters.favouritesEnabled)
+            {
+                statRect.y += 24f;
+                this.DrawFavouritesRow(statRect);
+            }
+        }
+
+        private void DrawFavouritesRow(Rect rect)
+        {
+            FavouriteFoodRecord comp = Current.Game?.GetComponent<FavouriteFoodRecord>();
+            PawnFavData data = comp?.TryGet(this.pawn);
+
+            const float iconSize = 18f;
+            const float gapSmall = 4f;
+            const float gapSlot = 10f;
+
+            string prefix = "VM_Fav_LinePrefix".Translate();
+            float labelW = Text.CalcSize(prefix).x;
+            Widgets.Label(new Rect(rect.x, rect.y, labelW, rect.height), prefix);
+            float x = rect.x + labelW + gapSmall;
+
+            bool any = false;
+            if (data != null)
+            {
+                any |= DrawFavSlotInline(ref x, rect.y, rect.xMax, iconSize, gapSmall, gapSlot, data.meatSlot);
+                any |= DrawFavSlotInline(ref x, rect.y, rect.xMax, iconSize, gapSmall, gapSlot, data.vegSlot);
+                any |= DrawFavSlotInline(ref x, rect.y, rect.xMax, iconSize, gapSmall, gapSlot, data.wildSlot);
+            }
+            if (!any)
+            {
+                GUI.color = new Color(1f, 1f, 1f, 0.45f);
+                Widgets.Label(new Rect(x, rect.y, rect.xMax - x, rect.height), "VM_Fav_None".Translate());
+                GUI.color = Color.white;
+            }
+        }
+
+        private static bool DrawFavSlotInline(ref float x, float y, float xMax,
+            float iconSize, float gapSmall, float gapSlot, SlotState slot)
+        {
+            if (slot?.favourite == null) return false;
+            if (x + iconSize > xMax) return true;
+            Rect iconRect = new Rect(x, y + (24f - iconSize) * 0.5f, iconSize, iconSize);
+            if (slot.favourite.uiIcon != null)
+            {
+                Widgets.DrawTextureFitted(iconRect, slot.favourite.uiIcon, 1f);
+            }
+            TooltipIfOver(iconRect, slot.favourite.LabelCap);
+            x += iconSize + gapSmall;
+            string label = slot.favourite.LabelCap;
+            float labelW = Mathf.Min(Text.CalcSize(label).x, Mathf.Max(0f, xMax - x));
+            Widgets.Label(new Rect(x, y, labelW, 24f), label);
+            x += labelW + gapSlot;
+            return true;
         }
 
         private void DrawAggregate(Rect rect)

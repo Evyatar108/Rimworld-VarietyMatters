@@ -235,4 +235,16 @@
   <VM_Fav_ReplacementLetterTitle>New favourite food</VM_Fav_ReplacementLetterTitle>
   <VM_Fav_ReplacementLetterBody>{0} used to love {1}, but after eating it too often they've moved on. {2} is their new favourite.</VM_Fav_ReplacementLetterBody>
 
+  <!-- Favourites line (shared by Need_FoodVariety tooltip + overlay + details window). -->
+  <VM_Fav_LinePrefix>Favourites:</VM_Fav_LinePrefix>
+  <VM_Fav_None>—</VM_Fav_None>
+  <VM_Fav_Hint_Opening>becoming more open to other foods</VM_Fav_Hint_Opening>
+  <VM_Fav_Hint_Tiring>getting tired of this as a staple</VM_Fav_Hint_Tiring>
+
+  <!-- Favourites settings section (US-035 kill-switch; NOT in preset profile). -->
+  <VM_Settings_Section_Favourites>Favourite Foods</VM_Settings_Section_Favourites>
+  <VM_Settings_Favourites_Body>Pawns discover favourite ingredients from what they actually eat — freshness-gated, siloed into meat + vegetable slots (plus an open slot for Gourmands), and anti-monoculture so the same ingredient doesn't dominate forever. Eating a favourite grants a small mood bonus for a day.</VM_Settings_Favourites_Body>
+  <VM_Settings_Favourites_EnabledLabel>Enable favourite foods:</VM_Settings_Favourites_EnabledLabel>
+  <VM_Settings_Favourites_EnabledTooltip>Master kill-switch for the favourite-foods feature. When off, no new favourites are discovered, the mood thought never fires, letters/messages are suppressed, and the UI row is hidden. Previously discovered favourites are preserved across toggles — re-enabling picks up where each pawn left off.</VM_Settings_Favourites_EnabledTooltip>
+
 </LanguageData>

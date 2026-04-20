@@ -100,6 +100,7 @@
             Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.prisonerExpectedVarietyPercentage, "prisonerExpectedVarietyPercentage", 50, false);
 			Scribe_Values.Look<bool>(ref ModSettings_VarietyMatters.preferVariety, "preferVariety", true, false);
 			Scribe_Values.Look<bool>(ref ModSettings_VarietyMatters.preferSpoiling, "preferSpoiling", true, false);
+			Scribe_Values.Look<bool>(ref ModSettings_VarietyMatters.favouritesEnabled, "favouritesEnabled", true, false);
 			Scribe_Collections.Look<string, RaceSetting>(ref ModSettings_VarietyMatters.raceVariety, "raceVarietyV2", LookMode.Value, LookMode.Deep, ref ModSettings_VarietyMatters.raceKeys, ref ModSettings_VarietyMatters.raceValues, true);
 
             base.ExposeData();
@@ -229,6 +230,14 @@
 
 		// Token: 0x0400001D RID: 29
 		public static bool preferSpoiling = true;
+
+		// US-035 favourite-foods master kill-switch. `true` = feature active (discovery, mood,
+		// letter/message, UI line). `false` = feature FROZEN: OnMealIngested short-circuits
+		// before any mutation, GameComponentTick skips decay, UI hides the line. Previously
+		// persisted per-pawn state is preserved across toggles — re-enabling picks up where the
+		// pawn left off. Deliberately EXCLUDED from the Profile struct (Mod_VarietyMatters.cs)
+		// so preset buttons never flip it; it is a one-off kill-switch, not a difficulty lever.
+		public static bool favouritesEnabled = true;
 
 		// Token: 0x0400001F RID: 31
 		public static Dictionary<string, RaceSetting> raceVariety = new Dictionary<string, RaceSetting>();

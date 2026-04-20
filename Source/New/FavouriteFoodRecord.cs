@@ -175,6 +175,11 @@ namespace VarietyMatters.New
         {
             if (pawn == null || eatenFoodSource == null) return;
 
+            // US-035 kill-switch. `favouritesEnabled = false` FREEZES all favourite-foods state
+            // mutation — no discovery, no mood, no saturation change, no flag flip. Previously
+            // persisted data is preserved so re-enabling picks up where the pawn left off.
+            if (!ModSettings_VarietyMatters.favouritesEnabled) return;
+
             // Gate 1: need disabled (ascetic trait, no-variety gene, faction/race/slave/prisoner excluded).
             Need_FoodVariety need = pawn.needs?.TryGetNeed<Need_FoodVariety>();
             if (need == null) return;
@@ -199,24 +204,61 @@ namespace VarietyMatters.New
             int nowTick = Find.TickManager != null ? Find.TickManager.TicksGame : 0;
             List<ThingDef> ingredients = eatenFoodSource.IngredientsDefs;
 
+            _creditedDefNamesScratch.Clear();
             if (ingredients == null || ingredients.Count == 0)
             {
                 if (eatenFoodSource.ThingDef != null)
                 {
+                    _creditedDefNamesScratch.Add(eatenFoodSource.ThingDef.defName);
                     this.CreditIngredient(pawn, data, eatenFoodSource.ThingDef, nowTick);
                 }
-                return;
+            }
+            else
+            {
+                for (int i = 0; i < ingredients.Count; i++)
+                {
+                    ThingDef ing = ingredients[i];
+                    if (ing == null) continue;
+                    if (!_creditedDefNamesScratch.Add(ing.defName)) continue;
+                    this.CreditIngredient(pawn, data, ing, nowTick);
+                }
             }
 
-            _creditedDefNamesScratch.Clear();
-            for (int i = 0; i < ingredients.Count; i++)
+            // Favourite-match detection (US-035). A match always bumps lastTriggerTick so decay
+            // is blocked for the 2-day window, even when the mood is suppressed. Saturation
+            // increments only when the mood actually fires (back-to-back suppression skips it).
+            bool meatMatch = data.meatSlot.favourite != null
+                && _creditedDefNamesScratch.Contains(data.meatSlot.favourite.defName);
+            bool vegMatch = data.vegSlot.favourite != null
+                && _creditedDefNamesScratch.Contains(data.vegSlot.favourite.defName);
+            bool wildMatch = data.wildSlot.favourite != null
+                && _creditedDefNamesScratch.Contains(data.wildSlot.favourite.defName);
+            if (meatMatch) data.meatSlot.lastTriggerTick = nowTick;
+            if (vegMatch) data.vegSlot.lastTriggerTick = nowTick;
+            if (wildMatch) data.wildSlot.lastTriggerTick = nowTick;
+            bool matched = meatMatch || vegMatch || wildMatch;
+
+            if (matched && !data.lastMealWasIngestedAsFavourite)
             {
-                ThingDef ing = ingredients[i];
-                if (ing == null) continue;
-                if (!_creditedDefNamesScratch.Add(ing.defName)) continue;
-                this.CreditIngredient(pawn, data, ing, nowTick);
+                TryFireFavouriteMemory(pawn);
+                if (meatMatch) data.meatSlot.saturation = Math.Min(SaturationCap, data.meatSlot.saturation + 1);
+                if (vegMatch) data.vegSlot.saturation = Math.Min(SaturationCap, data.vegSlot.saturation + 1);
+                if (wildMatch) data.wildSlot.saturation = Math.Min(SaturationCap, data.wildSlot.saturation + 1);
             }
+
+            // Back-to-back suppression: flag is true after a favourite-matching meal, false
+            // after a non-match. Rice between two cow-meat meals (A -> B -> A) clears the
+            // flag on B, so both A's fire a thought.
+            data.lastMealWasIngestedAsFavourite = matched;
+
             _creditedDefNamesScratch.Clear();
+        }
+
+        private static void TryFireFavouriteMemory(Pawn pawn)
+        {
+            if (pawn?.needs?.mood?.thoughts?.memories == null) return;
+            if (DefOf_VarietyMatters.VM_AteFavourite == null) return;
+            pawn.needs.mood.thoughts.memories.TryGainMemory(DefOf_VarietyMatters.VM_AteFavourite);
         }
 
         private PawnFavData GetOrCreate(Pawn pawn)
@@ -273,7 +315,7 @@ namespace VarietyMatters.New
             int threshold = GetThresholdForSaturation(slot.saturation, slot.favourite != null);
             if (progress.count >= threshold)
             {
-                this.Crystallize(slot, progressMap, ing);
+                this.Crystallize(pawn, slot, progressMap, ing);
             }
         }
 
@@ -287,13 +329,34 @@ namespace VarietyMatters.New
             return 3;
         }
 
-        private void Crystallize(SlotState slot, Dictionary<string, CandidateProgress> progressMap, ThingDef newFav)
+        private void Crystallize(Pawn pawn, SlotState slot, Dictionary<string, CandidateProgress> progressMap, ThingDef newFav)
         {
+            ThingDef oldFav = slot.favourite;
             slot.favourite = newFav;
             slot.saturation = 0;
             slot.lastTriggerTick = -1;
             slot.lastDecayTick = -1;
             progressMap.Clear();
+
+            // US-035 player-facing notification. Gated by the feature kill-switch so a disabled
+            // player never sees a letter. First-ever slot crystallization → Message (non-intrusive);
+            // rival replacing an existing favourite → Letter (calls attention to the swap).
+            if (!ModSettings_VarietyMatters.favouritesEnabled) return;
+            if (pawn == null || newFav == null) return;
+
+            if (oldFav == null)
+            {
+                Messages.Message(
+                    "VM_Fav_DiscoveryMessage".Translate(pawn.LabelShortCap, newFav.LabelCap),
+                    pawn, MessageTypeDefOf.PositiveEvent, historical: false);
+            }
+            else
+            {
+                Find.LetterStack.ReceiveLetter(
+                    "VM_Fav_ReplacementLetterTitle".Translate(),
+                    "VM_Fav_ReplacementLetterBody".Translate(pawn.LabelShortCap, oldFav.LabelCap, newFav.LabelCap),
+                    LetterDefOf.NeutralEvent, pawn);
+            }
         }
 
         private static bool IsGourmand(Pawn pawn)
@@ -304,6 +367,9 @@ namespace VarietyMatters.New
         public override void GameComponentTick()
         {
             base.GameComponentTick();
+            // US-035 kill-switch: freeze saturation decay. Re-enable resumes from persisted
+            // state — slots that were mid-decay stay put until the next tick after re-enable.
+            if (!ModSettings_VarietyMatters.favouritesEnabled) return;
             int tick = Find.TickManager != null ? Find.TickManager.TicksGame : 0;
             if (tick % DecayTickInterval != 0) return;
             if (this._data == null || this._data.Count == 0) return;
