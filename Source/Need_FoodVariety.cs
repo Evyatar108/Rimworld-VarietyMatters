@@ -670,6 +670,9 @@
                             case FoodTrackingType.ByMealNamesAndIngredientsCombination:
                                 stringBuilder.Append("VM_FoodVarietyTip_ByMealTypeAndIngredients".Translate());
                                 break;
+                            case FoodTrackingType.ByIngredientOverlap:
+                                stringBuilder.Append("VM_FoodVarietyTip_ByIngredientOverlap".Translate());
+                                break;
                         }
                     }
                     else
@@ -684,6 +687,9 @@
                                 break;
                             case FoodTrackingType.ByMealNamesAndIngredientsCombination:
                                 stringBuilder.Append("VM_FoodVarietyTip_ByMealNameAndIngredients".Translate());
+                                break;
+                            case FoodTrackingType.ByIngredientOverlap:
+                                stringBuilder.Append("VM_FoodVarietyTip_ByIngredientOverlap".Translate());
                                 break;
                         }
                     }

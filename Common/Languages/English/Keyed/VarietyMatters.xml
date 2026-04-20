@@ -102,6 +102,7 @@
   <VM_FoodVarietyTip_ByMealTypeAndIngredients> by meal type and ingredients</VM_FoodVarietyTip_ByMealTypeAndIngredients>
   <VM_FoodVarietyTip_ByMealName> by meal name</VM_FoodVarietyTip_ByMealName>
   <VM_FoodVarietyTip_ByMealNameAndIngredients> by meal name and ingredients</VM_FoodVarietyTip_ByMealNameAndIngredients>
+  <VM_FoodVarietyTip_ByIngredientOverlap> by ingredient overlap</VM_FoodVarietyTip_ByIngredientOverlap>
 
   <!-- Flavor pool: Forgotten (20) — order preserved so seed-based RandChoose picks identically -->
   <VM_FoodVariety_Forgotten_00>(Has Variety) There's variety in my meals, but I can't recall the specifics.</VM_FoodVariety_Forgotten_00>
