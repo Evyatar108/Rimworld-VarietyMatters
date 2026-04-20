@@ -17,16 +17,30 @@ namespace VarietyMatters.New
         {
             if (pawn == null) return 0f;
             ExpectationDef tier = ExpectationsUtility.CurrentExpectationFor(pawn);
-            if (tier == null) return 0f;
-
-            if (tier == ExpectationDefOf.ExtremelyLow) return 0.00f;
-            if (tier == ExpectationDefOf.VeryLow)      return 0.05f;
-            if (tier == ExpectationDefOf.Low)          return 0.15f;
-            if (tier == ExpectationDefOf.Moderate)     return 0.30f;
-            if (tier == ExpectationDefOf.High)         return 0.45f;
-            if (tier == DefOf_VarietyMatters.SkyHigh)  return 0.55f;
+            float tierBaseline;
+            if (tier == null)                               tierBaseline = 0f;
+            else if (tier == ExpectationDefOf.ExtremelyLow) tierBaseline = 0.00f;
+            else if (tier == ExpectationDefOf.VeryLow)      tierBaseline = 0.05f;
+            else if (tier == ExpectationDefOf.Low)          tierBaseline = 0.15f;
+            else if (tier == ExpectationDefOf.Moderate)     tierBaseline = 0.30f;
+            else if (tier == ExpectationDefOf.High)         tierBaseline = 0.45f;
+            else if (tier == DefOf_VarietyMatters.SkyHigh)  tierBaseline = 0.55f;
             // Noble + any unrecognized DLC-added higher tier (default arm).
-            return 0.65f;
+            else                                            tierBaseline = 0.65f;
+
+            // Slave / prisoner status suppresses palate refinement alongside their variety count,
+            // reusing the existing Mod Settings percentages (default slave 65%, prisoner 50%).
+            // Noble slave → 0.65 × 0.65 = 0.42; noble prisoner → 0.65 × 0.50 = 0.33. Tribal slave
+            // or prisoner stays at 0 (baseline was zero anyway).
+            if (pawn.IsSlave)
+            {
+                tierBaseline *= Mathf.Max(0f, ModSettings_VarietyMatters.slaveExpectedVarietyPercentage / 100f);
+            }
+            if (pawn.IsPrisoner)
+            {
+                tierBaseline *= Mathf.Max(0f, ModSettings_VarietyMatters.prisonerExpectedVarietyPercentage / 100f);
+            }
+            return tierBaseline;
         }
 
         // Warmup grace: fresh colonies / freshly-added pawns have an empty-ish queue, and the
