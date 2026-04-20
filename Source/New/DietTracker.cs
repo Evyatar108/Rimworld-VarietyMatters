@@ -33,10 +33,8 @@
         // (ComputeVarietyScore, GetOverlapBreakdown). Never held across frames.
         private static readonly HashSet<ThingDef> _recentIngSetScratch = new HashSet<ThingDef>();
 
-        // US-025 meal-def-new bonus. Scratch for past-meal ThingDef set, populated alongside
-        // _recentIngSetScratch in ComputeVarietyScore and IsMealDefFreshInWindow. Same lifecycle
-        // rules as _recentIngSetScratch.
-        private static readonly HashSet<ThingDef> _recentMealDefsScratch = new HashSet<ThingDef>();
+        // Previously held past-meal ThingDef set for the in-score meal-def-new bonus (dropped
+        // in US-026 when the bonus moved to mood-tick read time via IsMealDefFreshInWindow).
 
         // US-025 meal-def-new bonus constants. A meal whose ThingDef has not been seen in the
         // decay window contributes an additive variety bonus proportional to its ingredient count,
@@ -358,24 +356,40 @@
         }
 
         // Jaccard overlap: 1 - |target.ingredients ∩ recent_ingredient_set| / |target.ingredients|.
-        // recent_ingredient_set = union of ingredient defs from queued meals strictly prior to
-        // `target` in tick order. Anchoring on target.AteAtTick (not the current tick) keeps the
-        // result consistent whether scoring at ingest (target not yet queued) or rebuilding in
-        // ReCount (target already queued — later meals must not leak into its historical score).
-        // Memory is bounded by queue size (count-based, per-tier × memoryMultiplier), no time
-        // window filter.
+        // recent_ingredient_set = union of ingredient defs from the last `ScoringWindow` queued
+        // meals strictly prior to `target` in tick order. Anchoring on target.AteAtTick (not the
+        // current tick) keeps the result consistent whether scoring at ingest (target not yet
+        // queued) or rebuilding in ReCount (target already queued — later meals must not leak).
+        // ScoringWindow decouples scoring saturation from per-tier storage depth: storage queue
+        // still tier-scaled (memoryMultiplier × tierSetting) for meal-def rotation + UI, but
+        // overlap math uses a fixed small window.
         // Empty-ingredient meals (paste/kibble without CompIngredients) fall back to singleton
         // ThingDef of the meal.
         private float ComputeVarietyScore(EatenFoodSource target)
         {
             _recentIngSetScratch.Clear();
-            _recentMealDefsScratch.Clear();
 
             int anchorTick = target.AteAtTick;
             if (anchorTick < 0)
             {
                 anchorTick = Find.TickManager != null ? Find.TickManager.TicksGame : 0;
             }
+
+            // Count eligible (pre-target, non-forgotten) meals so we can skip down to the last
+            // ScoringWindow before the ingredient-overlap walk. The set is small (~10-40), so
+            // two passes are negligible.
+            int eligibleCount = 0;
+            foreach (EatenFoodByPawn past in this.foodSourcesByOrderV2)
+            {
+                EatenFoodSource src = past.Source;
+                if (src == null || src.IsForgotten) continue;
+                if (ReferenceEquals(src, target)) continue;
+                int t = src.AteAtTick;
+                if (t < 0 || t >= anchorTick) continue;
+                eligibleCount++;
+            }
+            int skipCount = System.Math.Max(0, eligibleCount - VarietyAdjuster.ScoringWindow);
+            int seen = 0;
 
             foreach (EatenFoodByPawn past in this.foodSourcesByOrderV2)
             {
@@ -386,6 +400,7 @@
                 int t = src.AteAtTick;
                 if (t < 0) continue;
                 if (t >= anchorTick) continue;
+                if (seen++ < skipCount) continue;
 
                 List<ThingDef> pastDefs = src.IngredientsDefs;
                 if (pastDefs != null && pastDefs.Count > 0)
@@ -400,10 +415,6 @@
                 {
                     _recentIngSetScratch.Add(src.ThingDef);
                 }
-
-                // US-025: track past meal ThingDefs separately so the meal-def-new bonus can fire
-                // even when the meal has ingredients (so its SourceDef isn't in the ingredient set).
-                if (src.ThingDef != null) _recentMealDefsScratch.Add(src.ThingDef);
             }
 
             List<ThingDef> inc = target.IngredientsDefs;
@@ -473,13 +484,24 @@
         {
             if (candidateThing?.def == null) return 1f;
 
-            // Walk all queued meals (queue is count-bounded, no time filter). Candidate is
-            // scored against the full memory window.
+            // Scope to the last ScoringWindow eligible meals — matches the scoring math used
+            // at ingest/ReCount so food-search preference aligns with mood contribution.
             _recentIngSetScratch.Clear();
+            int eligibleCount = 0;
             foreach (EatenFoodByPawn past in this.foodSourcesByOrderV2)
             {
                 EatenFoodSource src = past?.Source;
                 if (src == null || src.IsForgotten) continue;
+                eligibleCount++;
+            }
+            int skipCount = System.Math.Max(0, eligibleCount - VarietyAdjuster.ScoringWindow);
+            int seen = 0;
+
+            foreach (EatenFoodByPawn past in this.foodSourcesByOrderV2)
+            {
+                EatenFoodSource src = past?.Source;
+                if (src == null || src.IsForgotten) continue;
+                if (seen++ < skipCount) continue;
 
                 List<ThingDef> pastDefs = src.IngredientsDefs;
                 if (pastDefs != null && pastDefs.Count > 0)
@@ -561,6 +583,22 @@
             {
                 anchorTick = Find.TickManager != null ? Find.TickManager.TicksGame : 0;
             }
+
+            // Scope to ScoringWindow eligible meals — matches ComputeVarietyScore so tooltip
+            // breakdown shows exactly the meals that drove the stored score.
+            int eligibleCount = 0;
+            foreach (EatenFoodByPawn past in this.foodSourcesByOrderV2)
+            {
+                EatenFoodSource src = past.Source;
+                if (src == null || src.IsForgotten) continue;
+                if (ReferenceEquals(src, meal)) continue;
+                int t = src.AteAtTick;
+                if (t < 0 || t >= anchorTick) continue;
+                eligibleCount++;
+            }
+            int skipCount = System.Math.Max(0, eligibleCount - VarietyAdjuster.ScoringWindow);
+            int seen = 0;
+
             foreach (EatenFoodByPawn past in this.foodSourcesByOrderV2)
             {
                 EatenFoodSource src = past.Source;
@@ -570,6 +608,7 @@
                 int t = src.AteAtTick;
                 if (t < 0) continue;
                 if (t >= anchorTick) continue;
+                if (seen++ < skipCount) continue;
 
                 List<ThingDef> pastDefs = src.IngredientsDefs;
                 if (pastDefs != null && pastDefs.Count > 0)

@@ -136,6 +136,14 @@ namespace VarietyMatters.New
         // is erased.
         public const float SoftFloorCoeff = 0.25f;
 
+        // Overlap-scoring window: number of most-recent queued meals that contribute to ingredient
+        // overlap for a given candidate meal. Fixed per-tier (nobles and tribals both score
+        // against last N=6 meals). Decouples storage depth (per-tier × memoryMultiplier, used
+        // for meal-def rotation lookup + UI history) from scoring saturation. Without this cap
+        // noble's 34-meal queue would make ingredient overlap saturate any pantry < 100 defs,
+        // locking noble mood at 0% regardless of cooking effort.
+        public const int ScoringWindow = 6;
+
         public static void AdjustVarietyLevel(DietTracker dietTracker)
         {
             if (dietTracker == null)
