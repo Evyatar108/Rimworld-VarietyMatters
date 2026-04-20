@@ -64,6 +64,8 @@
 
         public float TotalVarietyScore => this.totalVarietyScore;
 
+        public int MealsInMemory => this.foodSourcesByOrderV2.Count;
+
         public IEnumerable<EatenFoodByPawn> EatenFoodSourcesByOrder => this.foodSourcesByOrderV2;
 
         public EatenFoodByPawn mostRecentEatenFoodSourceV2;

@@ -19,7 +19,9 @@
 
             if (ModSettings_VarietyMatters.foodTrackingType == FoodTrackingType.ByIngredientOverlap)
             {
-                percentageOfVarietyComparedToExpected = (double)dietTracker.TotalVarietyScore / (double)varietyExpectation;
+                int mealsInMemory = dietTracker.MealsInMemory;
+                double meanScore = mealsInMemory > 0 ? (double)dietTracker.TotalVarietyScore / mealsInMemory : 0.0;
+                percentageOfVarietyComparedToExpected = meanScore * ModSettings_VarietyMatters.memoryMultiplier;
             }
             else
             {
