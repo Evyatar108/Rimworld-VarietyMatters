@@ -83,25 +83,23 @@ namespace VarietyMatters.New
             return Mathf.Clamp01(curved + bonus);
         }
 
+        // Baseline derived from per-tier Mod Settings so the player's tuning of
+        // extremelyLowVariety..nobleVariety drives both memory capacity AND palate threshold
+        // consistently. Formula: baseline = clamp((rawSetting − 3) / 20, 0, 0.9).
+        //   Defaults: ExLow=4 → 0.05, VLow=5 → 0.10, Low=6 → 0.15, Mod=8 → 0.25,
+        //             High=10 → 0.35, SkyHi=12 → 0.45, Noble=15 → 0.60.
+        // Reads the *raw* tier setting (no slave / prisoner / gourmand modifiers) — those apply
+        // to variety count (GetVarietyExpectation) but not to palate refinement, which is purely
+        // a tier-identity property. Slave/prisoner multipliers still apply to the baseline below,
+        // consistent with how they already modulate expected variety count.
         private static float BaselineForTier(Pawn pawn)
         {
             if (pawn == null) return 0f;
             ExpectationDef tier = ExpectationsUtility.CurrentExpectationFor(pawn);
-            float tierBaseline;
-            if (tier == null)                               tierBaseline = 0f;
-            else if (tier == ExpectationDefOf.ExtremelyLow) tierBaseline = 0.00f;
-            else if (tier == ExpectationDefOf.VeryLow)      tierBaseline = 0.05f;
-            else if (tier == ExpectationDefOf.Low)          tierBaseline = 0.15f;
-            else if (tier == ExpectationDefOf.Moderate)     tierBaseline = 0.30f;
-            else if (tier == ExpectationDefOf.High)         tierBaseline = 0.45f;
-            else if (tier == DefOf_VarietyMatters.SkyHigh)  tierBaseline = 0.55f;
-            // Noble + any unrecognized DLC-added higher tier (default arm).
-            else                                            tierBaseline = 0.65f;
+            if (tier == null) return 0f;
+            int raw = GetRawTierVariety(tier);
+            float tierBaseline = Mathf.Clamp((raw - 3) / 20f, 0f, 0.9f);
 
-            // Slave / prisoner status suppresses palate refinement alongside their variety count,
-            // reusing the existing Mod Settings percentages (default slave 65%, prisoner 50%).
-            // Noble slave → 0.65 × 0.65 = 0.42; noble prisoner → 0.65 × 0.50 = 0.33. Tribal slave
-            // or prisoner stays at 0 (baseline was zero anyway).
             if (pawn.IsSlave)
             {
                 tierBaseline *= Mathf.Max(0f, ModSettings_VarietyMatters.slaveExpectedVarietyPercentage / 100f);
@@ -111,6 +109,18 @@ namespace VarietyMatters.New
                 tierBaseline *= Mathf.Max(0f, ModSettings_VarietyMatters.prisonerExpectedVarietyPercentage / 100f);
             }
             return tierBaseline;
+        }
+
+        private static int GetRawTierVariety(ExpectationDef tier)
+        {
+            if (tier == ExpectationDefOf.ExtremelyLow) return ModSettings_VarietyMatters.extremelyLowVariety;
+            if (tier == ExpectationDefOf.VeryLow)      return ModSettings_VarietyMatters.veryLowVariety;
+            if (tier == ExpectationDefOf.Low)          return ModSettings_VarietyMatters.lowVariety;
+            if (tier == ExpectationDefOf.Moderate)     return ModSettings_VarietyMatters.moderateVariety;
+            if (tier == ExpectationDefOf.High)         return ModSettings_VarietyMatters.highVariety;
+            if (tier == DefOf_VarietyMatters.SkyHigh)  return ModSettings_VarietyMatters.skyHighVariety;
+            // Noble + any unrecognized DLC-added higher tier (default arm).
+            return ModSettings_VarietyMatters.nobleVariety;
         }
 
         // Warmup grace: fresh colonies / freshly-added pawns have an empty-ish queue, and the
@@ -132,8 +142,6 @@ namespace VarietyMatters.New
             {
                 throw new ArgumentNullException(nameof(dietTracker));
             }
-
-            int varietyExpectation = VarietyExpectation.GetVarietyExpectation(dietTracker.Pawn);
 
             Need_FoodVariety varietyNeed = dietTracker.Pawn.needs.TryGetNeed<Need_FoodVariety>();
 
