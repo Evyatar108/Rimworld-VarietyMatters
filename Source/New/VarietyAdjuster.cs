@@ -1,12 +1,54 @@
 namespace VarietyMatters.New
 {
     using System;
+    using System.Collections.Generic;
     using RimWorld;
     using UnityEngine;
     using Verse;
 
     public static class VarietyAdjuster
     {
+        // Cache of `ThingDef (produced meal) → recipe.ingredients.Count (slot count)`. Populated
+        // lazily on first lookup, rarely grows (one entry per meal ThingDef in the game). Used
+        // for the US-025 meal-def-new bonus: complexity should reflect the recipe's intrinsic
+        // slot count (1 for simple meal, 2 for fine/lavish), NOT how many distinct defs the mod
+        // stuffed into the cooked meal via BestVariety_AllowMix. Per user feedback: "simple meal
+        // with 3 ingredients stuffed in should still score as a 1-slot recipe."
+        private static readonly Dictionary<ThingDef, int> _recipeSlotCountCache = new Dictionary<ThingDef, int>();
+
+        public static int GetRecipeSlotComplexity(ThingDef mealDef, List<ThingDef> fallbackInstanceIngredients)
+        {
+            if (mealDef != null)
+            {
+                if (_recipeSlotCountCache.TryGetValue(mealDef, out int cached))
+                {
+                    if (cached > 0) return cached;
+                }
+                else
+                {
+                    int slots = 0;
+                    var recipes = DefDatabase<RecipeDef>.AllDefsListForReading;
+                    for (int i = 0; i < recipes.Count; i++)
+                    {
+                        var r = recipes[i];
+                        if (r != null && r.ProducedThingDef == mealDef && r.ingredients != null)
+                        {
+                            slots = r.ingredients.Count;
+                            break;
+                        }
+                    }
+                    _recipeSlotCountCache[mealDef] = slots;
+                    if (slots > 0) return slots;
+                }
+            }
+            // No recipe produces this meal (raw, paste, kibble-eaten-directly, modded food with no
+            // crafting entry). Fall back to the instance ingredient count, then 1.
+            int fallback = fallbackInstanceIngredients != null && fallbackInstanceIngredients.Count > 0
+                ? fallbackInstanceIngredients.Count
+                : 1;
+            return fallback;
+        }
+
         // Per-meal "palate threshold" keyed on the vanilla ExpectationDef tier (not on the int
         // expectation count, which is modified by slave / prisoner / gourmand status). A meal's
         // ingredient-overlap score must exceed this threshold to register; otherwise the meal
@@ -127,9 +169,7 @@ namespace VarietyMatters.New
                     // so eating raw meat doesn't lift mood but also doesn't drag it down.
                     if (dietTracker.HasNoVarietyReason(foodByPawn)) continue;
 
-                    int complexity = (src.IngredientsDefs != null && src.IngredientsDefs.Count > 0)
-                        ? src.IngredientsDefs.Count
-                        : 1;
+                    int complexity = GetRecipeSlotComplexity(src.ThingDef, src.IngredientsDefs);
                     float effective = ComputeEffectiveScore(
                         src.VarietyScore,
                         baseline,

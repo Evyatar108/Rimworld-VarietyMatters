@@ -505,7 +505,7 @@ namespace VarietyMatters
             int mealDefBonusPct = 0;
             if (mealDefFresh)
             {
-                int c = row.Ingredients != null && row.Ingredients.Count > 0 ? row.Ingredients.Count : 1;
+                int c = VarietyAdjuster.GetRecipeSlotComplexity(row.MealDef, row.Ingredients);
                 mealDefBonusPct = (int)Math.Round(
                     Mathf.Min(DietTracker.MealDefBonusCap, DietTracker.MealDefBonusPerIngredient * c) * 100f);
             }
@@ -545,9 +545,7 @@ namespace VarietyMatters
             // varietyScore on the row already includes the bonus math; these lines are just UX.
             if (row.MealDef != null && mealDefFresh)
             {
-                int complexity = row.Ingredients != null && row.Ingredients.Count > 0
-                    ? row.Ingredients.Count
-                    : 1;
+                int complexity = VarietyAdjuster.GetRecipeSlotComplexity(row.MealDef, row.Ingredients);
                 float bonus = Mathf.Min(DietTracker.MealDefBonusCap,
                     DietTracker.MealDefBonusPerIngredient * complexity);
                 bool capped = bonus >= DietTracker.MealDefBonusCap - 0.0001f

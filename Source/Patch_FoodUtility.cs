@@ -61,16 +61,8 @@
 			// will actually improve their variety mood.
 			float ingScore = dietTracker.EstimateIngredientScoreForCandidate(foodSource);
 			bool mealDefFresh = dietTracker.IsCandidateMealDefFresh(foodSource);
-			int complexity;
 			var comp = foodSource.TryGetComp<CompIngredients>();
-			if (comp != null && comp.ingredients != null && comp.ingredients.Count > 0)
-			{
-				complexity = comp.ingredients.Count;
-			}
-			else
-			{
-				complexity = 1;
-			}
+			int complexity = VarietyAdjuster.GetRecipeSlotComplexity(foodSource.def, comp?.ingredients);
 			float baseline = VarietyAdjuster.BaselineForTierPublic(eater);
 			float effective = VarietyAdjuster.ComputeEffectiveScore(ingScore, baseline, mealDefFresh, complexity);
 
