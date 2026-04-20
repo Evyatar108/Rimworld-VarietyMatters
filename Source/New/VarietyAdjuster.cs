@@ -1,19 +1,33 @@
 namespace VarietyMatters.New
 {
     using System;
+    using RimWorld;
     using UnityEngine;
+    using Verse;
 
     public static class VarietyAdjuster
     {
-        // Baseline curve constants (US-026 I″ formulation). A pawn's variety expectation sets a
-        // per-meal "palate threshold" — meals whose ingredient-overlap score is below this value
-        // contribute nothing to that pawn's variety pool. Tribal (E=3) → 0 (no threshold, any
-        // variety registers). Noble (E=15) → 0.6 (only 60%+ fresh meals count). Formula:
-        //   baseline = clamp((expected - 3) / 20, 0, 0.9)
-        // Capped at 0.9 so even legendary-tier pawns can still register variety on perfect meals.
-        private const float BaselineExpectedAnchor = 3f;
-        private const float BaselineExpectedDivisor = 20f;
-        private const float BaselineMaxClamp = 0.9f;
+        // Per-meal "palate threshold" keyed on the vanilla ExpectationDef tier (not on the int
+        // expectation count, which is modified by slave / prisoner / gourmand status). A meal's
+        // ingredient-overlap score must exceed this threshold to register; otherwise the meal
+        // contributes zero to that pawn's variety pool. Extreme Low → 0 (any variety counts).
+        // Noble → 0.65 (only genuinely-fresh meals matter). Capped below 1.0 so every tier can
+        // still reach full mood on a perfect (all-new-ingredients) meal.
+        private static float BaselineForTier(Pawn pawn)
+        {
+            if (pawn == null) return 0f;
+            ExpectationDef tier = ExpectationsUtility.CurrentExpectationFor(pawn);
+            if (tier == null) return 0f;
+
+            if (tier == ExpectationDefOf.ExtremelyLow) return 0.00f;
+            if (tier == ExpectationDefOf.VeryLow)      return 0.05f;
+            if (tier == ExpectationDefOf.Low)          return 0.15f;
+            if (tier == ExpectationDefOf.Moderate)     return 0.30f;
+            if (tier == ExpectationDefOf.High)         return 0.45f;
+            if (tier == DefOf_VarietyMatters.SkyHigh)  return 0.55f;
+            // Noble + any unrecognized DLC-added higher tier (default arm).
+            return 0.65f;
+        }
 
         // Warmup grace: fresh colonies / freshly-added pawns have an empty-ish queue, and the
         // baseline curve would starve them of mood until they accumulate enough meals. Short-
@@ -49,10 +63,8 @@ namespace VarietyMatters.New
                 // I″: per-meal baseline, then post-curve additive bonus for meal-def novelty.
                 // `varietyScore` on each EatenFoodSource is ingredient-only (US-026 semantic);
                 // recompute the US-025 meal-def bonus via IsMealDefFreshInWindow at read time.
-                float baseline = Mathf.Clamp(
-                    (varietyExpectation - BaselineExpectedAnchor) / BaselineExpectedDivisor,
-                    0f, BaselineMaxClamp);
-                float inverseBaseline = 1f - baseline;   // always > 0 because baseline <= 0.9
+                float baseline = BaselineForTier(dietTracker.Pawn);
+                float inverseBaseline = Mathf.Max(0.01f, 1f - baseline);
 
                 double sumEffective = 0.0;
                 int counted = 0;
