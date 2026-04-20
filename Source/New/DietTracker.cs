@@ -26,8 +26,8 @@
 
         // Memory is count-based only: `foodSourcesByOrderV2` is capped at
         // `memoryMultiplier × varietyExpectation` meals by UpdateMaxFoodInMemory. All queued meals
-        // contribute to overlap scoring; no time filter. Tribal (~6 meals) and Noble (~33 meals)
-        // naturally get tier-differentiated memory depth.
+        // contribute to overlap scoring; no time filter. Extremely Low (~6 meals) through Noble
+        // (~33 meals) naturally get tier-differentiated memory depth.
 
         // Shared scratch for overlap computation. Cleared on method entry of each consumer
         // (ComputeVarietyScore, GetOverlapBreakdown). Never held across frames.
