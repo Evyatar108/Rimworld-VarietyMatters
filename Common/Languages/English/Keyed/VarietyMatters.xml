@@ -40,7 +40,7 @@
   <VM_Settings_FromMod>From mod: {0}</VM_Settings_FromMod>
 
   <!-- Hover overlay (F-019) -->
-  <VM_OverlayStats>Expected {0} / Recent {1} / Memory {2}</VM_OverlayStats>
+  <VM_OverlayStats>Expected {0} / Score {1} / Memory {2}</VM_OverlayStats>
   <VM_ForgottenMealTip>Forgotten meal — details faded from memory</VM_ForgottenMealTip>
 
   <!-- Details window (US-020) -->

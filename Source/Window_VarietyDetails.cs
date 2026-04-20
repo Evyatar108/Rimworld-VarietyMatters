@@ -117,18 +117,20 @@ namespace VarietyMatters
             Widgets.Label(nameRect, this.pawn.LabelShortCap);
             Text.Font = GameFont.Small;
 
-            // Stats rows.
+            // Stats rows. "Score" is the actual mood driver under ByIngredientOverlap mode
+            // (sum of per-meal varietyScore over the memory window). Integer "Recent" key-count
+            // is no longer displayed — it was orthogonal to the mood calc post-US-023.
             int expected = VarietyExpectation.GetVarietyExpectation(this.pawn);
-            int actual = 0;
+            float score = 0f;
             if (VarietyRecord.TryGetVarietyRecord(this.pawn, out DietTracker tracker) && tracker != null)
             {
-                actual = tracker.TotalVariety;
+                score = tracker.TotalVarietyScore;
             }
             int memCapacity = (int)(ModSettings_VarietyMatters.memoryMultiplier * expected);
 
             float statsY = inner.y + 34f;
             Rect statRect = new Rect(textX, statsY, textWidth, 24f);
-            Widgets.Label(statRect, "VM_OverlayStats".Translate(expected, actual, memCapacity));
+            Widgets.Label(statRect, "VM_OverlayStats".Translate(expected, score.ToString("F1"), memCapacity));
 
             Need_FoodVariety need = this.pawn.needs?.TryGetNeed<Need_FoodVariety>();
             if (need != null)
