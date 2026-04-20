@@ -26,7 +26,7 @@ namespace VarietyMatters
             public float extremelyLowPalate, veryLowPalate, lowPalate,
                          moderatePalate, highPalate, skyHighPalate, noblePalate;
             public int lowExpectationFloor;
-            public int varietyMoodImpactPercent;
+            public int maxNegativeMood, maxPositiveMood;
             public int mealBonus1Slot, mealBonus2Slot, mealBonus3Slot, mealBonus4Slot, mealBonus5Slot;
             public bool slavesHaveVarietyNeed, prisonersHaveVarietyNeed;
             public int slaveExpectedVarietyPercentage, prisonerExpectedVarietyPercentage;
@@ -39,7 +39,7 @@ namespace VarietyMatters
             extremelyLowPalate = 0.02f, veryLowPalate = 0.04f, lowPalate = 0.08f,
             moderatePalate = 0.14f, highPalate = 0.20f, skyHighPalate = 0.28f, noblePalate = 0.36f,
             lowExpectationFloor = 3,
-            varietyMoodImpactPercent = 50,
+            maxNegativeMood = -8, maxPositiveMood = 12,
             mealBonus1Slot = 0, mealBonus2Slot = 10, mealBonus3Slot = 20,
             mealBonus4Slot = 30, mealBonus5Slot = 40,
             slavesHaveVarietyNeed = true, prisonersHaveVarietyNeed = true,
@@ -56,7 +56,7 @@ namespace VarietyMatters
             extremelyLowPalate = 0.04f, veryLowPalate = 0.08f, lowPalate = 0.12f,
             moderatePalate = 0.20f, highPalate = 0.28f, skyHighPalate = 0.36f, noblePalate = 0.48f,
             lowExpectationFloor = 3,
-            varietyMoodImpactPercent = 100,
+            maxNegativeMood = -12, maxPositiveMood = 12,
             mealBonus1Slot = 0, mealBonus2Slot = 5, mealBonus3Slot = 12,
             mealBonus4Slot = 20, mealBonus5Slot = 30,
             slavesHaveVarietyNeed = true, prisonersHaveVarietyNeed = true,
@@ -70,7 +70,7 @@ namespace VarietyMatters
             extremelyLowPalate = 0.06f, veryLowPalate = 0.12f, lowPalate = 0.18f,
             moderatePalate = 0.26f, highPalate = 0.34f, skyHighPalate = 0.42f, noblePalate = 0.50f,
             lowExpectationFloor = 4,
-            varietyMoodImpactPercent = 100,
+            maxNegativeMood = -14, maxPositiveMood = 12,
             mealBonus1Slot = 0, mealBonus2Slot = 3, mealBonus3Slot = 8,
             mealBonus4Slot = 14, mealBonus5Slot = 22,
             slavesHaveVarietyNeed = true, prisonersHaveVarietyNeed = true,
@@ -100,7 +100,8 @@ namespace VarietyMatters
                               _highMemBuf, _skyHiMemBuf, _nobleMemBuf;
         private static string _exLowPalBuf, _vLowPalBuf, _lowPalBuf, _modPalBuf,
                               _highPalBuf, _skyHiPalBuf, _noblePalBuf;
-        private static string _moodImpactBuf;
+        private static string _maxNegMoodBuf;
+        private static string _maxPosMoodBuf;
         private static string _bonus1Buf, _bonus2Buf, _bonus3Buf, _bonus4Buf, _bonus5Buf;
 
         public Mod_VarietyMatters(ModContentPack content) : base(content)
@@ -290,16 +291,26 @@ namespace VarietyMatters
 
         private void DrawDifficultySection(Listing_Standard ls)
         {
-            // US-030 direct mood impact slider. Replaces the old halveVarietyMoodImpact
-            // checkbox (whose only choices were 100% or 50%). 100 = vanilla 2.0× weight,
-            // 50 = halved (old toggle-on behavior), 200 = doubled mood intensity.
-            int prevMood = ModSettings_VarietyMatters.varietyMoodImpactPercent;
-            if (_moodImpactBuf == null) _moodImpactBuf = prevMood.ToString();
-            Rect moodRect = ls.GetRect(24f, 1f);
-            this.LabeledIntEntry(moodRect, "VM_Settings_MoodImpactLabel".Translate(),
-                ref ModSettings_VarietyMatters.varietyMoodImpactPercent, ref _moodImpactBuf, 1, 10, 0, 200);
-            TooltipHandler.TipRegion(moodRect, "VM_Settings_MoodImpactTooltip".Translate());
-            if (prevMood != ModSettings_VarietyMatters.varietyMoodImpactPercent)
+            // US-031 direct mood-range endpoints. Two independent sliders replace the old
+            // single % scalar so negative and positive mood swings can be tuned asymmetrically.
+            int prevNeg = ModSettings_VarietyMatters.maxNegativeMood;
+            if (_maxNegMoodBuf == null) _maxNegMoodBuf = prevNeg.ToString();
+            Rect negRect = ls.GetRect(24f, 1f);
+            this.LabeledIntEntry(negRect, "VM_Settings_MoodMaxNegLabel".Translate(),
+                ref ModSettings_VarietyMatters.maxNegativeMood, ref _maxNegMoodBuf, 1, 2, -20, 0);
+            TooltipHandler.TipRegion(negRect, "VM_Settings_MoodMaxNegTooltip".Translate());
+            if (prevNeg != ModSettings_VarietyMatters.maxNegativeMood)
+            {
+                QueueRecalculationForGameplayAffectingChange();
+            }
+
+            int prevPos = ModSettings_VarietyMatters.maxPositiveMood;
+            if (_maxPosMoodBuf == null) _maxPosMoodBuf = prevPos.ToString();
+            Rect posRect = ls.GetRect(24f, 1f);
+            this.LabeledIntEntry(posRect, "VM_Settings_MoodMaxPosLabel".Translate(),
+                ref ModSettings_VarietyMatters.maxPositiveMood, ref _maxPosMoodBuf, 1, 2, 0, 20);
+            TooltipHandler.TipRegion(posRect, "VM_Settings_MoodMaxPosTooltip".Translate());
+            if (prevPos != ModSettings_VarietyMatters.maxPositiveMood)
             {
                 QueueRecalculationForGameplayAffectingChange();
             }
@@ -620,9 +631,10 @@ namespace VarietyMatters
             ModSettings_VarietyMatters.highPalate = p.highPalate;
             ModSettings_VarietyMatters.skyHighPalate = p.skyHighPalate;
             ModSettings_VarietyMatters.noblePalate = p.noblePalate;
-            // Difficulty-section fields (7) + US-030 mood + 5 bonus
+            // Difficulty-section fields + US-031 mood-range endpoints + 5 bonus
             ModSettings_VarietyMatters.lowExpectationFloor = p.lowExpectationFloor;
-            ModSettings_VarietyMatters.varietyMoodImpactPercent = p.varietyMoodImpactPercent;
+            ModSettings_VarietyMatters.maxNegativeMood = p.maxNegativeMood;
+            ModSettings_VarietyMatters.maxPositiveMood = p.maxPositiveMood;
             ModSettings_VarietyMatters.mealBonus1Slot = p.mealBonus1Slot;
             ModSettings_VarietyMatters.mealBonus2Slot = p.mealBonus2Slot;
             ModSettings_VarietyMatters.mealBonus3Slot = p.mealBonus3Slot;
@@ -638,7 +650,8 @@ namespace VarietyMatters
             _floorBuf = null;
             _slaveBuf = null;
             _prisonerBuf = null;
-            _moodImpactBuf = null;
+            _maxNegMoodBuf = null;
+            _maxPosMoodBuf = null;
             _bonus1Buf = _bonus2Buf = _bonus3Buf = _bonus4Buf = _bonus5Buf = null;
             _exLowMemBuf = _vLowMemBuf = _lowMemBuf = _modMemBuf =
                 _highMemBuf = _skyHiMemBuf = _nobleMemBuf = null;
@@ -664,7 +677,8 @@ namespace VarietyMatters
                 && Mathf.Approximately(ModSettings_VarietyMatters.skyHighPalate, p.skyHighPalate)
                 && Mathf.Approximately(ModSettings_VarietyMatters.noblePalate, p.noblePalate)
                 && ModSettings_VarietyMatters.lowExpectationFloor == p.lowExpectationFloor
-                && ModSettings_VarietyMatters.varietyMoodImpactPercent == p.varietyMoodImpactPercent
+                && ModSettings_VarietyMatters.maxNegativeMood == p.maxNegativeMood
+                && ModSettings_VarietyMatters.maxPositiveMood == p.maxPositiveMood
                 && ModSettings_VarietyMatters.mealBonus1Slot == p.mealBonus1Slot
                 && ModSettings_VarietyMatters.mealBonus2Slot == p.mealBonus2Slot
                 && ModSettings_VarietyMatters.mealBonus3Slot == p.mealBonus3Slot

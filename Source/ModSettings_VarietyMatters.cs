@@ -83,6 +83,9 @@
 			// US-030 direct mood + meal-type bonus controls (integer percentages, Scribed with
 			// new keys so older saves get defaults).
 			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.varietyMoodImpactPercent, "varietyMoodImpactPercent", 100, false);
+			// US-031 direct mood-range endpoints (replace the single % slider).
+			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.maxNegativeMood, "maxNegativeMood", -12, false);
+			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.maxPositiveMood, "maxPositiveMood", 12, false);
 			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.mealBonus1Slot, "mealBonus1Slot", 0, false);
 			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.mealBonus2Slot, "mealBonus2Slot", 5, false);
 			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.mealBonus3Slot, "mealBonus3Slot", 12, false);
@@ -156,12 +159,21 @@
 		public static float skyHighPalate = 0.36f;
 		public static float noblePalate = 0.48f;
 
-		// US-030 direct mood impact slider. Percentage scalar on the variety mood thought
-		// weight: 100 → vanilla 2.0× (same as halveVarietyMoodImpact=false), 50 → 1.0× (same
-		// as the old "halve" toggle), 200 → 4.0× (mood swings are twice as intense). Replaces
-		// the boolean halveVarietyMoodImpact in UI; the old field stays Scribed for save-compat
-		// but is no longer consulted by gameplay.
+		// DEPRECATED (US-031): the single percent-scale was replaced by two direct mood-range
+		// endpoints (maxNegativeMood / maxPositiveMood) so negative and positive mood swings
+		// can be tuned asymmetrically. Kept Scribed for backward compatibility; not read by
+		// gameplay. Old saves with a non-default value load their stored percent but the UI
+		// exposes the direct endpoints instead.
 		public static int varietyMoodImpactPercent = 100;
+
+		// US-031 direct mood-range endpoints. The variety thought has 13 stages from very-low
+		// (barren menu, vanilla -6) to very-high (overwhelming menu, vanilla +6). These two
+		// sliders control the worst-case negative and best-case positive mood the thought can
+		// produce at the extreme stages; intermediate stages linearly interpolate toward 0 at
+		// the "average menu" stage. ThoughtWorker.MoodMultiplier picks the appropriate scale
+		// per stage so you can e.g. soften penalties (-6) while keeping full rewards (+12).
+		public static int maxNegativeMood = -12;
+		public static int maxPositiveMood = 12;
 
 		// US-030 meal-type-new bonus per recipe slot count (integer percentages). Replaces the
 		// hardcoded { 0, 0, 0.05, 0.12, 0.20, 0.30 } array. Slot 0 is unused (shouldn't occur);

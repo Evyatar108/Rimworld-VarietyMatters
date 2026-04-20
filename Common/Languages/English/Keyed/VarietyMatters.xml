@@ -12,9 +12,9 @@
   <VM_Settings_Preset_Easy_Desc>Lower tiers, softer mood swings. Forgiving food variety.</VM_Settings_Preset_Easy_Desc>
   <VM_Settings_Preset_Default_Desc>Matches base expectations. Balanced challenge.</VM_Settings_Preset_Default_Desc>
   <VM_Settings_Preset_Hardcore_Desc>Raised tiers, full mood weight. For experienced colonies.</VM_Settings_Preset_Hardcore_Desc>
-  <VM_Settings_Preset_Easy_Tooltip>Sets tier memory 7–27 meals, palate 2–36%, mood impact 50%, meal bonus 0/10/20/30/40%, slave/prisoner 50%/40%. Most forgiving; recommended for new players or low-food colonies.</VM_Settings_Preset_Easy_Tooltip>
-  <VM_Settings_Preset_Default_Tooltip>Sets tier memory 9–34 meals, palate 4–48%, mood impact 100%, meal bonus 0/5/12/20/30%, slave/prisoner 65%/50%. The mod's balanced baseline.</VM_Settings_Preset_Default_Tooltip>
-  <VM_Settings_Preset_Hardcore_Tooltip>Recommended for experienced players. Sets tier memory 11–40 meals, palate 6–50%, mood impact 100%, meal bonus 0/3/8/14/22%, slave/prisoner 80%/65%. High-expectation pawns (Noble) will need 50+ unique ingredients stockpiled or they will complain persistently.</VM_Settings_Preset_Hardcore_Tooltip>
+  <VM_Settings_Preset_Easy_Tooltip>Sets tier memory 7–27 meals, palate 2–36%, mood range -8/+12 (soft penalties, full rewards), meal bonus 0/10/20/30/40%, slave/prisoner 50%/40%. Most forgiving; recommended for new players or low-food colonies.</VM_Settings_Preset_Easy_Tooltip>
+  <VM_Settings_Preset_Default_Tooltip>Sets tier memory 9–34 meals, palate 4–48%, mood range -12/+12, meal bonus 0/5/12/20/30%, slave/prisoner 65%/50%. The mod's balanced baseline.</VM_Settings_Preset_Default_Tooltip>
+  <VM_Settings_Preset_Hardcore_Tooltip>Recommended for experienced players. Sets tier memory 11–40 meals, palate 6–50%, mood range -14/+12 (harsher penalties), meal bonus 0/3/8/14/22%, slave/prisoner 80%/65%. High-expectation pawns (Noble) will need 50+ unique ingredients stockpiled or they will complain persistently.</VM_Settings_Preset_Hardcore_Tooltip>
   <VM_Settings_Preset_CustomLabel>Custom</VM_Settings_Preset_CustomLabel>
   <VM_Settings_Preset_CustomDesc>Individual tuning — no preset matches the current settings.</VM_Settings_Preset_CustomDesc>
 
@@ -72,8 +72,10 @@
   <VM_Settings_PrisonersHaveVarietyLabel>Prisoners have variety need (default true):</VM_Settings_PrisonersHaveVarietyLabel>
   <VM_Settings_PrisonerExpectedVarietyLabel>Prisoner expected variety (% of tier, default 50%):</VM_Settings_PrisonerExpectedVarietyLabel>
   <VM_Settings_PrisonerExpectedVarietyTooltip>Percentage applied to the prisoner's tier value. Scales both expected-variety count AND palate threshold. 100% = same as a free pawn of the same tier; 50% = half as picky.</VM_Settings_PrisonerExpectedVarietyTooltip>
-  <VM_Settings_MoodImpactLabel>Variety mood impact (% of vanilla, default 100):</VM_Settings_MoodImpactLabel>
-  <VM_Settings_MoodImpactTooltip>Scales the food-variety mood thought weight. 100% = vanilla (× 2.0 multiplier on the mood thought, the mod's baseline). 50% = halved (mild difficulty). 0% = no mood effect at all (cosmetic variety tracking). 200% = doubled intensity. Gourmand trait still adds its own × 2 multiplier on top.</VM_Settings_MoodImpactTooltip>
+  <VM_Settings_MoodMaxNegLabel>Max negative variety mood (default -12):</VM_Settings_MoodMaxNegLabel>
+  <VM_Settings_MoodMaxNegTooltip>The worst-case mood penalty the variety thought can produce at the most-barren stage. Stages scale linearly toward 0 at the "average menu" stage. Set 0 to disable all negative variety mood. Vanilla-equivalent default is -12. Gourmand trait doubles this on top.</VM_Settings_MoodMaxNegTooltip>
+  <VM_Settings_MoodMaxPosLabel>Max positive variety mood (default +12):</VM_Settings_MoodMaxPosLabel>
+  <VM_Settings_MoodMaxPosTooltip>The best-case mood bonus the variety thought can produce at the most-varied stage. Stages scale linearly toward 0 at the "average menu" stage. Set 0 to disable all positive variety mood. Vanilla-equivalent default is +12. Gourmand trait doubles this on top.</VM_Settings_MoodMaxPosTooltip>
   <VM_Settings_RaceSectionHeader>Enable/Disable variety for races (Requires HAR):</VM_Settings_RaceSectionHeader>
   <VM_Settings_ResetRacesButton>Reset Current Races</VM_Settings_ResetRacesButton>
   <VM_Settings_FromMod>From mod: {0}</VM_Settings_FromMod>

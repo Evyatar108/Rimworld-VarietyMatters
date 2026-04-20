@@ -11,18 +11,38 @@
 	{
         public override float MoodMultiplier(Pawn p)
         {
-            // US-030 direct mood impact slider replaces the old halveVarietyMoodImpact boolean.
-            // The Scribed halveVarietyMoodImpact field is no longer consulted here (kept in the
-            // settings class only for save-compat with older versions).
-            float baseMultiplier = 2f * Mathf.Max(0f, ModSettings_VarietyMatters.varietyMoodImpactPercent / 100f);
+            // US-031 stage-aware asymmetric scaling. The variety thought has 13 stages where
+            // vanilla baseMoodEffect ranges from -6 (barren menu) through 0 (average) to +6
+            // (overwhelming). The player sets maxNegativeMood (default -12, applied at stage 0)
+            // and maxPositiveMood (default +12, applied at stage 12); intermediate stages
+            // interpolate linearly toward 0. Per-stage scale = abs(maxSide) / 6. Stage 6 is
+            // "average" with baseMoodEffect 0, so the multiplier there is irrelevant.
+            ThoughtState state = this.CurrentStateInternal(p);
+            float scale = 2f; // vanilla-equivalent fallback if state is inactive
+            if (state.Active)
+            {
+                int vanillaEffect = state.StageIndex - 6; // 0..12 → -6..+6
+                if (vanillaEffect < 0)
+                {
+                    scale = Mathf.Abs(ModSettings_VarietyMatters.maxNegativeMood) / 6f;
+                }
+                else if (vanillaEffect > 0)
+                {
+                    scale = ModSettings_VarietyMatters.maxPositiveMood / 6f;
+                }
+                else
+                {
+                    scale = 1f; // stage 6 has baseMoodEffect 0; multiplier doesn't matter
+                }
+            }
 
             TraitDef gourmand = DefOf_VarietyMatters.Gourmand;
             if (gourmand != null && p.story.traits.HasTrait(gourmand))
             {
-                baseMultiplier *= 2;
+                scale *= 2;
             }
 
-            return baseMultiplier;
+            return Mathf.Max(0f, scale);
         }
 
         // Token: 0x0600002A RID: 42 RVA: 0x00003FA4 File Offset: 0x000021A4
