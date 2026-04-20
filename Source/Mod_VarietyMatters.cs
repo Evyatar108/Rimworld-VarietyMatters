@@ -70,20 +70,6 @@
 			string cookingMemText = ModSettings_VarietyMatters.cookingMemoryDepth.ToString();
 			this.LabeledIntEntry(listing_Standard.GetRect(24f, 1f), cookingMemLabel, ref ModSettings_VarietyMatters.cookingMemoryDepth, ref cookingMemText, 1, 5, 1, 100);
 
-			float previousOverlapDays = ModSettings_VarietyMatters.varietyOverlapMemoryDays;
-			string overlapLabel = (string)"VM_Settings_OverlapMemoryDaysLabel".Translate(
-				ModSettings_VarietyMatters.varietyOverlapMemoryDays.ToString("F1"));
-			TipSignal overlapTooltip = new TipSignal((string)"VM_Settings_OverlapMemoryDaysTooltip".Translate());
-			listing_Standard.Label(overlapLabel, -1f, overlapTooltip);
-			float sliderVal = listing_Standard.Slider(
-				ModSettings_VarietyMatters.varietyOverlapMemoryDays, 0.5f, 5f);
-			// Snap to 0.5 increments so labels don't jitter.
-			ModSettings_VarietyMatters.varietyOverlapMemoryDays = Mathf.Round(sliderVal * 2f) / 2f;
-			if (Mathf.Abs(ModSettings_VarietyMatters.varietyOverlapMemoryDays - previousOverlapDays) > 0.01f)
-			{
-				DebouncedSettingsHandler.QueueRecalculation();
-			}
-
             listing_Standard.GapLine(12f);
 			bool flag5 = listing_Standard.ButtonTextLabeled("VM_Settings_ExpectationHeader".Translate(), "VM_Settings_ResetButton".Translate(), 0, null, null);
 			if (flag5)

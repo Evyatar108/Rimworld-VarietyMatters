@@ -158,15 +158,13 @@ namespace VarietyMatters
 
             if (overlapMode)
             {
-                // Palate-memory subheader — shows the active decay-window setting so the player
-                // can interpret "Recently consumed" against a concrete timespan.
-                float days = ModSettings_VarietyMatters.varietyOverlapMemoryDays;
-                int wholeDays = (int)Math.Round(days);
-                string daysStr = wholeDays == 1 && Math.Abs(days - 1f) < 0.05f
-                    ? (string)"VM_Aggregate_OverlapWindow_One".Translate()
-                    : "VM_Aggregate_OverlapWindow_Many".Translate(days.ToString("F1"));
+                // Count-based memory subheader — queue size is per-tier (memoryMultiplier ×
+                // varietyExpectation). Shows the actual meal count currently held so "Recently
+                // consumed ingredients" reads against a concrete scope.
+                int memCapacity = (int)(ModSettings_VarietyMatters.memoryMultiplier
+                    * VarietyExpectation.GetVarietyExpectation(this.pawn));
                 Widgets.Label(new Rect(inner.x, y, inner.xMax - inner.x, lineHeight),
-                    "VM_Aggregate_OverlapWindow".Translate(daysStr));
+                    "VM_Aggregate_MemoryMeals".Translate(memCapacity));
                 y += lineHeight + 2f;
 
                 Widgets.Label(new Rect(inner.x, y, labelWidth, lineHeight), "VM_Aggregate_TiredOf".Translate());
@@ -744,15 +742,12 @@ namespace VarietyMatters
                 }
             }
 
-            // Overlap-mode aggregate: defs present in any meal within the last VarietyDecayTicks
+            // Overlap-mode aggregate: defs present in any meal in the count-bounded memory queue
             // (= current overlap set). Drives the "Recently consumed ingredients:" row.
-            int nowTick = Find.TickManager != null ? Find.TickManager.TicksGame : 0;
             foreach (var foodByPawn in tracker.EatenFoodSourcesByOrder)
             {
                 EatenFoodSource src = foodByPawn.Source;
                 if (src == null || src.IsForgotten) continue;
-                int t = src.AteAtTick;
-                if (t < 0 || nowTick - t > DietTracker.VarietyDecayTicks) continue;
 
                 List<ThingDef> defs = src.IngredientsDefs;
                 if (defs != null && defs.Count > 0)

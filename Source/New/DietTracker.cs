@@ -24,12 +24,10 @@
 
         private Dictionary<string, int> _countByKey;
 
-        // Decay window in ticks. Meals older than this are dropped from the overlap set when
-        // scoring a new meal under ByIngredientOverlap. Reads live from Mod Settings
-        // (varietyOverlapMemoryDays, default 2.0 days), so tuning the slider is immediate; stored
-        // per-meal scores rebuild via ReCountAll from DebouncedSettingsHandler.
-        public static int VarietyDecayTicks =>
-            Mathf.Max(1, (int)(ModSettings_VarietyMatters.varietyOverlapMemoryDays * GenDate.TicksPerDay));
+        // Memory is count-based only: `foodSourcesByOrderV2` is capped at
+        // `memoryMultiplier × varietyExpectation` meals by UpdateMaxFoodInMemory. All queued meals
+        // contribute to overlap scoring; no time filter. Tribal (~6 meals) and Noble (~33 meals)
+        // naturally get tier-differentiated memory depth.
 
         // Shared scratch for overlap computation. Cleared on method entry of each consumer
         // (ComputeVarietyScore, GetOverlapBreakdown). Never held across frames.
@@ -361,10 +359,11 @@
 
         // Jaccard overlap: 1 - |target.ingredients ∩ recent_ingredient_set| / |target.ingredients|.
         // recent_ingredient_set = union of ingredient defs from queued meals strictly prior to
-        // `target` in time, within VarietyDecayTicks. Anchoring on target.AteAtTick (rather than
-        // the current tick) keeps the result consistent whether we are scoring at ingest (target
-        // not yet queued) or rebuilding in ReCount (target is already in the queue, and later
-        // meals must not leak into an older meal's historical score).
+        // `target` in tick order. Anchoring on target.AteAtTick (not the current tick) keeps the
+        // result consistent whether scoring at ingest (target not yet queued) or rebuilding in
+        // ReCount (target already queued — later meals must not leak into its historical score).
+        // Memory is bounded by queue size (count-based, per-tier × memoryMultiplier), no time
+        // window filter.
         // Empty-ingredient meals (paste/kibble without CompIngredients) fall back to singleton
         // ThingDef of the meal.
         private float ComputeVarietyScore(EatenFoodSource target)
@@ -387,7 +386,6 @@
                 int t = src.AteAtTick;
                 if (t < 0) continue;
                 if (t >= anchorTick) continue;
-                if (anchorTick - t > VarietyDecayTicks) continue;
 
                 List<ThingDef> pastDefs = src.IngredientsDefs;
                 if (pastDefs != null && pastDefs.Count > 0)
@@ -438,8 +436,9 @@
         }
 
         // US-025 helper for UX tooltip. Returns whether the meal's ThingDef is absent from the
-        // decay-window set (i.e. whether the meal-def-new bonus applies). Not a hot path — only
-        // invoked from tooltip rebuild.
+        // queue strictly prior to `meal` (anchored on meal.AteAtTick so the answer is stable for
+        // both live ingest-time and historical ReCount rebuilds). Used for the meal-def-new
+        // bonus gate.
         public bool IsMealDefFreshInWindow(EatenFoodSource meal)
         {
             if (meal == null || meal.ThingDef == null) return false;
@@ -459,7 +458,6 @@
                 int t = src.AteAtTick;
                 if (t < 0) continue;
                 if (t >= anchorTick) continue;
-                if (anchorTick - t > VarietyDecayTicks) continue;
 
                 if (src.ThingDef == meal.ThingDef) return false;
             }
@@ -475,17 +473,13 @@
         {
             if (candidateThing?.def == null) return 1f;
 
-            // Walk the recent decay window exactly like ComputeVarietyScore does, but anchored on
-            // the current tick (candidate would be "eaten now").
+            // Walk all queued meals (queue is count-bounded, no time filter). Candidate is
+            // scored against the full memory window.
             _recentIngSetScratch.Clear();
-            int nowTick = Find.TickManager != null ? Find.TickManager.TicksGame : 0;
             foreach (EatenFoodByPawn past in this.foodSourcesByOrderV2)
             {
                 EatenFoodSource src = past?.Source;
                 if (src == null || src.IsForgotten) continue;
-                int t = src.AteAtTick;
-                if (t < 0) continue;
-                if (nowTick - t > VarietyDecayTicks) continue;
 
                 List<ThingDef> pastDefs = src.IngredientsDefs;
                 if (pastDefs != null && pastDefs.Count > 0)
@@ -525,19 +519,16 @@
             return 1f - (float)overlap / total;
         }
 
-        // US-026 food-search: is this candidate meal's ThingDef absent from the decay window?
-        // Mirrors IsMealDefFreshInWindow for a Thing (not an EatenFoodSource).
+        // US-026 food-search: is this candidate meal's ThingDef absent from the queue? Mirrors
+        // IsMealDefFreshInWindow for a Thing (not an EatenFoodSource). Queue is count-bounded,
+        // no time filter.
         public bool IsCandidateMealDefFresh(Thing candidateThing)
         {
             if (candidateThing?.def == null) return false;
-            int nowTick = Find.TickManager != null ? Find.TickManager.TicksGame : 0;
             foreach (EatenFoodByPawn past in this.foodSourcesByOrderV2)
             {
                 EatenFoodSource src = past?.Source;
                 if (src == null || src.IsForgotten) continue;
-                int t = src.AteAtTick;
-                if (t < 0) continue;
-                if (nowTick - t > VarietyDecayTicks) continue;
                 if (src.ThingDef == candidateThing.def) return false;
             }
             return true;
@@ -579,7 +570,6 @@
                 int t = src.AteAtTick;
                 if (t < 0) continue;
                 if (t >= anchorTick) continue;
-                if (anchorTick - t > VarietyDecayTicks) continue;
 
                 List<ThingDef> pastDefs = src.IngredientsDefs;
                 if (pastDefs != null && pastDefs.Count > 0)
@@ -631,7 +621,7 @@
 
         // For each def in overlapDefs, writes the most-recent past-meal-index distance
         // (1 = immediately preceding meal, 2 = two meals back, etc.) into result.
-        // Only considers meals within VarietyDecayTicks of meal.AteAtTick.
+        // Walks all queued meals before `meal` in order (no time filter — queue is count-bounded).
         // Clears result on entry. Tooltip-only path — not hot.
         public void GetMealsAgoForOverlapDefs(EatenFoodSource meal, HashSet<ThingDef> overlapDefs, Dictionary<ThingDef, int> result)
         {
@@ -655,15 +645,12 @@
             }
             if (mealIdx < 0) return;
 
-            int anchorTick = meal.AteAtTick;
             int remaining = overlapDefs.Count;
             int distance = 0;
             for (int i = mealIdx - 1; i >= 0 && remaining > 0; i--)
             {
                 EatenFoodSource src = this._mealIndexScratch[i].Source;
                 if (src == null || src.IsForgotten) continue;
-                int t = src.AteAtTick;
-                if (anchorTick >= 0 && t >= 0 && anchorTick - t > VarietyDecayTicks) break;
                 distance++;
                 List<ThingDef> defs = src.IngredientsDefs;
                 if (defs != null && defs.Count > 0)
