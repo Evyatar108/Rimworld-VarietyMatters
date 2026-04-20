@@ -28,11 +28,13 @@
 
   <!-- Individual settings (unchanged keys) -->
   <VM_Settings_NonControlledPawnsLabel>Non controlled pawns also have variety need: </VM_Settings_NonControlledPawnsLabel>
+  <VM_Settings_NonControlledPawnsTooltip>Enables food-variety tracking for non-colonist pawns (guests, visitors, mechanoids' handlers, etc.). Off by default means only your controlled colonists care about variety.</VM_Settings_NonControlledPawnsTooltip>
   <VM_Settings_FoodDrugsOnceLabel>Foods that are also drugs are stored in memory just once: </VM_Settings_FoodDrugsOnceLabel>
   <VM_Settings_FoodDrugsOnceTooltip>Foods that also serve as drugs are stored in memory only once. This allows for a scheduled intake of these substances without diminishing variety, while still enjoying the benefits of having them considered as variety if the pawns likes them as food.</VM_Settings_FoodDrugsOnceTooltip>
   <VM_Settings_PreferVarietyLabel>Cooks use different ingredients: </VM_Settings_PreferVarietyLabel>
   <VM_Settings_PreferVarietyTooltip>Cooks rotate ingredients across meals and mix distinct ThingDefs within a single meal. Mixing only applies to bills with 'Allow mixing ingredients' enabled — bills without mixing still get variety-weighted sort order but remain single-ingredient per slot.</VM_Settings_PreferVarietyTooltip>
   <VM_Settings_PreferSpoilingLabel>Cooks prefer spoiling ingredients: </VM_Settings_PreferSpoilingLabel>
+  <VM_Settings_PreferSpoilingTooltip>Cooks prioritize ingredients that are closer to spoiling, reducing food waste. Doesn't affect variety scoring — only ingredient selection order when multiple stacks are eligible.</VM_Settings_PreferSpoilingTooltip>
   <VM_Settings_StackByIngredientsLabel>Stack meals by ingredients: </VM_Settings_StackByIngredientsLabel>
   <VM_Settings_StackByIngredientsTooltip>When enabled, cooked meals with different ingredient sets do NOT stack together in storage — each distinct ingredient combo keeps its own stack. Required for the per-meal variety score to work correctly (otherwise all meals of a type merge into one bag and ingredient history is lost). Disable only if you want vanilla stacking behavior.</VM_Settings_StackByIngredientsTooltip>
   <VM_Settings_NumIngredientsLabel>Ingredients per meal when cooking (vanilla = 3):</VM_Settings_NumIngredientsLabel>

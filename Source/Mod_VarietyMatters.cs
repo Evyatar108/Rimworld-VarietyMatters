@@ -231,6 +231,15 @@ namespace VarietyMatters
                 _sectionExpanded[id] = expanded;
                 SoundStarter.PlayOneShotOnCamera(
                     expanded ? SoundDefOf.Checkbox_TurnedOn : SoundDefOf.Checkbox_TurnedOff, null);
+                // Pre-inflate the content-height cache so the scroll viewport grows for the SAME
+                // frame the newly-expanded section renders into. Without this, the first frame
+                // after expansion clips the tail of the section (viewport still sized from the
+                // previous frame's collapsed layout) and users perceive it as "nothing showed up"
+                // until the next mouse-move triggers a redraw.
+                if (expanded)
+                {
+                    _lastLeftContentHeight = Mathf.Max(_lastLeftContentHeight, 1500f);
+                }
             }
 
             if (expanded)
@@ -247,12 +256,14 @@ namespace VarietyMatters
         private void DrawBasicsSection(Listing_Standard ls)
         {
             ls.CheckboxLabeled("VM_Settings_NonControlledPawnsLabel".Translate(),
-                ref ModSettings_VarietyMatters.nonControlledPawnsHaveVarietyNeed, null, 0f, 1f);
+                ref ModSettings_VarietyMatters.nonControlledPawnsHaveVarietyNeed,
+                "VM_Settings_NonControlledPawnsTooltip".Translate(), 0f, 1f);
             ls.CheckboxLabeled("VM_Settings_FoodDrugsOnceLabel".Translate(),
                 ref ModSettings_VarietyMatters.foodDrugsAreOnlyInMemoryOnce,
                 "VM_Settings_FoodDrugsOnceTooltip".Translate(), 0f, 1f);
             ls.CheckboxLabeled("VM_Settings_PreferSpoilingLabel".Translate(),
-                ref ModSettings_VarietyMatters.preferSpoiling, null, 0f, 1f);
+                ref ModSettings_VarietyMatters.preferSpoiling,
+                "VM_Settings_PreferSpoilingTooltip".Translate(), 0f, 1f);
             ls.Gap(8f);
         }
 
@@ -581,8 +592,9 @@ namespace VarietyMatters
         private static Vector2 leftScrollPosition = Vector2.zero;
 
         // Measured content height of the left settings column. Refreshed each frame from the
-        // real listing height so collapsible sections + conditional rows (slave/prisoner
-        // sub-sliders) resize the scrollbar correctly as they toggle.
-        private static float _lastLeftContentHeight = 500f;
+        // real listing height. Seeded generously so the first frame after opening the settings
+        // window doesn't clip if any section is already expanded. The per-toggle pre-inflate in
+        // DrawSectionHeader handles later expansions.
+        private static float _lastLeftContentHeight = 1500f;
     }
 }
