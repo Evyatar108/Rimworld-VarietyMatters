@@ -206,6 +206,15 @@ namespace VarietyMatters.New
             int nowTick = Find.TickManager != null ? Find.TickManager.TicksGame : 0;
             List<ThingDef> ingredients = eatenFoodSource.IngredientsDefs;
 
+            // Snapshot pre-swap favourites BEFORE CreditIngredient runs. CreditIngredient may
+            // crystallize a new favourite on this very meal; mood and saturation must be evaluated
+            // against what the pawn's favourite WAS before this bite, not what it became.
+            // First-ever crystallization (preMeatFav == null) is intentionally silent — the
+            // Message fires inside Crystallize, but no mood thought fires here.
+            string preMeatFav = data.meatSlot.favourite?.defName;
+            string preVegFav = data.vegSlot.favourite?.defName;
+            string preWildFav = data.wildSlot.favourite?.defName;
+
             _creditedDefNamesScratch.Clear();
             if (ingredients == null || ingredients.Count == 0)
             {
@@ -226,15 +235,17 @@ namespace VarietyMatters.New
                 }
             }
 
-            // Favourite-match detection (US-035). A match always bumps lastTriggerTick so decay
-            // is blocked for the 2-day window, even when the mood is suppressed. Saturation
-            // increments only when the mood actually fires (back-to-back suppression skips it).
-            bool meatMatch = data.meatSlot.favourite != null
-                && _creditedDefNamesScratch.Contains(data.meatSlot.favourite.defName);
-            bool vegMatch = data.vegSlot.favourite != null
-                && _creditedDefNamesScratch.Contains(data.vegSlot.favourite.defName);
-            bool wildMatch = data.wildSlot.favourite != null
-                && _creditedDefNamesScratch.Contains(data.wildSlot.favourite.defName);
+            // Favourite-match detection (US-035). Compares against pre-swap snapshot so a meal
+            // that crystallizes a new favourite does not immediately match it and fire mood.
+            // lastTriggerTick is updated from the live post-swap slot — decay-block tracks the
+            // current favourite, not the pre-swap one. Saturation increments only when the mood
+            // actually fires (back-to-back suppression skips it).
+            bool meatMatch = preMeatFav != null
+                && _creditedDefNamesScratch.Contains(preMeatFav);
+            bool vegMatch = preVegFav != null
+                && _creditedDefNamesScratch.Contains(preVegFav);
+            bool wildMatch = preWildFav != null
+                && _creditedDefNamesScratch.Contains(preWildFav);
             if (meatMatch) data.meatSlot.lastTriggerTick = nowTick;
             if (vegMatch) data.vegSlot.lastTriggerTick = nowTick;
             if (wildMatch) data.wildSlot.lastTriggerTick = nowTick;
@@ -248,10 +259,10 @@ namespace VarietyMatters.New
                 if (wildMatch) data.wildSlot.saturation = Math.Min(SaturationCap, data.wildSlot.saturation + 1);
             }
 
-            // Back-to-back suppression: flag is true after a favourite-matching meal, false
-            // after a non-match. Rice between two cow-meat meals (A -> B -> A) clears the
-            // flag on B, so both A's fire a thought.
-            data.lastMealWasIngestedAsFavourite = matched;
+            // Back-to-back suppression: set true when a match fires a thought, clear to false
+            // on no-match OR on a suppressed consecutive match. This lets A->A->A fire on meals
+            // 1 and 3 (true->false->true) rather than only meal 1 (true->true->true).
+            data.lastMealWasIngestedAsFavourite = matched && !data.lastMealWasIngestedAsFavourite;
 
             _creditedDefNamesScratch.Clear();
         }
