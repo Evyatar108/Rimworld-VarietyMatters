@@ -15,16 +15,16 @@ Your colonists are tired of eating the same gruel. VarietyMatters adds a diet-va
 [img]https://imgur.com/qn0EDiK.png[/img]
 [list]
 [*][b]Diet-variety need:[/b] each meal is graded the moment a pawn eats it, comparing its ingredients to their last 6. Rice+chicken+carrot then rice+chicken+lettuce? Slight drop. Bison+potato+egg after? Full credit.
-[*][b]Smarter cooks:[/b] each chef remembers the ingredients they recently used and rotates across meals. Fine / lavish meals distribute the ingredient-type budget across recipe slots so both meat and veg stay varied.
+[*][b]Smarter cooks:[/b] each chef keeps their own ingredient-use history; the cook AI favors ingredients they haven't used recently when picking what to drop in the pot. Multi-slot recipes (fine / lavish) share the budget across slots so both meat and veg sides stay varied.
 [*][b]Tunable difficulty:[/b] three one-click presets — Easy / Default / Hardcore. Or drill into 20+ individual knobs if you want to tune.
 [*][b]Biotech "no taste" gene:[/b] auto-applied to vanilla Sanguophages so vampires skip variety mood entirely (they'd rather drink hemogen anyway). Drop the gene on any custom xenotype via the normal gene picker.
 [*][b]Detailed inspection:[/b] hover the need bar for a food-icon strip of recent meals; open the details window for per-meal scores, ingredient repeat-vs-fresh breakdown, meal-age labels, and colorblind-friendly status glyphs.
 [/list]
 
 [h2]Is this mod for you?[/h2]
-VarietyMatters is built for players who want diet variety to be a [b]real planning challenge[/b] — one that pushes you to grow a diverse pantry and live with the consequences of a repetitive one. If you'd rather variety happen organically as a mild immersion layer (mood nudges based on whatever pawns happen to eat, no pantry planning required), [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3334272487]Vanilla Food Variety Expanded[/url] is a lighter alternative — lightweight by design, passive, and a solid pick for casual or roleplay-focused playthroughs.
+VarietyMatters is built for players who want diet variety to be a [b]real planning challenge[/b] — one that pushes you to grow a diverse pantry, hunt for more than one meat, and queue more than one recipe. If you'd rather variety happen passively as a mild immersion layer (mood nudges based on whatever pawns happen to eat, no planning required), [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3334272487]Vanilla Food Variety Expanded[/url] is a lighter alternative and a solid pick for casual or roleplay-focused playthroughs.
 
-Neither mod asks you to edit individual food bills. VarietyMatters reaches that by [b]actively changing how cooks pick ingredients[/b] (automatic rotation across meals, per-chef memory, multi-slot budget distribution), so the challenge stays at the strategy level — what you plant, which preset you pick, how you tune tiers — not at the meal-by-meal management level.
+VarietyMatters keeps the challenge at the strategy layer — what you plant, what you hunt, which recipes you queue, how you tune the tiers — because the built-in cook AI handles ingredient rotation without you touching each food bill. And because the difficulty scales with how repetitive your pantry is, it gives the content mods you already have a real gameplay reason to exist: expanded plant packs, animal packs, and cooking packs stop being decorative stockpile and become a measurable mood payoff.
 
 [h2]How it works[/h2]
 A food must provide nutrition and not be actively disliked. Rotten, disgusting-to-ingest, and per-ideology-despised foods (e.g. insect meat, human meat) short-circuit to "no variety" — they neither raise nor lower mood. Nutrient paste doesn't count for pawns who find it disgusting; raw / kibble generally doesn't count either.
