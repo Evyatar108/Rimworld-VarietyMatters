@@ -156,7 +156,7 @@ namespace VarietyMatters
             Widgets.DrawBoxSolid(rect, SectionBg);
             Rect inner = rect.ContractedBy(Padding);
             float lineHeight = 26f;
-            const float labelWidth = 220f;
+            const float labelWidth = 270f;
             float y = inner.y;
 
             bool overlapMode = ModSettings_VarietyMatters.foodTrackingType == FoodTrackingType.ByIngredientOverlap;
