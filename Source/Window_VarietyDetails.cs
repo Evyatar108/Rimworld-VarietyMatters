@@ -498,10 +498,14 @@ namespace VarietyMatters
             int totalIngredients = overlap.Count + fresh.Count;
             int freshCount = fresh.Count;
 
-            // Pre-compute meal-def bonus state for the header (if bonus applied, show
-            // decomposition "ingredient% + bonus% = total%"). Recomputed below for the line item
-            // but the cost is negligible on tooltip path.
-            bool mealDefFresh = row.MealDef != null && tracker.IsMealDefFreshInWindow(row.Source);
+            // Pre-compute meal-def bonus state for the header. Only HasVariety rows can earn the
+            // bonus — rows flagged with a NoVarietyReason (raw, kibble/disgusting, insect, etc.)
+            // are filtered out of the mood aggregation upstream, so showing a bonus line for them
+            // would be misleading even if their meal-def is "fresh in window".
+            bool rowCountsAsVariety = row.Status == Need_FoodVariety.MealRowStatus.HasVariety;
+            bool mealDefFresh = rowCountsAsVariety
+                && row.MealDef != null
+                && tracker.IsMealDefFreshInWindow(row.Source);
             int mealDefBonusPct = 0;
             if (mealDefFresh)
             {
@@ -555,10 +559,12 @@ namespace VarietyMatters
                 string key = capped ? "VM_Overlap_MealDefNewBonusCapped" : "VM_Overlap_MealDefNewBonus";
                 sb.Append(key.Translate(bonusPct, complexity));
             }
-            else if (row.MealDef != null)
+            else if (row.MealDef != null && rowCountsAsVariety)
             {
                 // Meal type was in the recent-meals window — no bonus, but show the line so the
                 // player knows the system considered it (otherwise absence looks like a bug).
+                // Skipped for NoVariety rows: the meal doesn't contribute to mood at all, so a
+                // "no bonus" note would be redundant alongside the reason label already shown.
                 sb.AppendLine();
                 sb.Append("VM_Overlap_MealDefRepeated".Translate());
             }
