@@ -306,9 +306,14 @@ namespace VarietyMatters
             i = 0;
             bool overlapMode = ModSettings_VarietyMatters.foodTrackingType == FoodTrackingType.ByIngredientOverlap;
             DietTracker tracker = null;
+            float pawnBaseline = 0f;
             if (overlapMode)
             {
                 VarietyRecord.TryGetVarietyRecord(this.pawn, out tracker);
+                // Compute the pawn's palate baseline once per frame so each meal-row badge can
+                // display the *effective* mood contribution (post-curve + post-bonus) instead of
+                // the raw stored ingredient score — they diverge for high-tier pawns.
+                pawnBaseline = VarietyAdjuster.BaselineForTierPublic(this.pawn);
             }
             while (i < this._rows.Count)
             {
@@ -323,7 +328,7 @@ namespace VarietyMatters
                 }
                 else
                 {
-                    this.DrawMealRow(new Rect(0f, y, viewRect.width, MealRowHeight), this._rows[i], overlapMode, tracker);
+                    this.DrawMealRow(new Rect(0f, y, viewRect.width, MealRowHeight), this._rows[i], overlapMode, tracker, pawnBaseline);
                     y += MealRowHeight + 4f;
                     i++;
                 }
@@ -355,7 +360,7 @@ namespace VarietyMatters
             GUI.color = Color.white;
         }
 
-        private void DrawMealRow(Rect rect, Need_FoodVariety.MealRowInfo row, bool overlapMode, DietTracker tracker)
+        private void DrawMealRow(Rect rect, Need_FoodVariety.MealRowInfo row, bool overlapMode, DietTracker tracker, float pawnBaseline)
         {
             Widgets.DrawBoxSolid(rect, SectionBg);
             Rect inner = rect.ContractedBy(6f);
@@ -412,12 +417,23 @@ namespace VarietyMatters
                 GUI.color = Color.white;
             }
 
-            // Overlap-mode score badge ("33%"). Right of the status+age block, before ingredient icons.
-            if (overlapMode && !row.IsForgotten)
+            // Overlap-mode score badge. Shows the *effective* mood contribution — raw ingredient
+            // score pushed through the pawn's tier baseline curve plus the post-curve meal-def
+            // bonus — which is what the pawn actually feels. Raw score alone (ingredient Jaccard)
+            // misrepresents reality for high-tier pawns (noble at raw 0.60 may only contribute
+            // 0.15 to mood). Suppressed for NoVariety rows since those don't contribute at all
+            // (status label already says "(raw food)" etc.).
+            if (overlapMode && !row.IsForgotten && row.Status == Need_FoodVariety.MealRowStatus.HasVariety)
             {
+                bool mealDefFresh = tracker != null
+                    && row.MealDef != null
+                    && tracker.IsMealDefFreshInWindow(row.Source);
+                int complexity = VarietyAdjuster.GetRecipeSlotComplexity(row.MealDef, row.Ingredients);
+                float effective = VarietyAdjuster.ComputeEffectiveScore(
+                    row.VarietyScore, pawnBaseline, mealDefFresh, complexity);
                 Rect badgeRect = new Rect(mealRect.xMax + Padding, statusRect.yMax + 22f, 60f, 22f);
-                int pct = Math.Max(0, Math.Min(100, (int)Math.Round(row.VarietyScore * 100f)));
-                GUI.color = ColorForScore(row.VarietyScore);
+                int pct = Math.Max(0, Math.Min(100, (int)Math.Round(effective * 100f)));
+                GUI.color = ColorForScore(effective);
                 Text.Font = GameFont.Small;
                 Widgets.Label(badgeRect, "VM_Details_ScoreBadge".Translate(pct));
                 GUI.color = Color.white;
@@ -477,7 +493,12 @@ namespace VarietyMatters
 
         private string BuildOverlapTooltip(Need_FoodVariety.MealRowInfo row, DietTracker tracker)
         {
-            int pct = Math.Max(0, Math.Min(100, (int)Math.Round(row.VarietyScore * 100f)));
+            // Under US-026 semantic: row.VarietyScore = ingredient-only Jaccard (0-1). The
+            // pawn's actual mood contribution is ComputeEffectiveScore(score, baseline, fresh,
+            // complexity) — includes soft-floor, baseline curve, and post-curve bonus. Show both
+            // so the tooltip matches reality: "ingredient X%, plus meal-type bonus Y%, effective
+            // mood contribution Z%".
+            int ingredientPct = Math.Max(0, Math.Min(100, (int)Math.Round(row.VarietyScore * 100f)));
             StringBuilder sb = this._tooltipBuilder;
             sb.Clear();
             if (row.MealDef != null)
@@ -489,7 +510,7 @@ namespace VarietyMatters
             bool hasIngredients = (row.Ingredients != null && row.Ingredients.Count > 0);
             if (!hasIngredients)
             {
-                sb.AppendLine("VM_Details_ScoreTooltipNoIngredients".Translate(pct));
+                sb.AppendLine("VM_Details_ScoreTooltipNoIngredients".Translate(ingredientPct));
                 sb.AppendLine();
                 sb.Append("VM_Details_EmptyIngredientsFallback".Translate(row.MealDef?.LabelCap ?? ""));
                 return sb.ToString();
@@ -498,30 +519,41 @@ namespace VarietyMatters
             int totalIngredients = overlap.Count + fresh.Count;
             int freshCount = fresh.Count;
 
-            // Pre-compute meal-def bonus state for the header. Only HasVariety rows can earn the
-            // bonus — rows flagged with a NoVarietyReason (raw, kibble/disgusting, insect, etc.)
-            // are filtered out of the mood aggregation upstream, so showing a bonus line for them
-            // would be misleading even if their meal-def is "fresh in window".
+            // Only HasVariety rows earn the meal-def bonus + contribute to mood. NoVariety rows
+            // (raw, kibble, insect, etc.) are filtered upstream in VarietyAdjuster.
             bool rowCountsAsVariety = row.Status == Need_FoodVariety.MealRowStatus.HasVariety;
             bool mealDefFresh = rowCountsAsVariety
                 && row.MealDef != null
                 && tracker.IsMealDefFreshInWindow(row.Source);
             int mealDefBonusPct = 0;
-            if (mealDefFresh)
+            int complexity = 1;
+            if (rowCountsAsVariety)
             {
-                int c = VarietyAdjuster.GetRecipeSlotComplexity(row.MealDef, row.Ingredients);
-                mealDefBonusPct = (int)Math.Round(
-                    Mathf.Min(DietTracker.MealDefBonusCap, DietTracker.MealDefBonusPerIngredient * c) * 100f);
+                complexity = VarietyAdjuster.GetRecipeSlotComplexity(row.MealDef, row.Ingredients);
+                if (mealDefFresh)
+                {
+                    mealDefBonusPct = (int)Math.Round(
+                        Mathf.Min(DietTracker.MealDefBonusCap, DietTracker.MealDefBonusPerIngredient * complexity) * 100f);
+                }
             }
+
+            // Effective contribution = soft-floor / baseline-curve of ingredient score + post-
+            // curve bonus, clamped. This is what the pawn's mood actually receives from this
+            // meal. Computed identically for both bonus-on and bonus-off rows so the displayed
+            // number always matches the mood aggregation math in VarietyAdjuster.
+            float pawnBaseline = VarietyAdjuster.BaselineForTierPublic(this.pawn);
+            float effective = rowCountsAsVariety
+                ? VarietyAdjuster.ComputeEffectiveScore(row.VarietyScore, pawnBaseline, mealDefFresh, complexity)
+                : 0f;
+            int effectivePct = Math.Max(0, Math.Min(100, (int)Math.Round(effective * 100f)));
 
             if (mealDefBonusPct > 0)
             {
-                int ingPct = Math.Max(0, pct - mealDefBonusPct);
-                sb.AppendLine("VM_Details_ScoreTooltipWithBonus".Translate(pct, ingPct, mealDefBonusPct));
+                sb.AppendLine("VM_Details_ScoreTooltipWithBonus".Translate(effectivePct, ingredientPct, mealDefBonusPct));
             }
             else
             {
-                sb.AppendLine("VM_Details_ScoreTooltip".Translate(pct, freshCount, totalIngredients));
+                sb.AppendLine("VM_Details_ScoreTooltip".Translate(effectivePct, ingredientPct, freshCount, totalIngredients));
             }
 
             tracker.GetMealsAgoForOverlapDefs(row.Source, overlap, this._mealsAgoScratch);
@@ -546,10 +578,10 @@ namespace VarietyMatters
             // US-025 meal-def bonus line. When bonus applied, show complexity-scaled % with a
             // "(capped)" note if we hit MealDefBonusCap. When the meal def was repeated, emit a
             // muted "no bonus" line so the player knows the system considered it. Stored
-            // varietyScore on the row already includes the bonus math; these lines are just UX.
+            // Under US-026 semantic, row.VarietyScore is ingredient-only; the bonus lives in the
+            // effective-score term added at mood-tick. These tooltip lines are purely informational.
             if (row.MealDef != null && mealDefFresh)
             {
-                int complexity = VarietyAdjuster.GetRecipeSlotComplexity(row.MealDef, row.Ingredients);
                 float bonus = Mathf.Min(DietTracker.MealDefBonusCap,
                     DietTracker.MealDefBonusPerIngredient * complexity);
                 bool capped = bonus >= DietTracker.MealDefBonusCap - 0.0001f

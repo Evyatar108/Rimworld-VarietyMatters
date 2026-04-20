@@ -178,6 +178,9 @@ namespace VarietyMatters.New
                     sumEffective += effective;
                     counted++;
                 }
+                // Guard: counted==0 means every meal in memory was forgotten or NoVariety-flagged
+                // (raw/kibble/etc.). Avoids NaN from 0/0 division — fall back to 0 mood, matching
+                // the warmup-with-zero-meals branch. See codex review F-035.
                 double meanEffective = counted > 0 ? sumEffective / counted : 0.0;
                 percentageOfVarietyComparedToExpected = meanEffective * ModSettings_VarietyMatters.memoryMultiplier;
             }

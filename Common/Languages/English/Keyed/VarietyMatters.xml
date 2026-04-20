@@ -67,8 +67,8 @@
   <VM_MealAgo_Day_One>1 day ago</VM_MealAgo_Day_One>
   <VM_MealAgo_Days_Many>{0} days ago</VM_MealAgo_Days_Many>
   <VM_Details_ScoreBadge>{0}%</VM_Details_ScoreBadge>
-  <VM_Details_ScoreTooltip>Variety score: {0}% ({1} of {2} ingredients fresh)</VM_Details_ScoreTooltip>
-  <VM_Details_ScoreTooltipWithBonus>Variety score: {0}% — {1}% from ingredients + {2}% from new meal type</VM_Details_ScoreTooltipWithBonus>
+  <VM_Details_ScoreTooltip>Effective variety: {0}% (ingredient score {1}%, {2} of {3} ingredients fresh)</VM_Details_ScoreTooltip>
+  <VM_Details_ScoreTooltipWithBonus>Effective variety: {0}% (ingredient score {1}%, plus +{2}% new meal type bonus)</VM_Details_ScoreTooltipWithBonus>
   <VM_Details_ScoreTooltipNoIngredients>Variety score: {0}%</VM_Details_ScoreTooltipNoIngredients>
   <VM_Details_Repeated>Repeated:</VM_Details_Repeated>
   <VM_Details_New>New:</VM_Details_New>
