@@ -7,7 +7,7 @@
        the gene to any custom xenotype through the normal Biotech gene-picker UI. -->
   <GeneDef>
     <defName>VM_NoVarietyNeed</defName>
-    <label>no taste memory</label>
+    <label>no taste</label>
     <description>Carriers of this gene have no recall for what they recently ate. All meals register as equally novel; boredom with repetitive diets never develops. Useful for sanguophages, mechanoid-adjacent xenotypes, or any being who doesn't derive pleasure from culinary variety.</description>
     <iconPath>UI/Icons/Genes/VM_NoVarietyNeed</iconPath>
     <displayCategory>Mood</displayCategory>
