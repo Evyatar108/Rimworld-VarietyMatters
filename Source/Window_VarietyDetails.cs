@@ -48,12 +48,8 @@ namespace VarietyMatters
         private int _forgottenCount;
         // Overlap-mode aggregate scratch (per CLAUDE.md §1). Rebuilt with other aggregates.
         // `_tiredOfDefs` — ingredient defs appearing in the active decay window (the current overlap set).
-        // `_tryFeedingDefs` — defs the pawn ate before the decay window but no longer in recent meals
-        //   (stale-favourites heuristic; FoodSourceFactory.AllFoodDefs stockpile scan is out of scope).
         private readonly Dictionary<ThingDef, int> _recentIngCountsScratch = new Dictionary<ThingDef, int>();
-        private readonly HashSet<ThingDef> _decayedIngSetScratch = new HashSet<ThingDef>();
         private readonly List<ThingDef> _tiredOfDefs = new List<ThingDef>();
-        private readonly List<ThingDef> _tryFeedingDefs = new List<ThingDef>();
         // Reused per-hover tooltip builder. Cleared at the top of `BuildOverlapTooltip`.
         private readonly StringBuilder _tooltipBuilder = new StringBuilder();
         // Scratch for per-ingredient "meals ago" lookup in BuildOverlapTooltip.
@@ -90,15 +86,12 @@ namespace VarietyMatters
             this.DrawHeader(headerRect);
             y += HeaderHeight + SectionGap;
 
-            // Aggregate stats panel. Overlap mode adds a "Palate memory: last X days"
-            // subheader row, so the panel needs extra vertical space or the Forgotten count
-            // at the bottom clips the first meal-list row.
-            float aggH = ModSettings_VarietyMatters.foodTrackingType == FoodTrackingType.ByIngredientOverlap
-                ? AggregateHeight + 28f
-                : AggregateHeight;
-            Rect aggRect = new Rect(inRect.x, y, inRect.width, aggH);
+            // Aggregate stats panel. Legacy mode fits 2 rows + Forgotten count in AggregateHeight.
+            // Overlap mode fits a subheader + 1 row + Forgotten count in the same space — the
+            // subheader displaces one of the rows, no extra height needed.
+            Rect aggRect = new Rect(inRect.x, y, inRect.width, AggregateHeight);
             this.DrawAggregate(aggRect);
-            y += aggH + SectionGap;
+            y += AggregateHeight + SectionGap;
 
             // Scrollable meal list.
             Rect listRect = new Rect(inRect.x, y, inRect.width, inRect.yMax - y);
@@ -164,7 +157,7 @@ namespace VarietyMatters
             if (overlapMode)
             {
                 // Palate-memory subheader — shows the active decay-window setting so the player
-                // can interpret "Tired of" / "Try feeding" against a concrete timespan.
+                // can interpret "Recently consumed" against a concrete timespan.
                 float days = ModSettings_VarietyMatters.varietyOverlapMemoryDays;
                 int wholeDays = (int)Math.Round(days);
                 string daysStr = wholeDays == 1 && Math.Abs(days - 1f) < 0.05f
@@ -177,11 +170,6 @@ namespace VarietyMatters
                 Widgets.Label(new Rect(inner.x, y, labelWidth, lineHeight), "VM_Aggregate_TiredOf".Translate());
                 Rect valueRect = new Rect(inner.x + labelWidth, y - 2f, inner.xMax - inner.x - labelWidth, IngredientIcon);
                 DrawIngredientIconList(valueRect, this._tiredOfDefs);
-                y += lineHeight + 4f;
-
-                Widgets.Label(new Rect(inner.x, y, labelWidth, lineHeight), "VM_Aggregate_TryFeeding".Translate());
-                valueRect = new Rect(inner.x + labelWidth, y - 2f, inner.xMax - inner.x - labelWidth, IngredientIcon);
-                DrawIngredientIconList(valueRect, this._tryFeedingDefs);
                 y += lineHeight + 4f;
             }
             else
@@ -618,7 +606,6 @@ namespace VarietyMatters
                 this._mostVariedIngredientDefs.Clear();
                 this._mostVariedIngredientCount = 0;
                 this._tiredOfDefs.Clear();
-                this._tryFeedingDefs.Clear();
                 this._forgottenCount = 0;
                 return;
             }
@@ -632,9 +619,7 @@ namespace VarietyMatters
             this._ingredientCounts.Clear();
             this._keyToDef.Clear();
             this._recentIngCountsScratch.Clear();
-            this._decayedIngSetScratch.Clear();
             this._tiredOfDefs.Clear();
-            this._tryFeedingDefs.Clear();
             this._forgottenCount = 0;
 
             for (int i = 0; i < this._rows.Count; i++)
@@ -695,16 +680,15 @@ namespace VarietyMatters
                 }
             }
 
-            // Overlap-mode aggregates: split ingredients by decay window relative to current tick.
-            // tiredOf = all defs present in any meal within the last `VarietyDecayTicks` (= current overlap set).
-            // tryFeeding = defs the pawn ate outside the window but no longer inside it — stale favourites.
+            // Overlap-mode aggregate: defs present in any meal within the last VarietyDecayTicks
+            // (= current overlap set). Drives the "Recently consumed ingredients:" row.
             int nowTick = Find.TickManager != null ? Find.TickManager.TicksGame : 0;
             foreach (var foodByPawn in tracker.EatenFoodSourcesByOrder)
             {
                 EatenFoodSource src = foodByPawn.Source;
                 if (src == null || src.IsForgotten) continue;
                 int t = src.AteAtTick;
-                bool recent = (t >= 0) && (nowTick - t <= DietTracker.VarietyDecayTicks);
+                if (t < 0 || nowTick - t > DietTracker.VarietyDecayTicks) continue;
 
                 List<ThingDef> defs = src.IngredientsDefs;
                 if (defs != null && defs.Count > 0)
@@ -713,37 +697,19 @@ namespace VarietyMatters
                     {
                         ThingDef d = defs[idx];
                         if (d == null) continue;
-                        if (recent)
-                        {
-                            this._recentIngCountsScratch.TryGetValue(d, out int c);
-                            this._recentIngCountsScratch[d] = c + 1;
-                        }
-                        else
-                        {
-                            this._decayedIngSetScratch.Add(d);
-                        }
+                        this._recentIngCountsScratch.TryGetValue(d, out int c);
+                        this._recentIngCountsScratch[d] = c + 1;
                     }
                 }
                 else if (src.ThingDef != null)
                 {
-                    if (recent)
-                    {
-                        this._recentIngCountsScratch.TryGetValue(src.ThingDef, out int c);
-                        this._recentIngCountsScratch[src.ThingDef] = c + 1;
-                    }
-                    else
-                    {
-                        this._decayedIngSetScratch.Add(src.ThingDef);
-                    }
+                    this._recentIngCountsScratch.TryGetValue(src.ThingDef, out int c);
+                    this._recentIngCountsScratch[src.ThingDef] = c + 1;
                 }
             }
             foreach (var kv in this._recentIngCountsScratch)
             {
                 this._tiredOfDefs.Add(kv.Key);
-            }
-            foreach (ThingDef d in this._decayedIngSetScratch)
-            {
-                if (!this._recentIngCountsScratch.ContainsKey(d)) this._tryFeedingDefs.Add(d);
             }
 
             this._lastAggregateVersion = version;
