@@ -151,6 +151,16 @@ namespace VarietyMatters
 
         private void DrawFavouritesRow(Rect rect)
         {
+            // Mirror Need_FoodVariety gating: if the pawn's variety need is disabled
+            // (Ascetic trait, VM_NoVarietyNeed gene, slave/prisoner/faction/race), hide
+            // favourites UI. Prevents stale data from being shown after mid-save trait/gene
+            // changes even though the underlying record is preserved on disk.
+            Need_FoodVariety need = this.pawn.needs?.TryGetNeed<Need_FoodVariety>();
+            if (need != null && need.GetDisabledReason() != DisabledReason.None)
+            {
+                return;
+            }
+
             FavouriteFoodRecord comp = Current.Game?.GetComponent<FavouriteFoodRecord>();
             PawnFavData data = comp?.TryGet(this.pawn);
 
@@ -163,14 +173,14 @@ namespace VarietyMatters
             Widgets.Label(new Rect(rect.x, rect.y, labelW, rect.height), prefix);
             float x = rect.x + labelW + gapSmall;
 
-            bool any = false;
+            bool drewAny = false;
             if (data != null)
             {
-                any |= DrawFavSlotInline(ref x, rect.y, rect.xMax, iconSize, gapSmall, gapSlot, data.meatSlot);
-                any |= DrawFavSlotInline(ref x, rect.y, rect.xMax, iconSize, gapSmall, gapSlot, data.vegSlot);
-                any |= DrawFavSlotInline(ref x, rect.y, rect.xMax, iconSize, gapSmall, gapSlot, data.wildSlot);
+                DrawFavSlotInline(ref x, rect.y, rect.xMax, iconSize, gapSmall, gapSlot, data.meatSlot, ref drewAny);
+                DrawFavSlotInline(ref x, rect.y, rect.xMax, iconSize, gapSmall, gapSlot, data.vegSlot, ref drewAny);
+                DrawFavSlotInline(ref x, rect.y, rect.xMax, iconSize, gapSmall, gapSlot, data.wildSlot, ref drewAny);
             }
-            if (!any)
+            if (!drewAny)
             {
                 GUI.color = new Color(1f, 1f, 1f, 0.45f);
                 Widgets.Label(new Rect(x, rect.y, rect.xMax - x, rect.height), "VM_Fav_None".Translate());
@@ -178,11 +188,13 @@ namespace VarietyMatters
             }
         }
 
-        private static bool DrawFavSlotInline(ref float x, float y, float xMax,
-            float iconSize, float gapSmall, float gapSlot, SlotState slot)
+        private static void DrawFavSlotInline(ref float x, float y, float xMax,
+            float iconSize, float gapSmall, float gapSlot, SlotState slot, ref bool drewAny)
         {
-            if (slot?.favourite == null) return false;
-            if (x + iconSize > xMax) return true;
+            // Returns void so the caller never confuses "overflow skip" with "drew content".
+            // `drewAny` flips true only when we actually rendered the slot's icon+label.
+            if (slot?.favourite == null) return;
+            if (x + iconSize > xMax) return;
             Rect iconRect = new Rect(x, y + (24f - iconSize) * 0.5f, iconSize, iconSize);
             if (slot.favourite.uiIcon != null)
             {
@@ -194,7 +206,7 @@ namespace VarietyMatters
             float labelW = Mathf.Min(Text.CalcSize(label).x, Mathf.Max(0f, xMax - x));
             Widgets.Label(new Rect(x, y, labelW, 24f), label);
             x += labelW + gapSlot;
-            return true;
+            drewAny = true;
         }
 
         private void DrawAggregate(Rect rect)

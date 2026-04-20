@@ -112,16 +112,28 @@ namespace VarietyMatters.New
 
         public static Bucket ClassifyIngredient(ThingDef def)
         {
-            if (def == null) return Bucket.None;
+            // Walk parent chain so modded child categories (e.g. PlantFoodRaw_Grain) classify
+            // correctly. Meat takes priority on hybrid defs tagged under both trees.
+            if (IsInCategoryOrDescendant(def, ThingCategoryDefOf.MeatRaw)) return Bucket.Meat;
+            if (IsInCategoryOrDescendant(def, ThingCategoryDefOf.PlantFoodRaw)) return Bucket.Veg;
+            return Bucket.None;
+        }
+
+        private static bool IsInCategoryOrDescendant(ThingDef def, ThingCategoryDef target)
+        {
+            if (def == null || target == null) return false;
             List<ThingCategoryDef> cats = def.thingCategories;
-            if (cats == null) return Bucket.None;
+            if (cats == null) return false;
             for (int i = 0; i < cats.Count; i++)
             {
-                ThingCategoryDef cat = cats[i];
-                if (cat == ThingCategoryDefOf.MeatRaw) return Bucket.Meat;
-                if (cat == ThingCategoryDefOf.PlantFoodRaw) return Bucket.Veg;
+                ThingCategoryDef c = cats[i];
+                while (c != null)
+                {
+                    if (c == target) return true;
+                    c = c.parent;
+                }
             }
-            return Bucket.None;
+            return false;
         }
 
         public override void FinalizeInit()
