@@ -74,6 +74,7 @@
   <VM_Details_Repeated>Repeated:</VM_Details_Repeated>
   <VM_Details_New>New:</VM_Details_New>
   <VM_Details_NutrientPasteNoIngredients>Nutrient paste (no ingredients)</VM_Details_NutrientPasteNoIngredients>
+  <VM_Details_EmptyIngredientsFallback>{0} (no ingredients)</VM_Details_EmptyIngredientsFallback>
   <VM_Aggregate_TiredOf>Tired of:</VM_Aggregate_TiredOf>
   <VM_Aggregate_TryFeeding>Try feeding:</VM_Aggregate_TryFeeding>
   <VM_Aggregate_None>—</VM_Aggregate_None>

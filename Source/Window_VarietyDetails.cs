@@ -482,7 +482,7 @@ namespace VarietyMatters
             if (!hasIngredients)
             {
                 sb.AppendLine();
-                sb.Append("VM_Details_NutrientPasteNoIngredients".Translate());
+                sb.Append("VM_Details_EmptyIngredientsFallback".Translate(row.MealDef?.LabelCap ?? ""));
                 return sb.ToString();
             }
 
