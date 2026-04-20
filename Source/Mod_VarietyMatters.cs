@@ -26,7 +26,8 @@ namespace VarietyMatters
             public float extremelyLowPalate, veryLowPalate, lowPalate,
                          moderatePalate, highPalate, skyHighPalate, noblePalate;
             public int lowExpectationFloor;
-            public bool halveVarietyMoodImpact;
+            public int varietyMoodImpactPercent;
+            public int mealBonus1Slot, mealBonus2Slot, mealBonus3Slot, mealBonus4Slot, mealBonus5Slot;
             public bool slavesHaveVarietyNeed, prisonersHaveVarietyNeed;
             public int slaveExpectedVarietyPercentage, prisonerExpectedVarietyPercentage;
         }
@@ -38,7 +39,9 @@ namespace VarietyMatters
             extremelyLowPalate = 0.02f, veryLowPalate = 0.04f, lowPalate = 0.08f,
             moderatePalate = 0.14f, highPalate = 0.20f, skyHighPalate = 0.28f, noblePalate = 0.36f,
             lowExpectationFloor = 3,
-            halveVarietyMoodImpact = true,
+            varietyMoodImpactPercent = 50,
+            mealBonus1Slot = 0, mealBonus2Slot = 10, mealBonus3Slot = 20,
+            mealBonus4Slot = 30, mealBonus5Slot = 40,
             slavesHaveVarietyNeed = true, prisonersHaveVarietyNeed = true,
             slaveExpectedVarietyPercentage = 50, prisonerExpectedVarietyPercentage = 40,
         };
@@ -53,7 +56,9 @@ namespace VarietyMatters
             extremelyLowPalate = 0.04f, veryLowPalate = 0.08f, lowPalate = 0.12f,
             moderatePalate = 0.20f, highPalate = 0.28f, skyHighPalate = 0.36f, noblePalate = 0.48f,
             lowExpectationFloor = 3,
-            halveVarietyMoodImpact = false,
+            varietyMoodImpactPercent = 100,
+            mealBonus1Slot = 0, mealBonus2Slot = 5, mealBonus3Slot = 12,
+            mealBonus4Slot = 20, mealBonus5Slot = 30,
             slavesHaveVarietyNeed = true, prisonersHaveVarietyNeed = true,
             slaveExpectedVarietyPercentage = 65, prisonerExpectedVarietyPercentage = 50,
         };
@@ -65,7 +70,9 @@ namespace VarietyMatters
             extremelyLowPalate = 0.06f, veryLowPalate = 0.12f, lowPalate = 0.18f,
             moderatePalate = 0.26f, highPalate = 0.34f, skyHighPalate = 0.42f, noblePalate = 0.50f,
             lowExpectationFloor = 4,
-            halveVarietyMoodImpact = false,
+            varietyMoodImpactPercent = 100,
+            mealBonus1Slot = 0, mealBonus2Slot = 3, mealBonus3Slot = 8,
+            mealBonus4Slot = 14, mealBonus5Slot = 22,
             slavesHaveVarietyNeed = true, prisonersHaveVarietyNeed = true,
             slaveExpectedVarietyPercentage = 80, prisonerExpectedVarietyPercentage = 65,
         };
@@ -76,6 +83,7 @@ namespace VarietyMatters
             { "basics", false },
             { "difficulty", false },
             { "expectations", false },
+            { "bonus", false },
             { "cook", false },
             { "scoring", false },
         };
@@ -92,6 +100,8 @@ namespace VarietyMatters
                               _highMemBuf, _skyHiMemBuf, _nobleMemBuf;
         private static string _exLowPalBuf, _vLowPalBuf, _lowPalBuf, _modPalBuf,
                               _highPalBuf, _skyHiPalBuf, _noblePalBuf;
+        private static string _moodImpactBuf;
+        private static string _bonus1Buf, _bonus2Buf, _bonus3Buf, _bonus4Buf, _bonus5Buf;
 
         public Mod_VarietyMatters(ModContentPack content) : base(content)
         {
@@ -148,6 +158,10 @@ namespace VarietyMatters
             if (DrawSectionHeader(listing_Standard, "expectations", "VM_Settings_Section_PawnExpectations"))
             {
                 DrawExpectationsSection(listing_Standard);
+            }
+            if (DrawSectionHeader(listing_Standard, "bonus", "VM_Settings_Section_MealBonus"))
+            {
+                DrawMealBonusSection(listing_Standard);
             }
             if (DrawSectionHeader(listing_Standard, "cook", "VM_Settings_Section_CookBehavior"))
             {
@@ -276,11 +290,16 @@ namespace VarietyMatters
 
         private void DrawDifficultySection(Listing_Standard ls)
         {
-            bool prevHalve = ModSettings_VarietyMatters.halveVarietyMoodImpact;
-            ls.CheckboxLabeled("VM_Settings_HalveVarietyMoodLabel".Translate(),
-                ref ModSettings_VarietyMatters.halveVarietyMoodImpact,
-                "VM_Settings_HalveVarietyMoodTooltip".Translate(), 0f, 1f);
-            if (prevHalve != ModSettings_VarietyMatters.halveVarietyMoodImpact)
+            // US-030 direct mood impact slider. Replaces the old halveVarietyMoodImpact
+            // checkbox (whose only choices were 100% or 50%). 100 = vanilla 2.0× weight,
+            // 50 = halved (old toggle-on behavior), 200 = doubled mood intensity.
+            int prevMood = ModSettings_VarietyMatters.varietyMoodImpactPercent;
+            if (_moodImpactBuf == null) _moodImpactBuf = prevMood.ToString();
+            Rect moodRect = ls.GetRect(24f, 1f);
+            this.LabeledIntEntry(moodRect, "VM_Settings_MoodImpactLabel".Translate(),
+                ref ModSettings_VarietyMatters.varietyMoodImpactPercent, ref _moodImpactBuf, 1, 10, 0, 200);
+            TooltipHandler.TipRegion(moodRect, "VM_Settings_MoodImpactTooltip".Translate());
+            if (prevMood != ModSettings_VarietyMatters.varietyMoodImpactPercent)
             {
                 QueueRecalculationForGameplayAffectingChange();
             }
@@ -473,6 +492,38 @@ namespace VarietyMatters
             QueueRecalculationForGameplayAffectingChange();
         }
 
+        private void DrawMealBonusSection(Listing_Standard ls)
+        {
+            ls.Label("VM_Settings_MealBonus_Body".Translate(), -1f);
+            ls.Gap(4f);
+            DrawBonusEntry(ls, "VM_Settings_MealBonus_1Slot",
+                ref ModSettings_VarietyMatters.mealBonus1Slot, ref _bonus1Buf);
+            DrawBonusEntry(ls, "VM_Settings_MealBonus_2Slot",
+                ref ModSettings_VarietyMatters.mealBonus2Slot, ref _bonus2Buf);
+            DrawBonusEntry(ls, "VM_Settings_MealBonus_3Slot",
+                ref ModSettings_VarietyMatters.mealBonus3Slot, ref _bonus3Buf);
+            DrawBonusEntry(ls, "VM_Settings_MealBonus_4Slot",
+                ref ModSettings_VarietyMatters.mealBonus4Slot, ref _bonus4Buf);
+            DrawBonusEntry(ls, "VM_Settings_MealBonus_5Slot",
+                ref ModSettings_VarietyMatters.mealBonus5Slot, ref _bonus5Buf);
+            ls.Gap(8f);
+        }
+
+        private void DrawBonusEntry(Listing_Standard ls, string labelKey, ref int value, ref string buf)
+        {
+            if (buf == null) buf = value.ToString();
+            int prev = value;
+            Rect r = ls.GetRect(24f, 1f);
+            this.LabeledIntEntry(r, labelKey.Translate(), ref value, ref buf, 1, 5, 0, 100);
+            if (prev != value)
+            {
+                // Meal-def bonus affects future ingest-time computations; no need to recalc
+                // stored-mood. But for consistency with other live-visible settings, queue one
+                // so the tooltip bonus preview updates immediately.
+                QueueRecalculationForGameplayAffectingChange();
+            }
+        }
+
         private void DrawCookSection(Listing_Standard ls)
         {
             ls.CheckboxLabeled("VM_Settings_PreferVarietyLabel".Translate(),
@@ -569,9 +620,14 @@ namespace VarietyMatters
             ModSettings_VarietyMatters.highPalate = p.highPalate;
             ModSettings_VarietyMatters.skyHighPalate = p.skyHighPalate;
             ModSettings_VarietyMatters.noblePalate = p.noblePalate;
-            // Difficulty-section fields (7)
+            // Difficulty-section fields (7) + US-030 mood + 5 bonus
             ModSettings_VarietyMatters.lowExpectationFloor = p.lowExpectationFloor;
-            ModSettings_VarietyMatters.halveVarietyMoodImpact = p.halveVarietyMoodImpact;
+            ModSettings_VarietyMatters.varietyMoodImpactPercent = p.varietyMoodImpactPercent;
+            ModSettings_VarietyMatters.mealBonus1Slot = p.mealBonus1Slot;
+            ModSettings_VarietyMatters.mealBonus2Slot = p.mealBonus2Slot;
+            ModSettings_VarietyMatters.mealBonus3Slot = p.mealBonus3Slot;
+            ModSettings_VarietyMatters.mealBonus4Slot = p.mealBonus4Slot;
+            ModSettings_VarietyMatters.mealBonus5Slot = p.mealBonus5Slot;
             ModSettings_VarietyMatters.slavesHaveVarietyNeed = p.slavesHaveVarietyNeed;
             ModSettings_VarietyMatters.prisonersHaveVarietyNeed = p.prisonersHaveVarietyNeed;
             ModSettings_VarietyMatters.slaveExpectedVarietyPercentage = p.slaveExpectedVarietyPercentage;
@@ -582,6 +638,8 @@ namespace VarietyMatters
             _floorBuf = null;
             _slaveBuf = null;
             _prisonerBuf = null;
+            _moodImpactBuf = null;
+            _bonus1Buf = _bonus2Buf = _bonus3Buf = _bonus4Buf = _bonus5Buf = null;
             _exLowMemBuf = _vLowMemBuf = _lowMemBuf = _modMemBuf =
                 _highMemBuf = _skyHiMemBuf = _nobleMemBuf = null;
             _exLowPalBuf = _vLowPalBuf = _lowPalBuf = _modPalBuf =
@@ -606,7 +664,12 @@ namespace VarietyMatters
                 && Mathf.Approximately(ModSettings_VarietyMatters.skyHighPalate, p.skyHighPalate)
                 && Mathf.Approximately(ModSettings_VarietyMatters.noblePalate, p.noblePalate)
                 && ModSettings_VarietyMatters.lowExpectationFloor == p.lowExpectationFloor
-                && ModSettings_VarietyMatters.halveVarietyMoodImpact == p.halveVarietyMoodImpact
+                && ModSettings_VarietyMatters.varietyMoodImpactPercent == p.varietyMoodImpactPercent
+                && ModSettings_VarietyMatters.mealBonus1Slot == p.mealBonus1Slot
+                && ModSettings_VarietyMatters.mealBonus2Slot == p.mealBonus2Slot
+                && ModSettings_VarietyMatters.mealBonus3Slot == p.mealBonus3Slot
+                && ModSettings_VarietyMatters.mealBonus4Slot == p.mealBonus4Slot
+                && ModSettings_VarietyMatters.mealBonus5Slot == p.mealBonus5Slot
                 && ModSettings_VarietyMatters.slavesHaveVarietyNeed == p.slavesHaveVarietyNeed
                 && ModSettings_VarietyMatters.prisonersHaveVarietyNeed == p.prisonersHaveVarietyNeed
                 && ModSettings_VarietyMatters.slaveExpectedVarietyPercentage == p.slaveExpectedVarietyPercentage

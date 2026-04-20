@@ -80,6 +80,14 @@
 			Scribe_Values.Look<float>(ref ModSettings_VarietyMatters.highPalate, "highPalateV2", 0.28f, false);
 			Scribe_Values.Look<float>(ref ModSettings_VarietyMatters.skyHighPalate, "skyHighPalateV2", 0.36f, false);
 			Scribe_Values.Look<float>(ref ModSettings_VarietyMatters.noblePalate, "noblePalateV2", 0.48f, false);
+			// US-030 direct mood + meal-type bonus controls (integer percentages, Scribed with
+			// new keys so older saves get defaults).
+			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.varietyMoodImpactPercent, "varietyMoodImpactPercent", 100, false);
+			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.mealBonus1Slot, "mealBonus1Slot", 0, false);
+			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.mealBonus2Slot, "mealBonus2Slot", 5, false);
+			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.mealBonus3Slot, "mealBonus3Slot", 12, false);
+			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.mealBonus4Slot, "mealBonus4Slot", 20, false);
+			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.mealBonus5Slot, "mealBonus5Slot", 30, false);
 			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.numIngredients, "numIngredients", 3, false);
 			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.cookingMemoryDepth, "cookingMemoryDepth", 10, false);
 			Scribe_Values.Look<float>(ref ModSettings_VarietyMatters.varietyPull, "varietyPull", 10f, false);
@@ -147,6 +155,22 @@
 		public static float highPalate = 0.28f;
 		public static float skyHighPalate = 0.36f;
 		public static float noblePalate = 0.48f;
+
+		// US-030 direct mood impact slider. Percentage scalar on the variety mood thought
+		// weight: 100 → vanilla 2.0× (same as halveVarietyMoodImpact=false), 50 → 1.0× (same
+		// as the old "halve" toggle), 200 → 4.0× (mood swings are twice as intense). Replaces
+		// the boolean halveVarietyMoodImpact in UI; the old field stays Scribed for save-compat
+		// but is no longer consulted by gameplay.
+		public static int varietyMoodImpactPercent = 100;
+
+		// US-030 meal-type-new bonus per recipe slot count (integer percentages). Replaces the
+		// hardcoded { 0, 0, 0.05, 0.12, 0.20, 0.30 } array. Slot 0 is unused (shouldn't occur);
+		// slots 1/2/3/4 map to single settings; slot 5+ clamps to mealBonus5Slot.
+		public static int mealBonus1Slot = 0;
+		public static int mealBonus2Slot = 5;
+		public static int mealBonus3Slot = 12;
+		public static int mealBonus4Slot = 20;
+		public static int mealBonus5Slot = 30;
 
 		// Token: 0x04000011 RID: 17
 		public static int numIngredients = 3;

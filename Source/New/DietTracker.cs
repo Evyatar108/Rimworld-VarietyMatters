@@ -36,21 +36,29 @@
         // Previously held past-meal ThingDef set for the in-score meal-def-new bonus (dropped
         // in US-026 when the bonus moved to mood-tick read time via IsMealDefFreshInWindow).
 
-        // US-025 meal-def-new bonus — step table keyed on recipe slot count. A meal whose ThingDef
-        // has not been seen in the decay queue contributes an additive variety bonus sized by
-        // recipe complexity: simple meals (1 slot) get nothing, vanilla fine/lavish (2 slots) earn
-        // a small +0.05, modded 3+ slot recipes escalate up to +0.30 at 5+ slots. Step table (not
-        // linear) so the player's mental model is "cook fancier recipes for more bonus" without
-        // per-ingredient fiddliness. Index = min(slots, 5); a "capped" tooltip label fires only
-        // when modded 6+ slot recipes are clamped.
-        private static readonly float[] _mealDefBonusBySlot = { 0f, 0f, 0.05f, 0.12f, 0.20f, 0.30f };
+        // US-025 / US-030 meal-def-new bonus — step table keyed on recipe slot count, now read
+        // directly from per-slot settings. A meal whose ThingDef has not been seen in the decay
+        // queue contributes an additive variety bonus sized by recipe complexity: simple meals
+        // (1 slot) get nothing by default, vanilla fine/lavish (2 slots) earn +5%, modded 3+
+        // slot recipes escalate up to +30% at 5+ slots (all defaults player-tunable). Index =
+        // min(slots, 5); a "capped" tooltip label fires only when modded 6+ slot recipes clamp
+        // to the 5-slot value.
         public const int MaxBonusSlots = 5;
 
         public static float GetMealDefBonus(int slots)
         {
-            if (slots < 0) return 0f;
-            int idx = slots >= _mealDefBonusBySlot.Length ? _mealDefBonusBySlot.Length - 1 : slots;
-            return _mealDefBonusBySlot[idx];
+            if (slots <= 0) return 0f;
+            int idx = slots >= MaxBonusSlots ? MaxBonusSlots : slots;
+            int pct;
+            switch (idx)
+            {
+                case 1: pct = ModSettings_VarietyMatters.mealBonus1Slot; break;
+                case 2: pct = ModSettings_VarietyMatters.mealBonus2Slot; break;
+                case 3: pct = ModSettings_VarietyMatters.mealBonus3Slot; break;
+                case 4: pct = ModSettings_VarietyMatters.mealBonus4Slot; break;
+                default: pct = ModSettings_VarietyMatters.mealBonus5Slot; break;
+            }
+            return UnityEngine.Mathf.Max(0f, pct / 100f);
         }
 
         // Breakdown cache. Keyed on (meal ref, _version) so any tracker mutation that bumps

@@ -3,6 +3,7 @@
     using System;
     using RimWorld;
     using RimWorld.Planet;
+    using UnityEngine;
     using Verse;
 
     // Token: 0x02000010 RID: 16
@@ -10,12 +11,10 @@
 	{
         public override float MoodMultiplier(Pawn p)
         {
-            float baseMultiplier = 2f;
-
-            if (ModSettings_VarietyMatters.halveVarietyMoodImpact)
-            {
-                baseMultiplier = 1f;
-            }
+            // US-030 direct mood impact slider replaces the old halveVarietyMoodImpact boolean.
+            // The Scribed halveVarietyMoodImpact field is no longer consulted here (kept in the
+            // settings class only for save-compat with older versions).
+            float baseMultiplier = 2f * Mathf.Max(0f, ModSettings_VarietyMatters.varietyMoodImpactPercent / 100f);
 
             TraitDef gourmand = DefOf_VarietyMatters.Gourmand;
             if (gourmand != null && p.story.traits.HasTrait(gourmand))
