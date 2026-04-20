@@ -3,6 +3,8 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using RimWorld;
+    using UnityEngine;
     using Verse;
 
     public class DietTracker : IExposable
@@ -22,13 +24,28 @@
 
         private Dictionary<string, int> _countByKey;
 
-        // Decay window (~2 in-game days). Meals older than this are dropped from the overlap set
-        // when scoring a new meal under ByIngredientOverlap.
-        public const int VarietyDecayTicks = 120000;
+        // Decay window in ticks. Meals older than this are dropped from the overlap set when
+        // scoring a new meal under ByIngredientOverlap. Reads live from Mod Settings
+        // (varietyOverlapMemoryDays, default 2.0 days), so tuning the slider is immediate; stored
+        // per-meal scores rebuild via ReCountAll from DebouncedSettingsHandler.
+        public static int VarietyDecayTicks =>
+            Mathf.Max(1, (int)(ModSettings_VarietyMatters.varietyOverlapMemoryDays * GenDate.TicksPerDay));
 
         // Shared scratch for overlap computation. Cleared on method entry of each consumer
         // (ComputeVarietyScore, GetOverlapBreakdown). Never held across frames.
         private static readonly HashSet<ThingDef> _recentIngSetScratch = new HashSet<ThingDef>();
+
+        // US-025 meal-def-new bonus. Scratch for past-meal ThingDef set, populated alongside
+        // _recentIngSetScratch in ComputeVarietyScore and IsMealDefFreshInWindow. Same lifecycle
+        // rules as _recentIngSetScratch.
+        private static readonly HashSet<ThingDef> _recentMealDefsScratch = new HashSet<ThingDef>();
+
+        // US-025 meal-def-new bonus constants. A meal whose ThingDef has not been seen in the
+        // decay window contributes an additive variety bonus proportional to its ingredient count,
+        // capped. Matches user intent: trivial 1-ing meal-def swap gives small bonus (+0.05); a
+        // 3+-ing meal-def swap gives a bigger signal (+0.15 at 3 ing, +0.25 cap at 5 ing).
+        public const float MealDefBonusPerIngredient = 0.05f;
+        public const float MealDefBonusCap = 0.25f;
 
         // Breakdown cache. Keyed on (meal ref, _version) so any tracker mutation that bumps
         // _version invalidates it. UX consumers receive live refs; treat as read-only.
@@ -341,6 +358,7 @@
         private float ComputeVarietyScore(EatenFoodSource target)
         {
             _recentIngSetScratch.Clear();
+            _recentMealDefsScratch.Clear();
 
             int anchorTick = target.AteAtTick;
             if (anchorTick < 0)
@@ -372,6 +390,10 @@
                 {
                     _recentIngSetScratch.Add(src.ThingDef);
                 }
+
+                // US-025: track past meal ThingDefs separately so the meal-def-new bonus can fire
+                // even when the meal has ingredients (so its SourceDef isn't in the ingredient set).
+                if (src.ThingDef != null) _recentMealDefsScratch.Add(src.ThingDef);
             }
 
             List<ThingDef> inc = target.IngredientsDefs;
@@ -396,7 +418,48 @@
                 return 1f;
             }
 
-            return 1f - (float)overlap / total;
+            float ingredientScore = 1f - (float)overlap / total;
+
+            // US-025 meal-def-new bonus: awarded only when this meal's ThingDef hasn't been seen
+            // in the decay window. Bonus scales linearly with the meal's ingredient count
+            // (complexity proxy), capped at MealDefBonusCap. Paste/kibble/raw (empty ingredients)
+            // use complexity = 1, so they still qualify for a small bonus on first sighting.
+            int complexity = (inc != null && inc.Count > 0) ? inc.Count : 1;
+            bool mealDefNew = target.ThingDef != null && !_recentMealDefsScratch.Contains(target.ThingDef);
+            float mealBonus = mealDefNew
+                ? Mathf.Min(MealDefBonusCap, MealDefBonusPerIngredient * complexity)
+                : 0f;
+
+            return Mathf.Clamp01(ingredientScore + mealBonus);
+        }
+
+        // US-025 helper for UX tooltip. Returns whether the meal's ThingDef is absent from the
+        // decay-window set (i.e. whether the meal-def-new bonus applies). Not a hot path — only
+        // invoked from tooltip rebuild.
+        public bool IsMealDefFreshInWindow(EatenFoodSource meal)
+        {
+            if (meal == null || meal.ThingDef == null) return false;
+
+            int anchorTick = meal.AteAtTick;
+            if (anchorTick < 0)
+            {
+                anchorTick = Find.TickManager != null ? Find.TickManager.TicksGame : 0;
+            }
+
+            foreach (EatenFoodByPawn past in this.foodSourcesByOrderV2)
+            {
+                EatenFoodSource src = past.Source;
+                if (src == null) continue;
+                if (ReferenceEquals(src, meal)) continue;
+                if (src.IsForgotten) continue;
+                int t = src.AteAtTick;
+                if (t < 0) continue;
+                if (t >= anchorTick) continue;
+                if (anchorTick - t > VarietyDecayTicks) continue;
+
+                if (src.ThingDef == meal.ThingDef) return false;
+            }
+            return true;
         }
 
         // Read-only overlap partition for UX. Returns shared scratch sets -- treat as read-only;

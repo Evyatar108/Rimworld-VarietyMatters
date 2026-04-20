@@ -70,7 +70,8 @@
   <VM_MealAgo_Day_One>1 day ago</VM_MealAgo_Day_One>
   <VM_MealAgo_Days_Many>{0} days ago</VM_MealAgo_Days_Many>
   <VM_Details_ScoreBadge>{0}%</VM_Details_ScoreBadge>
-  <VM_Details_ScoreTooltip>Variety score: {0}%. 100% = all ingredients fresh; 0% = every ingredient repeated within the last 2 days.</VM_Details_ScoreTooltip>
+  <VM_Details_ScoreTooltip>Variety score: {0}% ({1} of {2} ingredients fresh)</VM_Details_ScoreTooltip>
+  <VM_Details_ScoreTooltipNoIngredients>Variety score: {0}%</VM_Details_ScoreTooltipNoIngredients>
   <VM_Details_Repeated>Repeated:</VM_Details_Repeated>
   <VM_Details_New>New:</VM_Details_New>
   <VM_Details_NutrientPasteNoIngredients>Nutrient paste (no ingredients)</VM_Details_NutrientPasteNoIngredients>
@@ -81,10 +82,14 @@
   <VM_Overlap_Glyph_Fresh>◆</VM_Overlap_Glyph_Fresh>
   <VM_Overlap_Glyph_Repeat>■</VM_Overlap_Glyph_Repeat>
   <VM_Overlap_Glyph_Forgotten>?</VM_Overlap_Glyph_Forgotten>
-  <VM_Overlap_Repeated>{0} — repeated ({1} ago)</VM_Overlap_Repeated>
-  <VM_Overlap_New>{0} — new</VM_Overlap_New>
-  <VM_Overlap_MealsAgo_One>1 meal ago</VM_Overlap_MealsAgo_One>
-  <VM_Overlap_MealsAgo_Many>{0} meals ago</VM_Overlap_MealsAgo_Many>
+  <VM_Settings_OverlapMemoryDaysLabel>Palate memory: {0} days</VM_Settings_OverlapMemoryDaysLabel>
+  <VM_Settings_OverlapMemoryDaysTooltip>How long a pawn's palate "remembers" a meal's ingredients for overlap scoring. Short (0.5 days) = lenient — only rapid repeats lower variety. Long (5 days) = strict — meals eaten days ago still count as repeats. Default 2 days.</VM_Settings_OverlapMemoryDaysTooltip>
+  <VM_Overlap_IngredientsHeader>Ingredients in this meal:</VM_Overlap_IngredientsHeader>
+  <VM_Overlap_Repeated>  {0} — repeated ({1} ago)</VM_Overlap_Repeated>
+  <VM_Overlap_New>  {0} — new</VM_Overlap_New>
+  <VM_Overlap_MealsAgo_One>1 meal</VM_Overlap_MealsAgo_One>
+  <VM_Overlap_MealsAgo_Many>{0} meals</VM_Overlap_MealsAgo_Many>
+  <VM_Overlap_MealDefNewBonus>New meal type: +{0}% ({1}-ingredient recipe)</VM_Overlap_MealDefNewBonus>
 
   <!-- Disabled reason tip (US-017) -->
   <VM_DisabledPrefix>Disabled: </VM_DisabledPrefix>

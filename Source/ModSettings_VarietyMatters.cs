@@ -66,6 +66,7 @@
 			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.numIngredients, "numIngredients", 3, false);
 			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.cookingMemoryDepth, "cookingMemoryDepth", 10, false);
 			Scribe_Values.Look<float>(ref ModSettings_VarietyMatters.varietyPull, "varietyPull", 10f, false);
+			Scribe_Values.Look<float>(ref ModSettings_VarietyMatters.varietyOverlapMemoryDays, "varietyOverlapMemoryDays", 2f, false);
             Scribe_Values.Look<bool>(ref ModSettings_VarietyMatters.slavesHaveVarietyNeed, "slavesHaveVarietyNeed", true, false);
             Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.slaveExpectedVarietyPercentage, "slaveExpectedVarietyPercentage", 65, false);
             Scribe_Values.Look<bool>(ref ModSettings_VarietyMatters.prisonersHaveVarietyNeed, "prisonersHaveVarietyNeed", true, false);
@@ -112,6 +113,12 @@
 
 		// F-025 rotation-formula knob. Default 10 tiles = cook walks up to 10 extra tiles for an unused ingredient.
 		public static float varietyPull = 10f;
+
+		// US-023 ByIngredientOverlap tolerance knob. How many in-game days a pawn's palate
+		// "remembers" a meal's ingredients for overlap scoring. Lower = more lenient (only recent
+		// repeats punished), higher = stricter. Range 0.5..5.0. Changing this triggers ReCountAll
+		// via DebouncedSettingsHandler so stored per-meal scores rebuild.
+		public static float varietyOverlapMemoryDays = 2f;
 
 		// Token: 0x04000015 RID: 21
 		public static int extremelyLowVariety = 4;

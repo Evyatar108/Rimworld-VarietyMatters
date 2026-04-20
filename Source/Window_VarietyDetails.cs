@@ -478,20 +478,25 @@ namespace VarietyMatters
             {
                 sb.AppendLine(row.MealDef.LabelCap);
             }
-            sb.AppendLine("VM_Details_ScoreTooltip".Translate(pct));
 
             var (overlap, fresh) = tracker.GetOverlapBreakdown(row.Source);
             bool hasIngredients = (row.Ingredients != null && row.Ingredients.Count > 0);
             if (!hasIngredients)
             {
+                sb.AppendLine("VM_Details_ScoreTooltipNoIngredients".Translate(pct));
                 sb.AppendLine();
                 sb.Append("VM_Details_EmptyIngredientsFallback".Translate(row.MealDef?.LabelCap ?? ""));
                 return sb.ToString();
             }
 
+            int totalIngredients = overlap.Count + fresh.Count;
+            int freshCount = fresh.Count;
+            sb.AppendLine("VM_Details_ScoreTooltip".Translate(pct, freshCount, totalIngredients));
+
             tracker.GetMealsAgoForOverlapDefs(row.Source, overlap, this._mealsAgoScratch);
 
             sb.AppendLine();
+            sb.AppendLine("VM_Overlap_IngredientsHeader".Translate());
             foreach (ThingDef d in overlap)
             {
                 if (d == null) continue;
@@ -506,6 +511,23 @@ namespace VarietyMatters
                 if (d == null) continue;
                 sb.AppendLine("VM_Overlap_New".Translate(d.LabelCap));
             }
+
+            // US-025 meal-def-new bonus line. Shown only when the bonus actually applied —
+            // identified by re-running IsMealDefFreshInWindow against the tracker (cheap, tooltip
+            // path only). The stored varietyScore on the row already includes the bonus; this line
+            // just explains why the score is higher than ingredient-overlap alone.
+            if (row.MealDef != null && tracker.IsMealDefFreshInWindow(row.Source))
+            {
+                int complexity = row.Ingredients != null && row.Ingredients.Count > 0
+                    ? row.Ingredients.Count
+                    : 1;
+                float bonus = Mathf.Min(DietTracker.MealDefBonusCap,
+                    DietTracker.MealDefBonusPerIngredient * complexity);
+                int bonusPct = (int)Math.Round(bonus * 100f);
+                sb.AppendLine();
+                sb.Append("VM_Overlap_MealDefNewBonus".Translate(bonusPct, complexity));
+            }
+
             return sb.ToString();
         }
 
