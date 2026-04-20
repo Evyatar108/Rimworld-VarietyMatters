@@ -1,4 +1,16 @@
 [img]https://imgur.com/PZEKJnd.png[/img]
+[h3] 2026-04-20 [/h3]
+[list]
+[*][b]Favourite foods:[/b] pawns now discover personal favourite ingredients from what they actually eat — no spawn-rolled rolls. Discovery is freshness-gated (meal must score ≥ 80% of the pawn's baseline variety), siloed by food category (one meat slot + one veg slot, plus a third "anything" slot for Gourmands covering eggs / milk / fungus / modded non-MeatRaw/non-PlantFoodRaw foods), and gated behind a 15-eligible-meals floor so day-1 chance meals don't lock in anything.
+[*][b]Day-spread credit:[/b] a candidate ingredient only accrues credit when eaten across at least 2 in-game days. Three identical meals in one day don't count — a single farm-haul feast can't monopolize a slot.
+[*][b]Mood thought:[/b] eating a fresh favourite fires a new "ate favourite food" thought (+3 mood, 1 day, stack 1). Back-to-back suppression means two consecutive identical favourite meals only fire once, but rice between two cow-meat meals fires twice — the reward tracks active rotation, not passive repetition.
+[*][b]Saturation + rotation:[/b] each favourite slot accumulates a saturation counter (cap 4) every time the mood thought fires. Saturation lowers the candidate-credit count a rival needs to take over that slot (sat 0-1 → 3 credits, sat 2-3 → 2, sat 4 → 1), and decays by 1 per 2 in-game days without a triggering meal — so monoculture self-rotates without punishing genuine preference.
+[*][b]Visible in UI:[/b] the Food Variety need tooltip and the Variety Details window now surface a "Favourites: cow meat, corn" line. Saturation 3 hints "becoming more open to other foods"; saturation 4 hints "getting tired of this as a staple" so the rival-threshold shift is legible.
+[*][b]Notifications:[/b] first-ever crystallization in a slot fires a non-intrusive Message (positive event); a rival replacing an existing favourite fires a Letter (neutral event) with old / new labels.
+[*][b]Opt-outs:[/b] Ascetic trait and the Biotech "no taste" gene (VM_NoVarietyNeed) pawns never record favourites and never fire the mood thought — the same gate that already hides their variety need also hides favourites.
+[*][b]One kill-switch:[/b] a new "Favourite Foods" section in Mod Settings exposes a single toggle. Off freezes all favourites state (preserves slots and saturation for re-enable) and skips mood / letter / message side effects. Deliberately excluded from the difficulty presets so toggling it doesn't flip the active-preset indicator.
+[*][b]Save compat:[/b] old saves load with the feature ON by default; existing pawns accumulate toward the 15-meal floor from the next meal onward. No migration required.
+[/list]
 [h3] 2026-04-19 [/h3]
 [list]
 [*][b]Mod Settings redesigned:[/b] three difficulty presets (Easy / Default / Hardcore) at the top of the settings window batch-set all gameplay-affecting knobs with one click. Remaining controls are grouped into collapsible sections (Basics, Difficulty, Pawn Expectations, Meal Type Bonus, Cook Behavior, How Scoring Works) — all collapsed by default so new players see the preset row first. Renamed jargony labels; added tooltips to every control; made the active preset visually highlighted.

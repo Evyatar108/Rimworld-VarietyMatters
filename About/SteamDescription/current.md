@@ -49,6 +49,12 @@ Two more sliders control [b]max negative[/b] (default -12) and [b]max positive[/
 
 [h2]Recent Updates[/h2]
 
+[h3] 2026-04-20 [/h3]
+[list]
+[*][b]Favourite foods:[/b] pawns now discover personal favourites from what they actually eat, not a spawn-roll.
+[/list]
+Discovery is freshness-gated, siloed by food category (meat / veg, plus an "anything" slot for Gourmands), and gated behind a 15-meal floor so day-1 luck can't lock anything in. Eating a fresh favourite fires a +3 mood thought for 1 day with back-to-back suppression, and a saturation counter rotates stale favourites out so monoculture self-corrects — all of it toggled by one kill-switch in a new "Favourite Foods" settings section.
+
 [h3] 2026-04-19 [/h3]
 [list]
 [*][b]Mod Settings redesigned[/b] — three difficulty presets at the top, collapsible sections beneath, full-width layout, jargon-free labels, tooltips on most controls.

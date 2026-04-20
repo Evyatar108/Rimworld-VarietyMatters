@@ -123,6 +123,18 @@ Do NOT double-bump inside `GenerateRaces` callers — those are already covered 
 
 US-033 added a `DisabledReason.GeneDisabled` branch that checks `pawn.genes?.HasActiveGene(DefOf_VarietyMatters.VM_NoVarietyNeed)` guarded by `ModsConfig.BiotechActive`. Genes are mutable at runtime (gene extraction, xenogerm implant, germline edit) so the gene result must NOT be cached either — the ordering-first principle still applies (gene check runs AFTER trait check, AFTER faction/settings checks, since it's the narrowest edge case).
 
+## 13. `FavouriteFoodRecord` patterns
+
+`Source/New/FavouriteFoodRecord.cs` is the per-pawn favourite-ingredients store. Four layers: `FavouriteFoodRecord : GameComponent` (game-scoped dict), `PawnFavData : IExposable` (per pawn), `SlotState : IExposable` (per meat / veg / wild slot), `CandidateProgress : IExposable` (per in-flight ingredient candidate). `ClassifyIngredient(ThingDef)` maps `ThingCategoryDefOf.MeatRaw` → `Bucket.Meat`, `PlantFoodRaw` → `Bucket.Veg`, else `Bucket.None` (non-Gourmands skip; Gourmands credit to `wildProgress`).
+
+- **GameComponent scoping, not DietTracker.** Favourites data lives on a `GameComponent` dict keyed by `Pawn`, NOT folded into `DietTracker`. This keeps §8's Scribe layout on `EatenFoodSource` / `DietTracker` untouched — the feature ships without touching any existing `Scribe_` key.
+- **Lifecycle cleanup extends §9.** `Patch_PawnLifecycle.cs` postfixes on `Pawn.Kill` AND `Pawn.Destroy` both call `FavouriteFoodRecord.RemoveTrackedPawn(__instance)` immediately after the existing `VarietyRecord.RemoveTrackedPawn` call. Idempotent via `Dictionary.Remove`. Mirror any future lifecycle hook additions the same way — do NOT hook `Pawn.DeSpawn` (§9 still applies).
+- **Gate order mirrors §12 `Disabled`.** `OnMealIngested` early-exits on `Need_FoodVariety.GetDisabledReason(pawn) != None` as gate 1 — so Ascetic trait, faction / settings opt-out, and the `VM_NoVarietyNeed` gene path (§12) all skip favourites identically to the mood need. Gate 1 is checked BEFORE `GetOrCreate`, so opted-out pawns never materialize a `_data[pawn]` row. Do NOT cache the gate result — genes / traits are mutable at runtime, same constraint as §12.
+- **Ingest fan-out site.** `Source/VarietyRecord.cs:86` — call `Current.Game.GetComponent<FavouriteFoodRecord>()?.OnMealIngested(pawn, foodSource, foodSource.VarietyScore, VarietyAdjuster.BaselineForTierPublic(pawn))` immediately after `tracker.AddFoodSource(foodSource)`. Placed in `UpdateVarietyRecord` ONLY — NOT in `ReCountAll`, which runs on settings-recalc / post-load migration and must not fire favourites side-effects.
+- **Saturation decay is hourly-gated, not per-tick.** `GameComponentTick` runs the decay loop behind a `Find.TickManager.TicksGame % 2500 == 0` gate (~hourly). Per-slot debounce uses `lastTriggerTick` + `lastDecayTick` with a 120000-tick (2 in-game days) threshold, so decay only fires once per 2-day window per slot. `!favouritesEnabled` short-circuits the whole `GameComponentTick` body — state freezes, does not wipe (kill-switch preserves on re-enable).
+- **Back-to-back suppression is a Scribed bool.** `PawnFavData.lastMealWasIngestedAsFavourite` gates `TryGainMemory` — two consecutive favourite meals fire the thought once, but a non-matching meal between them clears the flag so A → B → A fires twice. Flag lives on `PawnFavData`, is Scribed, and is NOT mutated by the `favouritesEnabled` kill-switch (toggling off-then-on after a favourite meal may suppress one meal — acceptable trade for freeze semantics).
+- **Settings exclusion from presets.** `favouritesEnabled` is deliberately absent from `Profile` / `ApplyProfile` / `MatchesProfile` in `Source/Mod_VarietyMatters.cs` — grep-verifiable, see the exclusion comment at the `Profile` struct. This keeps toggling the kill-switch from flipping the active-preset indicator.
+
 ## Do NOT
 
 - Add per-call `new T[]` / `new List<T>()` in cooking hot path (US-004 no-alloc ethos).
@@ -131,3 +143,5 @@ US-033 added a `DisabledReason.GeneDisabled` branch that checks `pawn.genes?.Has
 - Cache `Need_FoodVariety.Disabled` as a bool (see §12).
 - Swap `RecentListEx.entries` storage type (see §8).
 - Hook `Pawn.DeSpawn` for tracker cleanup (see §9).
+- Fold favourites data into `DietTracker` (see §13 — keeps §8 intact).
+- Fire favourites side-effects from `ReCountAll` (see §13 — the fan-out is in `UpdateVarietyRecord` only).
