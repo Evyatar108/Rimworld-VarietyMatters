@@ -399,6 +399,8 @@
         // any mutation to the tracker bumps _version and invalidates the cache on next call.
         public (HashSet<ThingDef> overlap, HashSet<ThingDef> fresh) GetOverlapBreakdown(EatenFoodSource meal)
         {
+            // Null meal returns empty scratch without touching cache fields; safe because the next
+            // non-null call still sees the original _breakdownCacheMeal ref and rebuilds normally.
             if (meal == null)
             {
                 this._breakdownOverlapScratch.Clear();
