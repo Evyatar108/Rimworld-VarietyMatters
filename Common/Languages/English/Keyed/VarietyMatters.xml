@@ -12,9 +12,9 @@
   <VM_Settings_Preset_Easy_Desc>Lower tiers, softer mood swings. Forgiving food variety.</VM_Settings_Preset_Easy_Desc>
   <VM_Settings_Preset_Default_Desc>Matches base expectations. Balanced challenge.</VM_Settings_Preset_Default_Desc>
   <VM_Settings_Preset_Hardcore_Desc>Raised tiers, full mood weight. For experienced colonies.</VM_Settings_Preset_Hardcore_Desc>
-  <VM_Settings_Preset_Easy_Tooltip>Sets tiers 3–12, Minimum expected variety 3, slave/prisoner 50%/40%, halveVarietyMood ON, moreVarietyMemory ON. Most forgiving; recommended for new players or low-food colonies.</VM_Settings_Preset_Easy_Tooltip>
-  <VM_Settings_Preset_Default_Tooltip>Sets tiers 4–15, Minimum expected variety 3, slave/prisoner 65%/50%, both mood toggles OFF. The mod's balanced baseline.</VM_Settings_Preset_Default_Tooltip>
-  <VM_Settings_Preset_Hardcore_Tooltip>Recommended for experienced players. Sets tiers 5–18, Minimum expected variety 4, slave/prisoner 80%/65%, both mood toggles OFF. High-expectation pawns (Noble) will need 50+ unique ingredients stockpiled or they will complain persistently.</VM_Settings_Preset_Hardcore_Tooltip>
+  <VM_Settings_Preset_Easy_Tooltip>Sets tier memory 7–27 meals and palate 2–36% (Extremely Low → Noble), slave/prisoner 50%/40%, halve variety mood effect ON. Most forgiving; recommended for new players or low-food colonies.</VM_Settings_Preset_Easy_Tooltip>
+  <VM_Settings_Preset_Default_Tooltip>Sets tier memory 9–34 meals and palate 4–48%, slave/prisoner 65%/50%, halve variety mood OFF. The mod's balanced baseline.</VM_Settings_Preset_Default_Tooltip>
+  <VM_Settings_Preset_Hardcore_Tooltip>Recommended for experienced players. Sets tier memory 11–40 meals and palate 6–50%, slave/prisoner 80%/65%, halve variety mood OFF. High-expectation pawns (Noble) will need 50+ unique ingredients stockpiled or they will complain persistently.</VM_Settings_Preset_Hardcore_Tooltip>
   <VM_Settings_Preset_CustomLabel>Custom</VM_Settings_Preset_CustomLabel>
   <VM_Settings_Preset_CustomDesc>Individual tuning — no preset matches the current settings.</VM_Settings_Preset_CustomDesc>
 
@@ -42,7 +42,11 @@
   <VM_Settings_CookingMemoryDepthLabel>Cook's ingredient-rotation memory (default 10):</VM_Settings_CookingMemoryDepthLabel>
   <VM_Settings_CookingMemoryDepthTooltip>How many recent meals each cook remembers when picking ingredients for the next one. Higher = wider rotation (cook avoids repeating ingredients across more past meals). Purely a cooking-AI knob — does NOT affect the pawn-side variety mood window.</VM_Settings_CookingMemoryDepthTooltip>
   <VM_Settings_ExpectationHeader>Expectation Tier Variety Targets:</VM_Settings_ExpectationHeader>
-  <VM_Settings_ExpectationExplanation>Each value drives two things for that tier: (1) how many past meals the pawn remembers (queue size = value × memory multiplier), and (2) how picky their palate is (palate threshold = clamp((value − 3)/25, 0, 0.50)). Higher values make the tier harder to satisfy on both axes. Defaults: Noble → palate 0.48, remembers ~34 meals.</VM_Settings_ExpectationExplanation>
+  <VM_Settings_ExpectationExplanation>Each tier has two independently-tunable knobs: Memory (how many past meals that pawn averages into mood) and Palate (how fresh a meal needs to be before it registers). Higher memory = more inertia. Higher palate = harder to satisfy, but also means top-quality meals push mood higher. Defaults: Noble remembers 34 meals with palate 48%; Extremely Low remembers 9 with palate 4%.</VM_Settings_ExpectationExplanation>
+  <VM_Settings_Tier_MemorySub>    Memory (meals):</VM_Settings_Tier_MemorySub>
+  <VM_Settings_Tier_MemoryTooltip>Number of past meals this tier averages into variety mood. Higher values smooth the mood score — a single bad meal has less impact — but also slow recovery when variety is restored. Typical range: 9 (Extremely Low) to 34 (Noble).</VM_Settings_Tier_MemoryTooltip>
+  <VM_Settings_Tier_PalateSub>    Palate pickiness (%):</VM_Settings_Tier_PalateSub>
+  <VM_Settings_Tier_PalateTooltip>How fresh a meal needs to be, as a percentage, before it counts meaningfully toward mood. Meals below this threshold contribute only 25% of their raw ingredient-fresh score; meals above it get full credit proportional to how far above. 0% = any variety counts; 50% = only genuinely fresh meals matter (max). Typical range: 4% (Extremely Low) to 48% (Noble).</VM_Settings_Tier_PalateTooltip>
   <VM_Settings_ResetButton>Reset</VM_Settings_ResetButton>
   <VM_Settings_ExtremelyLowLabel>Extremely Low (default 4):</VM_Settings_ExtremelyLowLabel>
   <VM_Settings_VeryLowLabel>Very Low (default 5):</VM_Settings_VeryLowLabel>
@@ -61,8 +65,6 @@
   <VM_Settings_PrisonerExpectedVarietyTooltip>Percentage applied to the prisoner's tier value. Scales both expected-variety count AND palate threshold. 100% = same as a free pawn of the same tier; 50% = half as picky.</VM_Settings_PrisonerExpectedVarietyTooltip>
   <VM_Settings_HalveVarietyMoodLabel>Halve variety mood effect: </VM_Settings_HalveVarietyMoodLabel>
   <VM_Settings_HalveVarietyMoodTooltip>Cuts the food-variety mood thought weight in half (multiplier 2.0 → 1.0). The same variety score produces half the mood swing, both positive and negative. Use for a softer difficulty pass.</VM_Settings_HalveVarietyMoodTooltip>
-  <VM_Settings_MoreVarietyMemoryLabel>Longer variety memory for pawns (easier): </VM_Settings_MoreVarietyMemoryLabel>
-  <VM_Settings_MoreVarietyMemoryTooltip>Bumps the memory multiplier from 2.25 to 2.75. Pawns remember more past meals (bigger queue), but the mood-at-100% ceiling scales up too, so the same variety score reaches a higher mood. Net effect: easier to maintain high variety mood at steady state.</VM_Settings_MoreVarietyMemoryTooltip>
   <VM_Settings_RaceSectionHeader>Enable/Disable variety for races (Requires HAR):</VM_Settings_RaceSectionHeader>
   <VM_Settings_ResetRacesButton>Reset Current Races</VM_Settings_ResetRacesButton>
   <VM_Settings_FromMod>From mod: {0}</VM_Settings_FromMod>

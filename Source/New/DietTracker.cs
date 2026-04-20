@@ -139,6 +139,14 @@
             }
         }
 
+        // US-029 storage cap. Always store max(all tier memory settings) + ScoringWindow meals
+        // regardless of the pawn's current tier. Rationale:
+        //   1. Tier changes (wealth swings, royal title gain/loss, mid-game settings edits)
+        //      don't lose history — queue stays at max, aggregation window shrinks to current
+        //      tier's memory value instead.
+        //   2. ReCount's oldest-meal warm-up bias (meal 1 scores against zero predecessors →
+        //      defaults to 1.0) is absorbed inside the ScoringWindow buffer: the oldest 6 meals
+        //      live in the buffer but never contribute to mood. Mood-visible window is clean.
         private static int GetMaxEatenFoodSourceInMemory(Pawn pawn)
         {
             if (pawn == null)
@@ -146,9 +154,7 @@
                 throw new ArgumentNullException(nameof(pawn));
             }
 
-            float memoryMultiplier = ModSettings_VarietyMatters.memoryMultiplier;
-            int varietyExpectation = VarietyExpectation.GetVarietyExpectation(pawn);
-            return (int)(varietyExpectation * memoryMultiplier);
+            return VarietyAdjuster.MaxMemoryAcrossTiers() + VarietyAdjuster.ScoringWindow;
         }
 
         public void UpdateMaxFoodInMemory()
@@ -455,10 +461,11 @@
             return 1f - (float)overlap / total;
         }
 
-        // US-025 helper for UX tooltip. Returns whether the meal's ThingDef is absent from the
-        // queue strictly prior to `meal` (anchored on meal.AteAtTick so the answer is stable for
-        // both live ingest-time and historical ReCount rebuilds). Used for the meal-def-new
-        // bonus gate.
+        // US-025 / US-029 helper for UX tooltip + meal-def-new bonus gate. Returns whether the
+        // meal's ThingDef is absent from the pawn's current tier memory window strictly prior to
+        // `meal`. Scoped to the current tier's memory size (not the full storage queue, which
+        // includes the +ScoringWindow archive that absorbs ReCount warm-up bias). Anchored on
+        // meal.AteAtTick so the answer stays stable across ingest-time and ReCount rebuilds.
         public bool IsMealDefFreshInWindow(EatenFoodSource meal)
         {
             if (meal == null || meal.ThingDef == null) return false;
@@ -469,6 +476,24 @@
                 anchorTick = Find.TickManager != null ? Find.TickManager.TicksGame : 0;
             }
 
+            int currentTierMemory = VarietyAdjuster.GetMemoryForTier(
+                ExpectationsUtility.CurrentExpectationFor(this.pawn));
+
+            // Count eligibles strictly prior to `meal`, then skip oldest to leave the last
+            // currentTierMemory candidates. Two-pass mirrors ComputeVarietyScore for consistency.
+            int eligibleTotal = 0;
+            foreach (EatenFoodByPawn past in this.foodSourcesByOrderV2)
+            {
+                EatenFoodSource s = past.Source;
+                if (s == null || s.IsForgotten) continue;
+                if (ReferenceEquals(s, meal)) continue;
+                int t = s.AteAtTick;
+                if (t < 0 || t >= anchorTick) continue;
+                eligibleTotal++;
+            }
+            int skipCount = System.Math.Max(0, eligibleTotal - currentTierMemory);
+            int seen = 0;
+
             foreach (EatenFoodByPawn past in this.foodSourcesByOrderV2)
             {
                 EatenFoodSource src = past.Source;
@@ -478,6 +503,7 @@
                 int t = src.AteAtTick;
                 if (t < 0) continue;
                 if (t >= anchorTick) continue;
+                if (seen++ < skipCount) continue;
 
                 if (src.ThingDef == meal.ThingDef) return false;
             }
@@ -556,10 +582,27 @@
         public bool IsCandidateMealDefFresh(Thing candidateThing)
         {
             if (candidateThing?.def == null) return false;
+
+            int currentTierMemory = VarietyAdjuster.GetMemoryForTier(
+                ExpectationsUtility.CurrentExpectationFor(this.pawn));
+
+            // Two-pass window: skip the oldest so only the current tier's memory range is
+            // checked, matching IsMealDefFreshInWindow's semantics after US-029.
+            int eligibleTotal = 0;
+            foreach (EatenFoodByPawn past in this.foodSourcesByOrderV2)
+            {
+                EatenFoodSource s = past?.Source;
+                if (s == null || s.IsForgotten) continue;
+                eligibleTotal++;
+            }
+            int skipCount = System.Math.Max(0, eligibleTotal - currentTierMemory);
+            int seen = 0;
+
             foreach (EatenFoodByPawn past in this.foodSourcesByOrderV2)
             {
                 EatenFoodSource src = past?.Source;
                 if (src == null || src.IsForgotten) continue;
+                if (seen++ < skipCount) continue;
                 if (src.ThingDef == candidateThing.def) return false;
             }
             return true;

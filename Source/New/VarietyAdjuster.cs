@@ -81,24 +81,16 @@ namespace VarietyMatters.New
             return Mathf.Clamp01(curved + bonus);
         }
 
-        // Baseline derived from per-tier Mod Settings so the player's tuning of
-        // extremelyLowVariety..nobleVariety drives both memory capacity AND palate threshold
-        // consistently. Formula: baseline = clamp((rawSetting − 3) / 25, 0, 0.50).
-        //   Defaults: ExLow=4 → 0.04, VLow=5 → 0.08, Low=6 → 0.12, Mod=8 → 0.20,
-        //             High=10 → 0.28, SkyHi=12 → 0.36, Noble=15 → 0.48.
-        // Cap at 0.50 so Noble can realistically reach >40% mood at moderate pantry sizes
-        // (Y≥30) — earlier clamp 0.9 locked Noble at 0% below Y=50. Reads the *raw* tier setting
-        // (no slave / prisoner / gourmand modifiers) — those apply to variety count
-        // (GetVarietyExpectation) but not to palate refinement, which is purely a tier-identity
-        // property. Slave/prisoner multipliers still apply to the baseline below, consistent with
-        // how they already modulate expected variety count.
+        // US-029 direct palate lookup. Per-tier palate threshold is stored directly in
+        // ModSettings as a float (not derived from a tier integer × multiplier). Slave/prisoner
+        // percentage scaling still applies so those pawn types can have proportionally softer
+        // palate refinement via their dedicated knobs in Difficulty settings.
         private static float BaselineForTier(Pawn pawn)
         {
             if (pawn == null) return 0f;
             ExpectationDef tier = ExpectationsUtility.CurrentExpectationFor(pawn);
             if (tier == null) return 0f;
-            int raw = GetRawTierVariety(tier);
-            float tierBaseline = Mathf.Clamp((raw - 3) / 25f, 0f, 0.50f);
+            float tierBaseline = Mathf.Clamp(GetPalateForTier(tier), 0f, 0.50f);
 
             if (pawn.IsSlave)
             {
@@ -111,16 +103,44 @@ namespace VarietyMatters.New
             return tierBaseline;
         }
 
-        private static int GetRawTierVariety(ExpectationDef tier)
+        private static float GetPalateForTier(ExpectationDef tier)
         {
-            if (tier == ExpectationDefOf.ExtremelyLow) return ModSettings_VarietyMatters.extremelyLowVariety;
-            if (tier == ExpectationDefOf.VeryLow)      return ModSettings_VarietyMatters.veryLowVariety;
-            if (tier == ExpectationDefOf.Low)          return ModSettings_VarietyMatters.lowVariety;
-            if (tier == ExpectationDefOf.Moderate)     return ModSettings_VarietyMatters.moderateVariety;
-            if (tier == ExpectationDefOf.High)         return ModSettings_VarietyMatters.highVariety;
-            if (tier == DefOf_VarietyMatters.SkyHigh)  return ModSettings_VarietyMatters.skyHighVariety;
+            if (tier == ExpectationDefOf.ExtremelyLow) return ModSettings_VarietyMatters.extremelyLowPalate;
+            if (tier == ExpectationDefOf.VeryLow)      return ModSettings_VarietyMatters.veryLowPalate;
+            if (tier == ExpectationDefOf.Low)          return ModSettings_VarietyMatters.lowPalate;
+            if (tier == ExpectationDefOf.Moderate)     return ModSettings_VarietyMatters.moderatePalate;
+            if (tier == ExpectationDefOf.High)         return ModSettings_VarietyMatters.highPalate;
+            if (tier == DefOf_VarietyMatters.SkyHigh)  return ModSettings_VarietyMatters.skyHighPalate;
             // Noble + any unrecognized DLC-added higher tier (default arm).
-            return ModSettings_VarietyMatters.nobleVariety;
+            return ModSettings_VarietyMatters.noblePalate;
+        }
+
+        // US-029 direct memory lookup. Per-tier queue size drives mood aggregation window AND
+        // meal-def-new bonus gating. Exposed directly in ModSettings — no hidden multiplier.
+        public static int GetMemoryForTier(ExpectationDef tier)
+        {
+            if (tier == null) return ModSettings_VarietyMatters.nobleMemory;
+            if (tier == ExpectationDefOf.ExtremelyLow) return ModSettings_VarietyMatters.extremelyLowMemory;
+            if (tier == ExpectationDefOf.VeryLow)      return ModSettings_VarietyMatters.veryLowMemory;
+            if (tier == ExpectationDefOf.Low)          return ModSettings_VarietyMatters.lowMemory;
+            if (tier == ExpectationDefOf.Moderate)     return ModSettings_VarietyMatters.moderateMemory;
+            if (tier == ExpectationDefOf.High)         return ModSettings_VarietyMatters.highMemory;
+            if (tier == DefOf_VarietyMatters.SkyHigh)  return ModSettings_VarietyMatters.skyHighMemory;
+            return ModSettings_VarietyMatters.nobleMemory;
+        }
+
+        // Max memory across all tiers. Used for DietTracker storage cap (+ ScoringWindow buffer)
+        // so tier changes don't lose history. Recomputed each call — trivial work.
+        public static int MaxMemoryAcrossTiers()
+        {
+            int m = ModSettings_VarietyMatters.extremelyLowMemory;
+            if (ModSettings_VarietyMatters.veryLowMemory > m) m = ModSettings_VarietyMatters.veryLowMemory;
+            if (ModSettings_VarietyMatters.lowMemory > m) m = ModSettings_VarietyMatters.lowMemory;
+            if (ModSettings_VarietyMatters.moderateMemory > m) m = ModSettings_VarietyMatters.moderateMemory;
+            if (ModSettings_VarietyMatters.highMemory > m) m = ModSettings_VarietyMatters.highMemory;
+            if (ModSettings_VarietyMatters.skyHighMemory > m) m = ModSettings_VarietyMatters.skyHighMemory;
+            if (ModSettings_VarietyMatters.nobleMemory > m) m = ModSettings_VarietyMatters.nobleMemory;
+            return m;
         }
 
         // Warmup grace: fresh colonies / freshly-added pawns have an empty-ish queue, and the
@@ -174,6 +194,28 @@ namespace VarietyMatters.New
                 // candidate-estimate helper uses the exact same math.
                 float baseline = BaselineForTier(dietTracker.Pawn);
 
+                // US-029: aggregate over the pawn's tier-sized memory window, not the full stored
+                // queue. Storage now caps at max(allTiers) + ScoringWindow so tier changes don't
+                // lose history, but mood-tick only averages across currentTierMemory recent
+                // eligible meals. Older entries live in memory as archival safety and never
+                // contribute to mood or the meal-def bonus window.
+                int currentTierMemory = GetMemoryForTier(
+                    ExpectationsUtility.CurrentExpectationFor(dietTracker.Pawn));
+
+                // Count eligibles first (skip forgotten + NoVariety meals), then skip the oldest
+                // (total − currentTierMemory) so only the most recent tier-memory eligible meals
+                // are aggregated. Matches the ScoringWindow two-pass pattern in ComputeVarietyScore.
+                int eligibleTotal = 0;
+                foreach (var fp in dietTracker.EatenFoodSourcesByOrder)
+                {
+                    var s = fp?.Source;
+                    if (s == null || s.IsForgotten) continue;
+                    if (dietTracker.HasNoVarietyReason(fp)) continue;
+                    eligibleTotal++;
+                }
+                int skipCount = System.Math.Max(0, eligibleTotal - currentTierMemory);
+                int seenEligible = 0;
+
                 double sumEffective = 0.0;
                 int counted = 0;
                 foreach (var foodByPawn in dietTracker.EatenFoodSourcesByOrder)
@@ -184,6 +226,7 @@ namespace VarietyMatters.New
                     // rotten, venerated, etc.). Neither their score nor their slot contributes —
                     // so eating raw meat doesn't lift mood but also doesn't drag it down.
                     if (dietTracker.HasNoVarietyReason(foodByPawn)) continue;
+                    if (seenEligible++ < skipCount) continue;
 
                     int complexity = GetRecipeSlotComplexity(src.ThingDef, src.IngredientsDefs);
                     float effective = ComputeEffectiveScore(

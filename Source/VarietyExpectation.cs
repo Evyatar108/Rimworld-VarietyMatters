@@ -2,6 +2,7 @@
 {
     using System;
     using RimWorld;
+    using VarietyMatters.New;
     using Verse;
 
     public class VarietyExpectation
@@ -14,32 +15,12 @@
             }
 
 			ExpectationDef expectationDef = ExpectationsUtility.CurrentExpectationFor(ingester);
-            int expectedVariety;
-
-            switch (expectationDef)
-            {
-				case var _ when expectationDef == ExpectationDefOf.ExtremelyLow:
-                    expectedVariety = ModSettings_VarietyMatters.extremelyLowVariety;
-                    break;
-                case var _ when expectationDef == ExpectationDefOf.VeryLow:
-                    expectedVariety = ModSettings_VarietyMatters.veryLowVariety;
-                    break;
-                case var _ when expectationDef ==  ExpectationDefOf.Low:
-                    expectedVariety = ModSettings_VarietyMatters.lowVariety;
-                    break;
-                case var _ when expectationDef ==  ExpectationDefOf.Moderate:
-                    expectedVariety = ModSettings_VarietyMatters.moderateVariety;
-                    break;
-                case var _ when expectationDef == ExpectationDefOf.High:
-                    expectedVariety = ModSettings_VarietyMatters.highVariety;
-                    break;
-                case var _ when expectationDef == DefOf_VarietyMatters.SkyHigh:
-                    expectedVariety = ModSettings_VarietyMatters.skyHighVariety;
-                    break;
-                default:
-                    expectedVariety = ModSettings_VarietyMatters.nobleVariety;
-                    break;
-            }
+            // US-029: expectation count now derives from the pawn's per-tier memory setting so
+            // the vanilla Need_FoodVariety "Expected N" display stays meaningful after the tier
+            // integer was replaced by a direct queue-size knob. Keeps the legacy factor 2.25 so
+            // old values (ExLow=4, Noble=15) line up with new memory defaults (9, 34).
+            int memory = VarietyAdjuster.GetMemoryForTier(expectationDef);
+            int expectedVariety = Math.Max(1, (int)Math.Round(memory / 2.25));
 
             if (ingester.IsSlave)
             {

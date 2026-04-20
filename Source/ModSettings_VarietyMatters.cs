@@ -63,6 +63,23 @@
 			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.skyHighVariety, "skyHighVariety", 12, false);
 			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.nobleVariety, "nobleVariety", 15, false);
 			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.lowExpectationFloor, "lowExpectationFloor", 3, false);
+			// US-029 direct-value tier settings. Loaded with default values for saves written by
+			// older versions (no migration from the legacy `extremelyLowVariety`..`nobleVariety`
+			// integers) — players upgrading get the new defaults and re-tune from the preset strip.
+			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.extremelyLowMemory, "extremelyLowMemoryV2", 9, false);
+			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.veryLowMemory, "veryLowMemoryV2", 11, false);
+			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.lowMemory, "lowMemoryV2", 14, false);
+			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.moderateMemory, "moderateMemoryV2", 18, false);
+			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.highMemory, "highMemoryV2", 23, false);
+			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.skyHighMemory, "skyHighMemoryV2", 27, false);
+			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.nobleMemory, "nobleMemoryV2", 34, false);
+			Scribe_Values.Look<float>(ref ModSettings_VarietyMatters.extremelyLowPalate, "extremelyLowPalateV2", 0.04f, false);
+			Scribe_Values.Look<float>(ref ModSettings_VarietyMatters.veryLowPalate, "veryLowPalateV2", 0.08f, false);
+			Scribe_Values.Look<float>(ref ModSettings_VarietyMatters.lowPalate, "lowPalateV2", 0.12f, false);
+			Scribe_Values.Look<float>(ref ModSettings_VarietyMatters.moderatePalate, "moderatePalateV2", 0.20f, false);
+			Scribe_Values.Look<float>(ref ModSettings_VarietyMatters.highPalate, "highPalateV2", 0.28f, false);
+			Scribe_Values.Look<float>(ref ModSettings_VarietyMatters.skyHighPalate, "skyHighPalateV2", 0.36f, false);
+			Scribe_Values.Look<float>(ref ModSettings_VarietyMatters.noblePalate, "noblePalateV2", 0.48f, false);
 			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.numIngredients, "numIngredients", 3, false);
 			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.cookingMemoryDepth, "cookingMemoryDepth", 10, false);
 			Scribe_Values.Look<float>(ref ModSettings_VarietyMatters.varietyPull, "varietyPull", 10f, false);
@@ -99,9 +116,37 @@
 
 		public static bool foodDrugsAreOnlyInMemoryOnce = true;
 
+		// DEPRECATED (US-029): the moreVarietyMemory toggle no longer affects gameplay. Kept
+		// Scribed per CLAUDE.md §8 so old saves still deserialize cleanly. Players now set
+		// per-tier memory directly via the new *Memory fields.
 		public static bool moreVarietyMemory = false;
 
-		public static float memoryMultiplier => moreVarietyMemory ? 2.75f : 2.25f;
+		// DEPRECATED: retained only for backward Scribe compatibility with pre-US-029 saves.
+		// Gameplay reads per-tier *Memory fields directly now.
+		public static float memoryMultiplier => 2.25f;
+
+		// US-029 direct-value tier fields. Player sets queue size (meals remembered) per tier
+		// directly — no hidden multiplier. Defaults preserve the prior `tier × 2.25` values so
+		// gameplay baselines stay intact for anyone tuning from the preset strip.
+		public static int extremelyLowMemory = 9;
+		public static int veryLowMemory = 11;
+		public static int lowMemory = 14;
+		public static int moderateMemory = 18;
+		public static int highMemory = 23;
+		public static int skyHighMemory = 27;
+		public static int nobleMemory = 34;
+
+		// US-029 per-tier palate threshold. 0.0 → any variety counts. 0.50 → only genuinely fresh
+		// meals matter. Defaults match the previous clamp((tier − 3)/25, 0, 0.50) formula at
+		// default tier values. Exposed as a separate slider so players can tune palate pickiness
+		// independently from memory depth.
+		public static float extremelyLowPalate = 0.04f;
+		public static float veryLowPalate = 0.08f;
+		public static float lowPalate = 0.12f;
+		public static float moderatePalate = 0.20f;
+		public static float highPalate = 0.28f;
+		public static float skyHighPalate = 0.36f;
+		public static float noblePalate = 0.48f;
 
 		// Token: 0x04000011 RID: 17
 		public static int numIngredients = 3;

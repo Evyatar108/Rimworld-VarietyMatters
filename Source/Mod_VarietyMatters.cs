@@ -13,34 +13,32 @@ namespace VarietyMatters
 
     internal class Mod_VarietyMatters : Mod
     {
-        // US-028 preset profile. Covers the 14 gameplay-affecting fields a difficulty preset
-        // is allowed to set. When adding a new gameplay-affecting setting to ModSettings,
-        // update ALL of: this struct, the three Profile instances, ApplyProfile, MatchesProfile,
-        // and (if defaults change) ModSettings field initializers.
+        // US-028 / US-029 preset profile. Covers 21 gameplay-affecting fields a difficulty
+        // preset is allowed to set: 7 memory values + 7 palate thresholds + 7 other toggles /
+        // sliders. When adding a new gameplay-affecting setting to ModSettings, update ALL of:
+        // this struct, the three Profile instances, ApplyProfile, MatchesProfile, and (if
+        // defaults change) ModSettings field initializers. The `moreVarietyMemory` toggle is
+        // DEPRECATED and no longer part of the profile.
         private struct Profile
         {
-            public int extremelyLowVariety;
-            public int veryLowVariety;
-            public int lowVariety;
-            public int moderateVariety;
-            public int highVariety;
-            public int skyHighVariety;
-            public int nobleVariety;
+            public int extremelyLowMemory, veryLowMemory, lowMemory,
+                       moderateMemory, highMemory, skyHighMemory, nobleMemory;
+            public float extremelyLowPalate, veryLowPalate, lowPalate,
+                         moderatePalate, highPalate, skyHighPalate, noblePalate;
             public int lowExpectationFloor;
             public bool halveVarietyMoodImpact;
-            public bool moreVarietyMemory;
-            public bool slavesHaveVarietyNeed;
-            public bool prisonersHaveVarietyNeed;
-            public int slaveExpectedVarietyPercentage;
-            public int prisonerExpectedVarietyPercentage;
+            public bool slavesHaveVarietyNeed, prisonersHaveVarietyNeed;
+            public int slaveExpectedVarietyPercentage, prisonerExpectedVarietyPercentage;
         }
 
         private static readonly Profile Easy = new Profile
         {
-            extremelyLowVariety = 3, veryLowVariety = 4, lowVariety = 5,
-            moderateVariety = 6, highVariety = 8, skyHighVariety = 10,
-            nobleVariety = 12, lowExpectationFloor = 3,
-            halveVarietyMoodImpact = true, moreVarietyMemory = true,
+            extremelyLowMemory = 7, veryLowMemory = 9, lowMemory = 11,
+            moderateMemory = 14, highMemory = 18, skyHighMemory = 22, nobleMemory = 27,
+            extremelyLowPalate = 0.02f, veryLowPalate = 0.04f, lowPalate = 0.08f,
+            moderatePalate = 0.14f, highPalate = 0.20f, skyHighPalate = 0.28f, noblePalate = 0.36f,
+            lowExpectationFloor = 3,
+            halveVarietyMoodImpact = true,
             slavesHaveVarietyNeed = true, prisonersHaveVarietyNeed = true,
             slaveExpectedVarietyPercentage = 50, prisonerExpectedVarietyPercentage = 40,
         };
@@ -50,20 +48,24 @@ namespace VarietyMatters
         // highlight will be wrong for fresh installs.
         private static readonly Profile Default_ = new Profile
         {
-            extremelyLowVariety = 4, veryLowVariety = 5, lowVariety = 6,
-            moderateVariety = 8, highVariety = 10, skyHighVariety = 12,
-            nobleVariety = 15, lowExpectationFloor = 3,
-            halveVarietyMoodImpact = false, moreVarietyMemory = false,
+            extremelyLowMemory = 9, veryLowMemory = 11, lowMemory = 14,
+            moderateMemory = 18, highMemory = 23, skyHighMemory = 27, nobleMemory = 34,
+            extremelyLowPalate = 0.04f, veryLowPalate = 0.08f, lowPalate = 0.12f,
+            moderatePalate = 0.20f, highPalate = 0.28f, skyHighPalate = 0.36f, noblePalate = 0.48f,
+            lowExpectationFloor = 3,
+            halveVarietyMoodImpact = false,
             slavesHaveVarietyNeed = true, prisonersHaveVarietyNeed = true,
             slaveExpectedVarietyPercentage = 65, prisonerExpectedVarietyPercentage = 50,
         };
 
         private static readonly Profile Hardcore = new Profile
         {
-            extremelyLowVariety = 5, veryLowVariety = 6, lowVariety = 8,
-            moderateVariety = 10, highVariety = 12, skyHighVariety = 15,
-            nobleVariety = 18, lowExpectationFloor = 4,
-            halveVarietyMoodImpact = false, moreVarietyMemory = false,
+            extremelyLowMemory = 11, veryLowMemory = 14, lowMemory = 18,
+            moderateMemory = 23, highMemory = 27, skyHighMemory = 34, nobleMemory = 40,
+            extremelyLowPalate = 0.06f, veryLowPalate = 0.12f, lowPalate = 0.18f,
+            moderatePalate = 0.26f, highPalate = 0.34f, skyHighPalate = 0.42f, noblePalate = 0.50f,
+            lowExpectationFloor = 4,
+            halveVarietyMoodImpact = false,
             slavesHaveVarietyNeed = true, prisonersHaveVarietyNeed = true,
             slaveExpectedVarietyPercentage = 80, prisonerExpectedVarietyPercentage = 65,
         };
@@ -80,18 +82,16 @@ namespace VarietyMatters
 
         // IntEntry edit buffers. RimWorld's TextFieldNumeric needs stable ref string storage.
         // Nulled on preset apply / tier reset so next draw reseeds from the current value.
+        // US-029: 7 memory + 7 palate buffers for per-tier direct-value tuning.
         private static string _numIngredientsBuf;
         private static string _cookingMemoryBuf;
         private static string _floorBuf;
         private static string _slaveBuf;
         private static string _prisonerBuf;
-        private static string _exLowBuf;
-        private static string _vLowBuf;
-        private static string _lowBuf;
-        private static string _modBuf;
-        private static string _highBuf;
-        private static string _skyHiBuf;
-        private static string _nobleBuf;
+        private static string _exLowMemBuf, _vLowMemBuf, _lowMemBuf, _modMemBuf,
+                              _highMemBuf, _skyHiMemBuf, _nobleMemBuf;
+        private static string _exLowPalBuf, _vLowPalBuf, _lowPalBuf, _modPalBuf,
+                              _highPalBuf, _skyHiPalBuf, _noblePalBuf;
 
         public Mod_VarietyMatters(ModContentPack content) : base(content)
         {
@@ -285,14 +285,9 @@ namespace VarietyMatters
                 QueueRecalculationForGameplayAffectingChange();
             }
 
-            bool prevMem = ModSettings_VarietyMatters.moreVarietyMemory;
-            ls.CheckboxLabeled("VM_Settings_MoreVarietyMemoryLabel".Translate(),
-                ref ModSettings_VarietyMatters.moreVarietyMemory,
-                "VM_Settings_MoreVarietyMemoryTooltip".Translate(), 0f, 1f);
-            if (prevMem != ModSettings_VarietyMatters.moreVarietyMemory)
-            {
-                QueueRecalculationForGameplayAffectingChange();
-            }
+            // US-029 dropped the moreVarietyMemory checkbox — player now sets per-tier memory
+            // values directly in the Pawn Expectations section. The field stays Scribed in
+            // ModSettings for save-compat but no UI reads/writes it.
 
             int prevFloor = ModSettings_VarietyMatters.lowExpectationFloor;
             if (_floorBuf == null) _floorBuf = prevFloor.ToString();
@@ -351,72 +346,131 @@ namespace VarietyMatters
 
         private void DrawExpectationsSection(Listing_Standard ls)
         {
-            // Local reset button: resets tier values + lowExpectationFloor to Default_ profile's tier-related fields.
+            // Local reset button: resets tier memory + palate fields to Default_ profile values.
             // Does NOT reset Difficulty-section fields — those belong to the preset strip.
             Rect resetRow = ls.GetRect(26f, 1f);
             if (Widgets.ButtonText(new Rect(resetRow.xMax - 80f, resetRow.y, 72f, resetRow.height),
                 "VM_Settings_ResetButton".Translate()))
             {
-                ModSettings_VarietyMatters.extremelyLowVariety = Default_.extremelyLowVariety;
-                ModSettings_VarietyMatters.veryLowVariety = Default_.veryLowVariety;
-                ModSettings_VarietyMatters.lowVariety = Default_.lowVariety;
-                ModSettings_VarietyMatters.moderateVariety = Default_.moderateVariety;
-                ModSettings_VarietyMatters.highVariety = Default_.highVariety;
-                ModSettings_VarietyMatters.skyHighVariety = Default_.skyHighVariety;
-                ModSettings_VarietyMatters.nobleVariety = Default_.nobleVariety;
-                _exLowBuf = _vLowBuf = _lowBuf = _modBuf = _highBuf = _skyHiBuf = _nobleBuf = null;
-                QueueRecalculationForGameplayAffectingChange();
+                ApplyTierFromProfile(Default_);
             }
 
             ls.Label("VM_Settings_ExpectationExplanation".Translate(), -1f);
             ls.Gap(4f);
 
-            DrawTierEntry(ls, "VM_Settings_ExtremelyLowLabel", ref ModSettings_VarietyMatters.extremelyLowVariety, ref _exLowBuf);
-            DrawTierEntry(ls, "VM_Settings_VeryLowLabel", ref ModSettings_VarietyMatters.veryLowVariety, ref _vLowBuf);
-            DrawTierEntry(ls, "VM_Settings_LowLabel", ref ModSettings_VarietyMatters.lowVariety, ref _lowBuf);
-            DrawTierEntry(ls, "VM_Settings_ModerateLabel", ref ModSettings_VarietyMatters.moderateVariety, ref _modBuf);
-            DrawTierEntry(ls, "VM_Settings_HighLabel", ref ModSettings_VarietyMatters.highVariety, ref _highBuf);
-            DrawTierEntry(ls, "VM_Settings_SkyHighLabel", ref ModSettings_VarietyMatters.skyHighVariety, ref _skyHiBuf);
-            DrawTierEntry(ls, "VM_Settings_NobleLabel", ref ModSettings_VarietyMatters.nobleVariety, ref _nobleBuf);
+            // 7 tiers × (memory + palate) = 14 rows. Grouped by tier.
+            DrawTierBlock(ls, "VM_Settings_ExtremelyLowLabel",
+                ref ModSettings_VarietyMatters.extremelyLowMemory, ref _exLowMemBuf,
+                ref ModSettings_VarietyMatters.extremelyLowPalate, ref _exLowPalBuf);
+            DrawTierBlock(ls, "VM_Settings_VeryLowLabel",
+                ref ModSettings_VarietyMatters.veryLowMemory, ref _vLowMemBuf,
+                ref ModSettings_VarietyMatters.veryLowPalate, ref _vLowPalBuf);
+            DrawTierBlock(ls, "VM_Settings_LowLabel",
+                ref ModSettings_VarietyMatters.lowMemory, ref _lowMemBuf,
+                ref ModSettings_VarietyMatters.lowPalate, ref _lowPalBuf);
+            DrawTierBlock(ls, "VM_Settings_ModerateLabel",
+                ref ModSettings_VarietyMatters.moderateMemory, ref _modMemBuf,
+                ref ModSettings_VarietyMatters.moderatePalate, ref _modPalBuf);
+            DrawTierBlock(ls, "VM_Settings_HighLabel",
+                ref ModSettings_VarietyMatters.highMemory, ref _highMemBuf,
+                ref ModSettings_VarietyMatters.highPalate, ref _highPalBuf);
+            DrawTierBlock(ls, "VM_Settings_SkyHighLabel",
+                ref ModSettings_VarietyMatters.skyHighMemory, ref _skyHiMemBuf,
+                ref ModSettings_VarietyMatters.skyHighPalate, ref _skyHiPalBuf);
+            DrawTierBlock(ls, "VM_Settings_NobleLabel",
+                ref ModSettings_VarietyMatters.nobleMemory, ref _nobleMemBuf,
+                ref ModSettings_VarietyMatters.noblePalate, ref _noblePalBuf);
 
-            // Monotonic cascade: each tier ≥ the previous one. Bumps later tiers up if the
-            // player sets an earlier tier higher than its successor. Keeps the sequence
-            // non-decreasing without trapping the player in a locked edit.
-            EnforceTierMonotonicity();
+            // Monotonic cascade on memory values only (palate stays player-chosen — there's no
+            // strict "higher tier must be pickier" invariant; unusual configs are fine).
+            EnforceMemoryMonotonicity();
 
             ls.Gap(8f);
         }
 
-        private void DrawTierEntry(Listing_Standard ls, string labelKey, ref int value, ref string buf)
+        // One tier, two rows: memory IntEntry + palate IntEntry (as 0-50 percent). Label shows
+        // tier name once above both to keep the visual pair legible.
+        private void DrawTierBlock(Listing_Standard ls, string tierLabelKey,
+            ref int memValue, ref string memBuf,
+            ref float palateValue, ref string palBuf)
         {
-            if (buf == null) buf = value.ToString();
-            int prev = value;
-            this.LabeledIntEntry(ls.GetRect(24f, 1f), labelKey.Translate(), ref value, ref buf, 1, 5, 1, 50);
-            if (prev != value)
+            // Tier name header (non-editable, just a label row above the two sliders)
+            Color prevColor = GUI.color;
+            GUI.color = new Color(0.85f, 0.85f, 0.85f);
+            ls.Label(tierLabelKey.Translate(), -1f);
+            GUI.color = prevColor;
+
+            // Memory row
+            if (memBuf == null) memBuf = memValue.ToString();
+            int prevMem = memValue;
+            Rect memRect = ls.GetRect(24f, 1f);
+            this.LabeledIntEntry(memRect,
+                "VM_Settings_Tier_MemorySub".Translate(), ref memValue, ref memBuf, 1, 5, 1, 200);
+            TooltipHandler.TipRegion(memRect, "VM_Settings_Tier_MemoryTooltip".Translate());
+            if (prevMem != memValue)
+            {
+                QueueRecalculationForGameplayAffectingChange();
+            }
+
+            // Palate row — stored as float 0.0-0.50; displayed as int 0-50 percent.
+            int palatePct = (int)System.Math.Round(palateValue * 100f);
+            if (palBuf == null) palBuf = palatePct.ToString();
+            int prevPct = palatePct;
+            Rect palRect = ls.GetRect(24f, 1f);
+            this.LabeledIntEntry(palRect,
+                "VM_Settings_Tier_PalateSub".Translate(), ref palatePct, ref palBuf, 1, 5, 0, 50);
+            TooltipHandler.TipRegion(palRect, "VM_Settings_Tier_PalateTooltip".Translate());
+            if (prevPct != palatePct)
+            {
+                palateValue = Mathf.Clamp(palatePct / 100f, 0f, 0.50f);
+                palBuf = null; // force reseed so UI stays in sync with clamped float
+                QueueRecalculationForGameplayAffectingChange();
+            }
+            ls.Gap(4f);
+        }
+
+        private static void EnforceMemoryMonotonicity()
+        {
+            bool changed = false;
+            if (ModSettings_VarietyMatters.veryLowMemory < ModSettings_VarietyMatters.extremelyLowMemory)
+            { ModSettings_VarietyMatters.veryLowMemory = ModSettings_VarietyMatters.extremelyLowMemory; _vLowMemBuf = null; changed = true; }
+            if (ModSettings_VarietyMatters.lowMemory < ModSettings_VarietyMatters.veryLowMemory)
+            { ModSettings_VarietyMatters.lowMemory = ModSettings_VarietyMatters.veryLowMemory; _lowMemBuf = null; changed = true; }
+            if (ModSettings_VarietyMatters.moderateMemory < ModSettings_VarietyMatters.lowMemory)
+            { ModSettings_VarietyMatters.moderateMemory = ModSettings_VarietyMatters.lowMemory; _modMemBuf = null; changed = true; }
+            if (ModSettings_VarietyMatters.highMemory < ModSettings_VarietyMatters.moderateMemory)
+            { ModSettings_VarietyMatters.highMemory = ModSettings_VarietyMatters.moderateMemory; _highMemBuf = null; changed = true; }
+            if (ModSettings_VarietyMatters.skyHighMemory < ModSettings_VarietyMatters.highMemory)
+            { ModSettings_VarietyMatters.skyHighMemory = ModSettings_VarietyMatters.highMemory; _skyHiMemBuf = null; changed = true; }
+            if (ModSettings_VarietyMatters.nobleMemory < ModSettings_VarietyMatters.skyHighMemory)
+            { ModSettings_VarietyMatters.nobleMemory = ModSettings_VarietyMatters.skyHighMemory; _nobleMemBuf = null; changed = true; }
+            if (changed)
             {
                 QueueRecalculationForGameplayAffectingChange();
             }
         }
 
-        private static void EnforceTierMonotonicity()
+        // Writes the tier memory + palate fields from a profile (14 values). Used by the local
+        // tier Reset button. Does NOT touch Difficulty fields (preset strip handles those).
+        private static void ApplyTierFromProfile(Profile p)
         {
-            bool changed = false;
-            if (ModSettings_VarietyMatters.veryLowVariety < ModSettings_VarietyMatters.extremelyLowVariety)
-            { ModSettings_VarietyMatters.veryLowVariety = ModSettings_VarietyMatters.extremelyLowVariety; _vLowBuf = null; changed = true; }
-            if (ModSettings_VarietyMatters.lowVariety < ModSettings_VarietyMatters.veryLowVariety)
-            { ModSettings_VarietyMatters.lowVariety = ModSettings_VarietyMatters.veryLowVariety; _lowBuf = null; changed = true; }
-            if (ModSettings_VarietyMatters.moderateVariety < ModSettings_VarietyMatters.lowVariety)
-            { ModSettings_VarietyMatters.moderateVariety = ModSettings_VarietyMatters.lowVariety; _modBuf = null; changed = true; }
-            if (ModSettings_VarietyMatters.highVariety < ModSettings_VarietyMatters.moderateVariety)
-            { ModSettings_VarietyMatters.highVariety = ModSettings_VarietyMatters.moderateVariety; _highBuf = null; changed = true; }
-            if (ModSettings_VarietyMatters.skyHighVariety < ModSettings_VarietyMatters.highVariety)
-            { ModSettings_VarietyMatters.skyHighVariety = ModSettings_VarietyMatters.highVariety; _skyHiBuf = null; changed = true; }
-            if (ModSettings_VarietyMatters.nobleVariety < ModSettings_VarietyMatters.skyHighVariety)
-            { ModSettings_VarietyMatters.nobleVariety = ModSettings_VarietyMatters.skyHighVariety; _nobleBuf = null; changed = true; }
-            if (changed)
-            {
-                QueueRecalculationForGameplayAffectingChange();
-            }
+            ModSettings_VarietyMatters.extremelyLowMemory = p.extremelyLowMemory;
+            ModSettings_VarietyMatters.veryLowMemory = p.veryLowMemory;
+            ModSettings_VarietyMatters.lowMemory = p.lowMemory;
+            ModSettings_VarietyMatters.moderateMemory = p.moderateMemory;
+            ModSettings_VarietyMatters.highMemory = p.highMemory;
+            ModSettings_VarietyMatters.skyHighMemory = p.skyHighMemory;
+            ModSettings_VarietyMatters.nobleMemory = p.nobleMemory;
+            ModSettings_VarietyMatters.extremelyLowPalate = p.extremelyLowPalate;
+            ModSettings_VarietyMatters.veryLowPalate = p.veryLowPalate;
+            ModSettings_VarietyMatters.lowPalate = p.lowPalate;
+            ModSettings_VarietyMatters.moderatePalate = p.moderatePalate;
+            ModSettings_VarietyMatters.highPalate = p.highPalate;
+            ModSettings_VarietyMatters.skyHighPalate = p.skyHighPalate;
+            ModSettings_VarietyMatters.noblePalate = p.noblePalate;
+            _exLowMemBuf = _vLowMemBuf = _lowMemBuf = _modMemBuf = _highMemBuf = _skyHiMemBuf = _nobleMemBuf = null;
+            _exLowPalBuf = _vLowPalBuf = _lowPalBuf = _modPalBuf = _highPalBuf = _skyHiPalBuf = _noblePalBuf = null;
+            QueueRecalculationForGameplayAffectingChange();
         }
 
         private void DrawCookSection(Listing_Standard ls)
@@ -500,43 +554,59 @@ namespace VarietyMatters
 
         private static void ApplyProfile(Profile p)
         {
-            ModSettings_VarietyMatters.extremelyLowVariety = p.extremelyLowVariety;
-            ModSettings_VarietyMatters.veryLowVariety = p.veryLowVariety;
-            ModSettings_VarietyMatters.lowVariety = p.lowVariety;
-            ModSettings_VarietyMatters.moderateVariety = p.moderateVariety;
-            ModSettings_VarietyMatters.highVariety = p.highVariety;
-            ModSettings_VarietyMatters.skyHighVariety = p.skyHighVariety;
-            ModSettings_VarietyMatters.nobleVariety = p.nobleVariety;
+            // Tier memory + palate (14 fields)
+            ModSettings_VarietyMatters.extremelyLowMemory = p.extremelyLowMemory;
+            ModSettings_VarietyMatters.veryLowMemory = p.veryLowMemory;
+            ModSettings_VarietyMatters.lowMemory = p.lowMemory;
+            ModSettings_VarietyMatters.moderateMemory = p.moderateMemory;
+            ModSettings_VarietyMatters.highMemory = p.highMemory;
+            ModSettings_VarietyMatters.skyHighMemory = p.skyHighMemory;
+            ModSettings_VarietyMatters.nobleMemory = p.nobleMemory;
+            ModSettings_VarietyMatters.extremelyLowPalate = p.extremelyLowPalate;
+            ModSettings_VarietyMatters.veryLowPalate = p.veryLowPalate;
+            ModSettings_VarietyMatters.lowPalate = p.lowPalate;
+            ModSettings_VarietyMatters.moderatePalate = p.moderatePalate;
+            ModSettings_VarietyMatters.highPalate = p.highPalate;
+            ModSettings_VarietyMatters.skyHighPalate = p.skyHighPalate;
+            ModSettings_VarietyMatters.noblePalate = p.noblePalate;
+            // Difficulty-section fields (7)
             ModSettings_VarietyMatters.lowExpectationFloor = p.lowExpectationFloor;
             ModSettings_VarietyMatters.halveVarietyMoodImpact = p.halveVarietyMoodImpact;
-            ModSettings_VarietyMatters.moreVarietyMemory = p.moreVarietyMemory;
             ModSettings_VarietyMatters.slavesHaveVarietyNeed = p.slavesHaveVarietyNeed;
             ModSettings_VarietyMatters.prisonersHaveVarietyNeed = p.prisonersHaveVarietyNeed;
             ModSettings_VarietyMatters.slaveExpectedVarietyPercentage = p.slaveExpectedVarietyPercentage;
             ModSettings_VarietyMatters.prisonerExpectedVarietyPercentage = p.prisonerExpectedVarietyPercentage;
-            // Invalidate IntEntry buffers so the displayed numbers match the new values.
+            // Invalidate all IntEntry buffers so the displayed numbers match the new values.
             _numIngredientsBuf = null;
             _cookingMemoryBuf = null;
             _floorBuf = null;
             _slaveBuf = null;
             _prisonerBuf = null;
-            _exLowBuf = null; _vLowBuf = null; _lowBuf = null; _modBuf = null;
-            _highBuf = null; _skyHiBuf = null; _nobleBuf = null;
+            _exLowMemBuf = _vLowMemBuf = _lowMemBuf = _modMemBuf =
+                _highMemBuf = _skyHiMemBuf = _nobleMemBuf = null;
+            _exLowPalBuf = _vLowPalBuf = _lowPalBuf = _modPalBuf =
+                _highPalBuf = _skyHiPalBuf = _noblePalBuf = null;
             QueueRecalculationForGameplayAffectingChange();
         }
 
         private static bool MatchesProfile(Profile p)
         {
-            return ModSettings_VarietyMatters.extremelyLowVariety == p.extremelyLowVariety
-                && ModSettings_VarietyMatters.veryLowVariety == p.veryLowVariety
-                && ModSettings_VarietyMatters.lowVariety == p.lowVariety
-                && ModSettings_VarietyMatters.moderateVariety == p.moderateVariety
-                && ModSettings_VarietyMatters.highVariety == p.highVariety
-                && ModSettings_VarietyMatters.skyHighVariety == p.skyHighVariety
-                && ModSettings_VarietyMatters.nobleVariety == p.nobleVariety
+            return ModSettings_VarietyMatters.extremelyLowMemory == p.extremelyLowMemory
+                && ModSettings_VarietyMatters.veryLowMemory == p.veryLowMemory
+                && ModSettings_VarietyMatters.lowMemory == p.lowMemory
+                && ModSettings_VarietyMatters.moderateMemory == p.moderateMemory
+                && ModSettings_VarietyMatters.highMemory == p.highMemory
+                && ModSettings_VarietyMatters.skyHighMemory == p.skyHighMemory
+                && ModSettings_VarietyMatters.nobleMemory == p.nobleMemory
+                && Mathf.Approximately(ModSettings_VarietyMatters.extremelyLowPalate, p.extremelyLowPalate)
+                && Mathf.Approximately(ModSettings_VarietyMatters.veryLowPalate, p.veryLowPalate)
+                && Mathf.Approximately(ModSettings_VarietyMatters.lowPalate, p.lowPalate)
+                && Mathf.Approximately(ModSettings_VarietyMatters.moderatePalate, p.moderatePalate)
+                && Mathf.Approximately(ModSettings_VarietyMatters.highPalate, p.highPalate)
+                && Mathf.Approximately(ModSettings_VarietyMatters.skyHighPalate, p.skyHighPalate)
+                && Mathf.Approximately(ModSettings_VarietyMatters.noblePalate, p.noblePalate)
                 && ModSettings_VarietyMatters.lowExpectationFloor == p.lowExpectationFloor
                 && ModSettings_VarietyMatters.halveVarietyMoodImpact == p.halveVarietyMoodImpact
-                && ModSettings_VarietyMatters.moreVarietyMemory == p.moreVarietyMemory
                 && ModSettings_VarietyMatters.slavesHaveVarietyNeed == p.slavesHaveVarietyNeed
                 && ModSettings_VarietyMatters.prisonersHaveVarietyNeed == p.prisonersHaveVarietyNeed
                 && ModSettings_VarietyMatters.slaveExpectedVarietyPercentage == p.slaveExpectedVarietyPercentage
