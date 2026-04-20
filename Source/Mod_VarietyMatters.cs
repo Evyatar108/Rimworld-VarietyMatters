@@ -121,7 +121,12 @@ namespace VarietyMatters
         {
             Listing_Standard listing_Standard = new Listing_Standard();
 
-            float contentHeight1 = Mathf.Max(_lastLeftContentHeight, 200f);
+            // Scroll viewport sized with a hard floor of 1500f so any single-section expansion
+            // fits on the SAME frame the user clicks. _lastLeftContentHeight updates only after
+            // End() runs — too late for the current frame's BeginScrollView. Using the measured
+            // value alone clips the Pawn Expectations body (~280px) plus Cook + Scoring headers
+            // below it until the next redraw, which reads as "content disappeared".
+            float contentHeight1 = Mathf.Max(_lastLeftContentHeight, 1500f);
             Rect rectScroll = new Rect(5f, 35f, inRect.width * 0.54f, inRect.height);
             Rect viewRect1 = new Rect(0f, 0f, rectScroll.width - 16f, contentHeight1);
             Widgets.BeginScrollView(rectScroll, ref leftScrollPosition, viewRect1);
@@ -154,7 +159,9 @@ namespace VarietyMatters
             }
 
             // Capture measured content height so next frame's scrollbar matches the real layout.
-            _lastLeftContentHeight = listing_Standard.CurHeight + 24f;
+            // Floor at 1500f keeps parity with the same-frame floor above — the scrollbar's
+            // usable range won't shrink below the single-section expansion threshold.
+            _lastLeftContentHeight = Mathf.Max(listing_Standard.CurHeight + 24f, 1500f);
             listing_Standard.End();
             Widgets.EndScrollView();
 
