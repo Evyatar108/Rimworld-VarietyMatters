@@ -132,7 +132,7 @@ namespace VarietyMatters.New
         // fraction of their raw ingredient-score to the mood pool. Breaks the "noble stuck at 0%"
         // lock in vanilla-pantry colonies while preserving the challenge at higher scores (the
         // baseline curve beats the floor once (score - b)/(1 - b) > floor × score, around score
-        // 0.68 for noble b=0.65). Dial up if vanilla nobles still feel stuck; down if challenge
+        // 0.57 for noble b=0.48). Dial up if vanilla nobles still feel stuck; down if challenge
         // is erased.
         public const float SoftFloorCoeff = 0.25f;
 

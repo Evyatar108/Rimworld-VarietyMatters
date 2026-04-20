@@ -5,7 +5,7 @@
   <VM_Settings_Category>Variety Matters Redux</VM_Settings_Category>
   <VM_Settings_VarietyTrackingHeader>Variety Tracking:</VM_Settings_VarietyTrackingHeader>
   <VM_Settings_TrackByIngredientOverlap>    Ingredient Overlap (continuous per-meal scoring)</VM_Settings_TrackByIngredientOverlap>
-  <VM_Settings_TrackByIngredientOverlapTooltip>Per-meal variety is scored by how many ingredients overlap with the pawn's recent meals (memory window = expectation-tier × memory multiplier). Trivial swaps (one ingredient different) give partial credit; fully-different meals count as fresh; repeats count as stale.</VM_Settings_TrackByIngredientOverlapTooltip>
+  <VM_Settings_TrackByIngredientOverlapTooltip>Per-meal variety is scored by how many ingredients overlap with the pawn's recent meals. Two separate windows: ingredient scoring always compares against the last 6 meals (fixed, all tiers); the full meal-history queue (expectation-tier × memory multiplier) is kept for the meal-type-novelty bonus and the details UI. Trivial swaps give partial credit; fully-different meals count as fresh; repeats count as stale.</VM_Settings_TrackByIngredientOverlapTooltip>
   <VM_Settings_OtherOptionsHeader>Other Options:</VM_Settings_OtherOptionsHeader>
   <VM_Settings_NonControlledPawnsLabel>    Non controlled pawns also have variety need: </VM_Settings_NonControlledPawnsLabel>
   <VM_Settings_FoodDrugsOnceLabel>    Foods that are also drugs are stored in memory just once: </VM_Settings_FoodDrugsOnceLabel>
@@ -14,12 +14,15 @@
   <VM_Settings_PreferVarietyTooltip>Cooks rotate ingredients across meals and mix distinct ThingDefs within a single meal. Mixing only applies to bills with 'Allow mixing ingredients' enabled — bills without mixing still get variety-weighted sort order but remain single-ingredient per slot.</VM_Settings_PreferVarietyTooltip>
   <VM_Settings_PreferSpoilingLabel>    Cooks prefer spoiling ingredients: </VM_Settings_PreferSpoilingLabel>
   <VM_Settings_StackByIngredientsLabel>    Stack meals by ingredients: </VM_Settings_StackByIngredientsLabel>
+  <VM_Settings_StackByIngredientsTooltip>When enabled, cooked meals with different ingredient sets do NOT stack together in storage — each distinct ingredient combo keeps its own stack. Required for the per-meal variety score to work correctly (otherwise all meals of a type merge into one bag and ingredient history is lost). Disable only if you want vanilla stacking behavior.</VM_Settings_StackByIngredientsTooltip>
   <VM_Settings_ClusterSimilarMealsLabel>    Count different quality meals as the same meal type: </VM_Settings_ClusterSimilarMealsLabel>
   <VM_Settings_ClusterSimilarMealsExample>    ^For example, Fine and Lavish meals will counted as one type</VM_Settings_ClusterSimilarMealsExample>
-  <VM_Settings_NumIngredientsLabel>    Ingredients When Stacking (vanilla = 3):</VM_Settings_NumIngredientsLabel>
-  <VM_Settings_CookingMemoryDepthLabel>    Cooking memory depth (default 10):</VM_Settings_CookingMemoryDepthLabel>
+  <VM_Settings_NumIngredientsLabel>    Ingredients per meal when cooking (vanilla = 3):</VM_Settings_NumIngredientsLabel>
+  <VM_Settings_NumIngredientsTooltip>Maximum distinct ingredient ThingDefs the cook will stuff into a single produced meal when 'Cooks use different ingredients' is on. Higher values = more variety per plate but harder pantry management. Vanilla caps at 3; setting this lower throttles the mod's mixing behavior.</VM_Settings_NumIngredientsTooltip>
+  <VM_Settings_CookingMemoryDepthLabel>    Cook's ingredient-rotation memory (default 10):</VM_Settings_CookingMemoryDepthLabel>
+  <VM_Settings_CookingMemoryDepthTooltip>How many recent meals each cook remembers when picking ingredients for the next one. Higher = wider rotation (cook avoids repeating ingredients across more past meals). Purely a cooking-AI knob — does NOT affect the pawn-side variety mood window.</VM_Settings_CookingMemoryDepthTooltip>
   <VM_Settings_ExpectationHeader>Expectation Tier Variety Targets:</VM_Settings_ExpectationHeader>
-  <VM_Settings_ExpectationExplanation>Each value drives two things for that tier: (1) how many past meals the pawn remembers, and (2) how picky their palate is — higher values make the tier harder to satisfy on both axes.</VM_Settings_ExpectationExplanation>
+  <VM_Settings_ExpectationExplanation>Each value drives two things for that tier: (1) how many past meals the pawn remembers (queue size = value × memory multiplier), and (2) how picky their palate is (palate threshold = clamp((value − 3)/25, 0, 0.50)). Higher values make the tier harder to satisfy on both axes. Defaults: Noble → palate 0.48, remembers ~34 meals.</VM_Settings_ExpectationExplanation>
   <VM_Settings_ResetButton>Reset</VM_Settings_ResetButton>
   <VM_Settings_ExtremelyLowLabel>    Extremely Low (default 4):</VM_Settings_ExtremelyLowLabel>
   <VM_Settings_VeryLowLabel>    Very Low (default 5):</VM_Settings_VeryLowLabel>
@@ -28,14 +31,19 @@
   <VM_Settings_HighLabel>    High (default 10):</VM_Settings_HighLabel>
   <VM_Settings_SkyHighLabel>    Sky High (default 12):</VM_Settings_SkyHighLabel>
   <VM_Settings_NobleLabel>    Noble and Royal (default 15):</VM_Settings_NobleLabel>
-  <VM_Settings_LowExpectationFloorLabel>    Low Expectation Floor (default 3):</VM_Settings_LowExpectationFloorLabel>
+  <VM_Settings_LowExpectationFloorLabel>    Minimum expected variety (default 3):</VM_Settings_LowExpectationFloorLabel>
+  <VM_Settings_LowExpectationFloorTooltip>Hard floor on expected variety count after all tier / slave / prisoner / gourmand modifiers. Keeps tribal / Naked Brutality starts from dropping to 1–2 and trivializing early-game food variety. Raise to make the early game harder; lower to give low-expectation colonies an easier ride.</VM_Settings_LowExpectationFloorTooltip>
   <VM_Settings_SlavesHaveVarietyLabel>    Slaves have variety need (default true):</VM_Settings_SlavesHaveVarietyLabel>
-  <VM_Settings_SlaveExpectedVarietyLabel>    Slave expected variety (default 65%):</VM_Settings_SlaveExpectedVarietyLabel>
+  <VM_Settings_SlaveExpectedVarietyLabel>    Slave expected variety (% of tier, default 65%):</VM_Settings_SlaveExpectedVarietyLabel>
+  <VM_Settings_SlaveExpectedVarietyTooltip>Percentage applied to the slave's tier value. Scales both expected-variety count AND palate threshold. 100% = same as a free pawn of the same tier; 50% = half as picky.</VM_Settings_SlaveExpectedVarietyTooltip>
   <VM_Settings_PrisonersHaveVarietyLabel>    Prisoners have variety need (default true):</VM_Settings_PrisonersHaveVarietyLabel>
-  <VM_Settings_PrisonerExpectedVarietyLabel>    Prisoner expected variety (default 50%):</VM_Settings_PrisonerExpectedVarietyLabel>
+  <VM_Settings_PrisonerExpectedVarietyLabel>    Prisoner expected variety (% of tier, default 50%):</VM_Settings_PrisonerExpectedVarietyLabel>
+  <VM_Settings_PrisonerExpectedVarietyTooltip>Percentage applied to the prisoner's tier value. Scales both expected-variety count AND palate threshold. 100% = same as a free pawn of the same tier; 50% = half as picky.</VM_Settings_PrisonerExpectedVarietyTooltip>
   <VM_Settings_AdjustmentFactorsHeader>Optional Variety Expectation Adjustments Factors:</VM_Settings_AdjustmentFactorsHeader>
-  <VM_Settings_HalveVarietyMoodLabel>    Reduce variety mood effect: </VM_Settings_HalveVarietyMoodLabel>
-  <VM_Settings_MoreVarietyMemoryLabel>    Longer variety meals memory for pawns (Easier): </VM_Settings_MoreVarietyMemoryLabel>
+  <VM_Settings_HalveVarietyMoodLabel>    Halve variety mood effect: </VM_Settings_HalveVarietyMoodLabel>
+  <VM_Settings_HalveVarietyMoodTooltip>Cuts the food-variety mood thought weight in half (multiplier 2.0 → 1.0). The same variety score produces half the mood swing, both positive and negative. Use for a softer difficulty pass.</VM_Settings_HalveVarietyMoodTooltip>
+  <VM_Settings_MoreVarietyMemoryLabel>    Longer variety memory for pawns (Easier): </VM_Settings_MoreVarietyMemoryLabel>
+  <VM_Settings_MoreVarietyMemoryTooltip>Bumps the memory multiplier from 2.25 to 2.75. Pawns remember more past meals (bigger queue), but the mood-at-100% ceiling scales up too, so the same variety score reaches a higher mood. Net effect: easier to maintain high variety mood at steady state.</VM_Settings_MoreVarietyMemoryTooltip>
   <VM_Settings_RaceSectionHeader>Enable/Disable variety for races (Requires HAR):</VM_Settings_RaceSectionHeader>
   <VM_Settings_ResetRacesButton>Reset Current Races</VM_Settings_ResetRacesButton>
   <VM_Settings_FromMod>From mod: {0}</VM_Settings_FromMod>

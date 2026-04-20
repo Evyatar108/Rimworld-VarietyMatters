@@ -60,15 +60,19 @@
             listing_Standard.CheckboxLabeled("VM_Settings_FoodDrugsOnceLabel".Translate(), ref ModSettings_VarietyMatters.foodDrugsAreOnlyInMemoryOnce, "VM_Settings_FoodDrugsOnceTooltip".Translate(), 0f, 1f);
 			listing_Standard.CheckboxLabeled("VM_Settings_PreferVarietyLabel".Translate(), ref ModSettings_VarietyMatters.preferVariety, "VM_Settings_PreferVarietyTooltip".Translate(), 0f, 1f);
 			listing_Standard.CheckboxLabeled("VM_Settings_PreferSpoilingLabel".Translate(), ref ModSettings_VarietyMatters.preferSpoiling, null, 0f, 1f);
-			listing_Standard.CheckboxLabeled("VM_Settings_StackByIngredientsLabel".Translate(), ref ModSettings_VarietyMatters.stackByIngredients, null, 0f, 1f);
+			listing_Standard.CheckboxLabeled("VM_Settings_StackByIngredientsLabel".Translate(), ref ModSettings_VarietyMatters.stackByIngredients, "VM_Settings_StackByIngredientsTooltip".Translate(), 0f, 1f);
 
 			string label = "VM_Settings_NumIngredientsLabel".Translate();
 			string text = ModSettings_VarietyMatters.numIngredients.ToString();
-			this.LabeledIntEntry(listing_Standard.GetRect(24f, 1f), label, ref ModSettings_VarietyMatters.numIngredients, ref text, 1, 1, 1, 10);
+			Rect numIngRect = listing_Standard.GetRect(24f, 1f);
+			this.LabeledIntEntry(numIngRect, label, ref ModSettings_VarietyMatters.numIngredients, ref text, 1, 1, 1, 10);
+			TooltipHandler.TipRegion(numIngRect, "VM_Settings_NumIngredientsTooltip".Translate());
 
 			string cookingMemLabel = "VM_Settings_CookingMemoryDepthLabel".Translate();
 			string cookingMemText = ModSettings_VarietyMatters.cookingMemoryDepth.ToString();
-			this.LabeledIntEntry(listing_Standard.GetRect(24f, 1f), cookingMemLabel, ref ModSettings_VarietyMatters.cookingMemoryDepth, ref cookingMemText, 1, 5, 1, 100);
+			Rect cookingMemRect = listing_Standard.GetRect(24f, 1f);
+			this.LabeledIntEntry(cookingMemRect, cookingMemLabel, ref ModSettings_VarietyMatters.cookingMemoryDepth, ref cookingMemText, 1, 5, 1, 100);
+			TooltipHandler.TipRegion(cookingMemRect, "VM_Settings_CookingMemoryDepthTooltip".Translate());
 
             listing_Standard.GapLine(12f);
 			bool flag5 = listing_Standard.ButtonTextLabeled("VM_Settings_ExpectationHeader".Translate(), "VM_Settings_ResetButton".Translate(), 0, null, null);
@@ -89,7 +93,7 @@
             }
             listing_Standard.Gap(8f);
 			// US-026 dual-purpose callout so players know these values now scale both memory
-			// capacity AND palate threshold (baseline = clamp((value − 3)/20, 0, 0.9)).
+			// capacity AND palate threshold (baseline = clamp((value − 3)/25, 0, 0.50)).
 			listing_Standard.Label("VM_Settings_ExpectationExplanation".Translate(), -1f);
 			listing_Standard.Gap(4f);
 			string label2 = "VM_Settings_ExtremelyLowLabel".Translate();
@@ -116,7 +120,9 @@
 			int previousLowExpectationFloor = ModSettings_VarietyMatters.lowExpectationFloor;
 			string label9 = "VM_Settings_LowExpectationFloorLabel".Translate();
 			string text9 = ModSettings_VarietyMatters.lowExpectationFloor.ToString();
-			this.LabeledIntEntry(listing_Standard.GetRect(24f, 1f), label9, ref ModSettings_VarietyMatters.lowExpectationFloor, ref text9, 1, 5, 1, 50);
+			Rect floorRect = listing_Standard.GetRect(24f, 1f);
+			this.LabeledIntEntry(floorRect, label9, ref ModSettings_VarietyMatters.lowExpectationFloor, ref text9, 1, 5, 1, 50);
+			TooltipHandler.TipRegion(floorRect, "VM_Settings_LowExpectationFloorTooltip".Translate());
 			if (ModSettings_VarietyMatters.lowExpectationFloor != previousLowExpectationFloor)
 			{
 				DebouncedSettingsHandler.QueueRecalculation();
@@ -130,7 +136,9 @@
 			{
 				string labelDivideSlaveVariety = "VM_Settings_SlaveExpectedVarietyLabel".Translate();
 				string textDivideSlaveVariety = ModSettings_VarietyMatters.slaveExpectedVarietyPercentage.ToString();
-				this.LabeledIntEntry(listing_Standard.GetRect(24f, 1f), labelDivideSlaveVariety, ref ModSettings_VarietyMatters.slaveExpectedVarietyPercentage, ref textDivideSlaveVariety, 1, 5, 1, 100);
+				Rect slaveRect = listing_Standard.GetRect(24f, 1f);
+				this.LabeledIntEntry(slaveRect, labelDivideSlaveVariety, ref ModSettings_VarietyMatters.slaveExpectedVarietyPercentage, ref textDivideSlaveVariety, 1, 5, 1, 100);
+				TooltipHandler.TipRegion(slaveRect, "VM_Settings_SlaveExpectedVarietyTooltip".Translate());
 			}
 
             string labelPrisonersHaveVarietyNeed = "VM_Settings_PrisonersHaveVarietyLabel".Translate();
@@ -140,13 +148,15 @@
             {
                 string labelDividePrisonerVariety = "VM_Settings_PrisonerExpectedVarietyLabel".Translate();
                 string textDividePrisonerVariety = ModSettings_VarietyMatters.prisonerExpectedVarietyPercentage.ToString();
-                this.LabeledIntEntry(listing_Standard.GetRect(24f, 1f), labelDividePrisonerVariety, ref ModSettings_VarietyMatters.prisonerExpectedVarietyPercentage, ref textDividePrisonerVariety, 1, 5, 1, 100);
+                Rect prisonerRect = listing_Standard.GetRect(24f, 1f);
+                this.LabeledIntEntry(prisonerRect, labelDividePrisonerVariety, ref ModSettings_VarietyMatters.prisonerExpectedVarietyPercentage, ref textDividePrisonerVariety, 1, 5, 1, 100);
+                TooltipHandler.TipRegion(prisonerRect, "VM_Settings_PrisonerExpectedVarietyTooltip".Translate());
             }
 
             listing_Standard.GapLine(12f);
 			listing_Standard.Label("VM_Settings_AdjustmentFactorsHeader".Translate(), -1f);
-            listing_Standard.CheckboxLabeled("VM_Settings_HalveVarietyMoodLabel".Translate(), ref ModSettings_VarietyMatters.halveVarietyMoodImpact, null, 0f, 1f);
-            listing_Standard.CheckboxLabeled("VM_Settings_MoreVarietyMemoryLabel".Translate(), ref ModSettings_VarietyMatters.moreVarietyMemory, null, 0f, 1f);
+            listing_Standard.CheckboxLabeled("VM_Settings_HalveVarietyMoodLabel".Translate(), ref ModSettings_VarietyMatters.halveVarietyMoodImpact, "VM_Settings_HalveVarietyMoodTooltip".Translate(), 0f, 1f);
+            listing_Standard.CheckboxLabeled("VM_Settings_MoreVarietyMemoryLabel".Translate(), ref ModSettings_VarietyMatters.moreVarietyMemory, "VM_Settings_MoreVarietyMemoryTooltip".Translate(), 0f, 1f);
             listing_Standard.End();
             Widgets.EndScrollView();
 

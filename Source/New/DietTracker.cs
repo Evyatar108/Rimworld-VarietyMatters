@@ -37,12 +37,12 @@
         // in US-026 when the bonus moved to mood-tick read time via IsMealDefFreshInWindow).
 
         // US-025 meal-def-new bonus — step table keyed on recipe slot count. A meal whose ThingDef
-        // has not been seen in the scoring window contributes an additive variety bonus sized by
-        // recipe complexity: simple meals (1 slot) get nothing, vanilla fine/lavish (2 slots) sit
-        // at the main tier (0.20), modded 3+ slot recipes earn progressively more up to the 5+
-        // cap at 0.40. Step table (not linear) so the player's mental model is "cook fancier
-        // recipes for more bonus" without per-ingredient fiddliness. Index = min(slots, 5); a
-        // "capped" tooltip label fires only when modded 6+ slot recipes are clamped.
+        // has not been seen in the decay queue contributes an additive variety bonus sized by
+        // recipe complexity: simple meals (1 slot) get nothing, vanilla fine/lavish (2 slots) earn
+        // a small +0.05, modded 3+ slot recipes escalate up to +0.30 at 5+ slots. Step table (not
+        // linear) so the player's mental model is "cook fancier recipes for more bonus" without
+        // per-ingredient fiddliness. Index = min(slots, 5); a "capped" tooltip label fires only
+        // when modded 6+ slot recipes are clamped.
         private static readonly float[] _mealDefBonusBySlot = { 0f, 0f, 0.05f, 0.12f, 0.20f, 0.30f };
         public const int MaxBonusSlots = 5;
 
