@@ -13,6 +13,34 @@ namespace VarietyMatters.New
         // contributes zero to that pawn's variety pool. Extreme Low → 0 (any variety counts).
         // Noble → 0.65 (only genuinely-fresh meals matter). Capped below 1.0 so every tier can
         // still reach full mood on a perfect (all-new-ingredients) meal.
+        // Public variant of BaselineForTier so external callers (Patch_FoodUtility) can compute
+        // predicted mood contribution for a candidate meal without duplicating the tier table.
+        public static float BaselineForTierPublic(Pawn pawn) => BaselineForTier(pawn);
+
+        // Single-meal effective-score formula shared between mood aggregation (VarietyAdjuster) and
+        // candidate prediction (Patch_FoodUtility). Pure function: soft floor + baseline curve +
+        // post-curve bonus, clamp01. Keep this the ONLY place the per-meal combine happens.
+        public static float ComputeEffectiveScore(float ingredientScore, float baseline,
+            bool mealDefFresh, int ingredientsCount)
+        {
+            float inverseBaseline = Mathf.Max(0.01f, 1f - baseline);
+            float hardCurved = ingredientScore > baseline
+                ? (ingredientScore - baseline) / inverseBaseline
+                : 0f;
+            float softFloor = SoftFloorCoeff * ingredientScore;
+            float curved = Mathf.Max(hardCurved, softFloor);
+
+            float bonus = 0f;
+            if (mealDefFresh)
+            {
+                int complexity = ingredientsCount > 0 ? ingredientsCount : 1;
+                bonus = Mathf.Min(
+                    DietTracker.MealDefBonusCap,
+                    DietTracker.MealDefBonusPerIngredient * complexity);
+            }
+            return Mathf.Clamp01(curved + bonus);
+        }
+
         private static float BaselineForTier(Pawn pawn)
         {
             if (pawn == null) return 0f;
@@ -54,7 +82,7 @@ namespace VarietyMatters.New
         // baseline curve beats the floor once (score - b)/(1 - b) > floor × score, around score
         // 0.68 for noble b=0.65). Dial up if vanilla nobles still feel stuck; down if challenge
         // is erased.
-        private const float SoftFloorCoeff = 0.25f;
+        public const float SoftFloorCoeff = 0.25f;
 
         public static void AdjustVarietyLevel(DietTracker dietTracker)
         {
@@ -84,9 +112,9 @@ namespace VarietyMatters.New
             {
                 // I″: per-meal baseline, then post-curve additive bonus for meal-def novelty.
                 // `varietyScore` on each EatenFoodSource is ingredient-only (US-026 semantic);
-                // recompute the US-025 meal-def bonus via IsMealDefFreshInWindow at read time.
+                // per-meal effective combine lives in ComputeEffectiveScore so Patch_FoodUtility's
+                // candidate-estimate helper uses the exact same math.
                 float baseline = BaselineForTier(dietTracker.Pawn);
-                float inverseBaseline = Mathf.Max(0.01f, 1f - baseline);
 
                 double sumEffective = 0.0;
                 int counted = 0;
@@ -95,28 +123,14 @@ namespace VarietyMatters.New
                     var src = foodByPawn?.Source;
                     if (src == null || src.IsForgotten) continue;
 
-                    float ingScore = src.VarietyScore;   // ingredient-only post US-026
-                    float hardCurved = ingScore > baseline
-                        ? (ingScore - baseline) / inverseBaseline
-                        : 0f;
-                    // Soft floor ensures mediocre meals register *something* for high-tier pawns —
-                    // prevents the noble-stuck-at-0% trap in vanilla colonies. Takes whichever is
-                    // higher of the hard baseline curve or SoftFloorCoeff × raw score.
-                    float softFloor = SoftFloorCoeff * ingScore;
-                    float curved = Mathf.Max(hardCurved, softFloor);
-
-                    float bonus = 0f;
-                    if (dietTracker.IsMealDefFreshInWindow(src))
-                    {
-                        int complexity = (src.IngredientsDefs != null && src.IngredientsDefs.Count > 0)
-                            ? src.IngredientsDefs.Count
-                            : 1;
-                        bonus = Mathf.Min(
-                            DietTracker.MealDefBonusCap,
-                            DietTracker.MealDefBonusPerIngredient * complexity);
-                    }
-
-                    float effective = Mathf.Clamp01(curved + bonus);
+                    int complexity = (src.IngredientsDefs != null && src.IngredientsDefs.Count > 0)
+                        ? src.IngredientsDefs.Count
+                        : 1;
+                    float effective = ComputeEffectiveScore(
+                        src.VarietyScore,
+                        baseline,
+                        dietTracker.IsMealDefFreshInWindow(src),
+                        complexity);
                     sumEffective += effective;
                     counted++;
                 }

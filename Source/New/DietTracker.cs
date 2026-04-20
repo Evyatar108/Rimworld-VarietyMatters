@@ -455,6 +455,83 @@
             return true;
         }
 
+        // US-026 food-search alignment: estimate the raw ingredient-overlap score a candidate
+        // Thing would receive if eaten *now*, without mutating tracker state. Used by
+        // Patch_FoodUtility.FoodOptimality to steer pawn food choice toward meals that will score
+        // well under the same formula the mood system uses, so eating preference and mood math
+        // stay in sync.
+        public float EstimateIngredientScoreForCandidate(Thing candidateThing)
+        {
+            if (candidateThing?.def == null) return 1f;
+
+            // Walk the recent decay window exactly like ComputeVarietyScore does, but anchored on
+            // the current tick (candidate would be "eaten now").
+            _recentIngSetScratch.Clear();
+            int nowTick = Find.TickManager != null ? Find.TickManager.TicksGame : 0;
+            foreach (EatenFoodByPawn past in this.foodSourcesByOrderV2)
+            {
+                EatenFoodSource src = past?.Source;
+                if (src == null || src.IsForgotten) continue;
+                int t = src.AteAtTick;
+                if (t < 0) continue;
+                if (nowTick - t > VarietyDecayTicks) continue;
+
+                List<ThingDef> pastDefs = src.IngredientsDefs;
+                if (pastDefs != null && pastDefs.Count > 0)
+                {
+                    for (int i = 0; i < pastDefs.Count; i++)
+                    {
+                        ThingDef d = pastDefs[i];
+                        if (d != null) _recentIngSetScratch.Add(d);
+                    }
+                }
+                else if (src.ThingDef != null)
+                {
+                    _recentIngSetScratch.Add(src.ThingDef);
+                }
+            }
+
+            // Read candidate ingredients from CompIngredients (what the meal is made of). Fall
+            // back to the meal's own ThingDef when no CompIngredients is present (raw, paste,
+            // kibble). Matches the empty-ingredient-singleton rule used at ingest.
+            var comp = candidateThing.TryGetComp<CompIngredients>();
+            List<ThingDef> inc = comp?.ingredients;
+            int overlap, total;
+            if (inc != null && inc.Count > 0)
+            {
+                total = inc.Count;
+                overlap = 0;
+                for (int i = 0; i < inc.Count; i++)
+                {
+                    if (_recentIngSetScratch.Contains(inc[i])) overlap++;
+                }
+            }
+            else
+            {
+                total = 1;
+                overlap = _recentIngSetScratch.Contains(candidateThing.def) ? 1 : 0;
+            }
+            return 1f - (float)overlap / total;
+        }
+
+        // US-026 food-search: is this candidate meal's ThingDef absent from the decay window?
+        // Mirrors IsMealDefFreshInWindow for a Thing (not an EatenFoodSource).
+        public bool IsCandidateMealDefFresh(Thing candidateThing)
+        {
+            if (candidateThing?.def == null) return false;
+            int nowTick = Find.TickManager != null ? Find.TickManager.TicksGame : 0;
+            foreach (EatenFoodByPawn past in this.foodSourcesByOrderV2)
+            {
+                EatenFoodSource src = past?.Source;
+                if (src == null || src.IsForgotten) continue;
+                int t = src.AteAtTick;
+                if (t < 0) continue;
+                if (nowTick - t > VarietyDecayTicks) continue;
+                if (src.ThingDef == candidateThing.def) return false;
+            }
+            return true;
+        }
+
         // Read-only overlap partition for UX. Returns shared scratch sets -- treat as read-only;
         // any mutation to the tracker bumps _version and invalidates the cache on next call.
         public (HashSet<ThingDef> overlap, HashSet<ThingDef> fresh) GetOverlapBreakdown(EatenFoodSource meal)

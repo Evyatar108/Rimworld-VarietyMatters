@@ -2,7 +2,6 @@
 {
     using HarmonyLib;
     using RimWorld;
-    using System.Collections.Generic;
     using VarietyMatters.New;
     using Verse;
 
@@ -55,13 +54,29 @@
 				return;
 			}
 
-			HashSet<string> keysOfFoodSourcesWithVariety = dietTracker.KeysOfFoodSourcesWithVariety;
-			string newFoodSourceKey = compVariety.GetFoodSourceKey();
-
-			if (!keysOfFoodSourcesWithVariety.Contains(newFoodSourceKey))
+			// US-026 food-search alignment: instead of the legacy binary "is this meal key new?"
+			// check, score the candidate by the same per-meal effective formula used for mood.
+			// A meal whose ingredients overlap the pawn's recent window scores low; a fresh-def
+			// meal with novel ingredients scores ~1.0. Pawn's pick preference now tracks what
+			// will actually improve their variety mood.
+			float ingScore = dietTracker.EstimateIngredientScoreForCandidate(foodSource);
+			bool mealDefFresh = dietTracker.IsCandidateMealDefFresh(foodSource);
+			int complexity;
+			var comp = foodSource.TryGetComp<CompIngredients>();
+			if (comp != null && comp.ingredients != null && comp.ingredients.Count > 0)
 			{
-				__result += 60f;
+				complexity = comp.ingredients.Count;
 			}
+			else
+			{
+				complexity = 1;
+			}
+			float baseline = VarietyAdjuster.BaselineForTierPublic(eater);
+			float effective = VarietyAdjuster.ComputeEffectiveScore(ingScore, baseline, mealDefFresh, complexity);
+
+			// Original patch awarded a flat +60 for a new-key meal. Keep the same maximum so
+			// late-game mod interactions behave the same; just scale by predicted effectiveness.
+			__result += 60f * effective;
         }
     }
 }
