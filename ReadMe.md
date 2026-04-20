@@ -84,6 +84,8 @@ This mode focuses exclusively on the variety of ingredients. Meals are considere
 This option simplifies the variety mechanic by considering only the type of meal consumed, disregarding the ingredients used. It's particularly well-suited for gameplay with a wide array of meal types introduced by mods, where the meal itself brings the variety.
 [b]Option 3: Both Ingredients and Meal Name[/b]
 The most player-friendly option, this mode tracks both the meal's name and its ingredients. A meal is considered a new variety if either its name is different, or it contains a different ingredient. This approach is perfect for those seeking a challenge that is not too demanding, allowing for varied gameplay without extensive micromanagement.
+[b]Option 4: Ingredient Overlap[/b]
+Instead of a yes/no "is this a new variety?" decision, this mode scores each meal between 0 and 1 based on how many of its ingredients overlap with ingredients eaten in the last ~2 in-game days. Trivial swaps (rice+chicken+carrot then rice+chicken+lettuce) give diminishing variety, while wholly different meals (rice+chicken+carrot then bison+potato+egg) still count as fresh. It's ideal for players who want fine-grained variety tracking without relying on many meal-type mods.
 
 [h2]How Much Variety Do Pawns Need?[/h2]
 The base variety expectation depends on a pawn's current thought expectation and can be adjusted in settings.
