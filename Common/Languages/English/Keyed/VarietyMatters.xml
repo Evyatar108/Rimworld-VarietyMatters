@@ -90,6 +90,20 @@
   <VM_Overlap_MealsAgo_One>1 meal</VM_Overlap_MealsAgo_One>
   <VM_Overlap_MealsAgo_Many>{0} meals</VM_Overlap_MealsAgo_Many>
   <VM_Overlap_MealDefNewBonus>New meal type: +{0}% ({1}-ingredient recipe)</VM_Overlap_MealDefNewBonus>
+
+  <!-- NoVarietyReason labels shown in meal-row status when a meal didn't count (US-027 UX). -->
+  <VM_NoVarietyReason_Rotten>rotten</VM_NoVarietyReason_Rotten>
+  <VM_NoVarietyReason_Raw>raw food</VM_NoVarietyReason_Raw>
+  <VM_NoVarietyReason_Insect>insect meat</VM_NoVarietyReason_Insect>
+  <VM_NoVarietyReason_Humanlike>humanlike meat</VM_NoVarietyReason_Humanlike>
+  <VM_NoVarietyReason_Fungus>fungus</VM_NoVarietyReason_Fungus>
+  <VM_NoVarietyReason_Chemical>has chemicals</VM_NoVarietyReason_Chemical>
+  <VM_NoVarietyReason_Vegetarian>not accepted by vegetarians</VM_NoVarietyReason_Vegetarian>
+  <VM_NoVarietyReason_Carnivore>not accepted by carnivores</VM_NoVarietyReason_Carnivore>
+  <VM_NoVarietyReason_Venerated>venerated animal</VM_NoVarietyReason_Venerated>
+  <VM_NoVarietyReason_Disgusting>disgusting meal</VM_NoVarietyReason_Disgusting>
+  <VM_NoVarietyReason_Repeat>repeat</VM_NoVarietyReason_Repeat>
+  <VM_Status_NoVarietyWithReason>- Variety ({0})</VM_Status_NoVarietyWithReason>
   <VM_Overlap_MealDefNewBonusCapped>New meal type: +{0}% ({1}-ingredient recipe, capped)</VM_Overlap_MealDefNewBonusCapped>
   <VM_Overlap_MealDefRepeated>Same meal type as a recent meal — no bonus.</VM_Overlap_MealDefRepeated>
 

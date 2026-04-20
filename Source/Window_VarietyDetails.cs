@@ -574,7 +574,33 @@ namespace VarietyMatters
             {
                 case Need_FoodVariety.MealRowStatus.HasVariety: return "VM_Status_HasVariety".Translate();
                 case Need_FoodVariety.MealRowStatus.Forgotten: return "VM_Status_Forgotten".Translate();
-                default: return "VM_Status_NoVariety".Translate();
+                default:
+                    // Show the specific reason inline when the tracker has one (raw meat, insect,
+                    // etc.). Falls through to plain "- Variety" when no reason is attached (e.g.
+                    // repeat of a meal key that already registered).
+                    string reasonLabel = GetNoVarietyReasonLabel(row.NoVarietyReason);
+                    return reasonLabel != null
+                        ? (string)"VM_Status_NoVarietyWithReason".Translate(reasonLabel)
+                        : (string)"VM_Status_NoVariety".Translate();
+            }
+        }
+
+        private static string GetNoVarietyReasonLabel(NoVarietyReason? reason)
+        {
+            if (reason == null || reason == NoVarietyReason.NA) return null;
+            switch (reason.Value)
+            {
+                case NoVarietyReason.Rotten:                      return "VM_NoVarietyReason_Rotten".Translate();
+                case NoVarietyReason.RawOrRawlikeFood:            return "VM_NoVarietyReason_Raw".Translate();
+                case NoVarietyReason.InsectMeat:                  return "VM_NoVarietyReason_Insect".Translate();
+                case NoVarietyReason.HumanLikeMeat:               return "VM_NoVarietyReason_Humanlike".Translate();
+                case NoVarietyReason.Fungus:                      return "VM_NoVarietyReason_Fungus".Translate();
+                case NoVarietyReason.HasChemicals:                return "VM_NoVarietyReason_Chemical".Translate();
+                case NoVarietyReason.UnacceptableByVegetarians:   return "VM_NoVarietyReason_Vegetarian".Translate();
+                case NoVarietyReason.UnacceptableByCarnivores:    return "VM_NoVarietyReason_Carnivore".Translate();
+                case NoVarietyReason.IsOrHasVeneratedAnimalMeat:  return "VM_NoVarietyReason_Venerated".Translate();
+                case NoVarietyReason.DisgustingMeal:              return "VM_NoVarietyReason_Disgusting".Translate();
+                default: return null;
             }
         }
 

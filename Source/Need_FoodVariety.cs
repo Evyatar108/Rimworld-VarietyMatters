@@ -63,6 +63,10 @@
 			public EatenFoodSource Source;
 			// Per-meal Jaccard score in [0,1]. 1f for non-overlap modes / forgotten (default).
 			public float VarietyScore;
+			// Only populated when Status == NoVariety and the tracker has an explicit reason
+			// (raw-meat eaten, insect-meat, rotten, venerated, etc. — see VarietyProvider).
+			// Consumers can show this inline so players know WHY a meal didn't count.
+			public NoVarietyReason? NoVarietyReason;
 			public bool IsForgotten => this.Status == MealRowStatus.Forgotten;
 			public Color BorderColor
 			{
@@ -424,6 +428,7 @@
 				// Has-variety = first appearance in iteration AND there's a FoodVarietyInfo entry AND no explicit no-reason.
 				bool hasVariety = info != null && noReason == null && seenSoFar == 0;
 				row.Status = hasVariety ? MealRowStatus.HasVariety : MealRowStatus.NoVariety;
+				row.NoVarietyReason = noReason;
 
 				this._mealRowsScratch.Add(row);
 			}
