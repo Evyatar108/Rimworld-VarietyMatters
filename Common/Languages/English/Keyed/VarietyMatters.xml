@@ -81,6 +81,10 @@
   <VM_Overlap_Glyph_Fresh>◆</VM_Overlap_Glyph_Fresh>
   <VM_Overlap_Glyph_Repeat>■</VM_Overlap_Glyph_Repeat>
   <VM_Overlap_Glyph_Forgotten>?</VM_Overlap_Glyph_Forgotten>
+  <VM_Overlap_Repeated>{0} — repeated ({1} ago)</VM_Overlap_Repeated>
+  <VM_Overlap_New>{0} — new</VM_Overlap_New>
+  <VM_Overlap_MealsAgo_One>1 meal ago</VM_Overlap_MealsAgo_One>
+  <VM_Overlap_MealsAgo_Many>{0} meals ago</VM_Overlap_MealsAgo_Many>
 
   <!-- Disabled reason tip (US-017) -->
   <VM_DisabledPrefix>Disabled: </VM_DisabledPrefix>

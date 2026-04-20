@@ -56,6 +56,9 @@ namespace VarietyMatters
         private readonly List<ThingDef> _tryFeedingDefs = new List<ThingDef>();
         // Reused per-hover tooltip builder. Cleared at the top of `BuildOverlapTooltip`.
         private readonly StringBuilder _tooltipBuilder = new StringBuilder();
+        // Scratch for per-ingredient "meals ago" lookup in BuildOverlapTooltip.
+        // Consumer: BuildOverlapTooltip (via DietTracker.GetMealsAgoForOverlapDefs).
+        private readonly Dictionary<ThingDef, int> _mealsAgoScratch = new Dictionary<ThingDef, int>();
 
         public override Vector2 InitialSize => new Vector2(640f, 620f);
 
@@ -486,30 +489,24 @@ namespace VarietyMatters
                 return sb.ToString();
             }
 
-            sb.AppendLine();
-            sb.Append("VM_Details_Repeated".Translate()).Append(' ');
-            AppendDefList(sb, overlap);
-            sb.AppendLine();
-            sb.Append("VM_Details_New".Translate()).Append(' ');
-            AppendDefList(sb, fresh);
-            return sb.ToString();
-        }
+            tracker.GetMealsAgoForOverlapDefs(row.Source, overlap, this._mealsAgoScratch);
 
-        private static void AppendDefList(StringBuilder sb, HashSet<ThingDef> defs)
-        {
-            if (defs.Count == 0)
-            {
-                sb.Append("VM_Aggregate_None".Translate());
-                return;
-            }
-            bool first = true;
-            foreach (ThingDef d in defs)
+            sb.AppendLine();
+            foreach (ThingDef d in overlap)
             {
                 if (d == null) continue;
-                if (!first) sb.Append(", ");
-                sb.Append(d.LabelCap);
-                first = false;
+                this._mealsAgoScratch.TryGetValue(d, out int dist);
+                string agoStr = dist == 1
+                    ? (string)"VM_Overlap_MealsAgo_One".Translate()
+                    : "VM_Overlap_MealsAgo_Many".Translate(dist > 0 ? dist : 1);
+                sb.AppendLine("VM_Overlap_Repeated".Translate(d.LabelCap, agoStr));
             }
+            foreach (ThingDef d in fresh)
+            {
+                if (d == null) continue;
+                sb.AppendLine("VM_Overlap_New".Translate(d.LabelCap));
+            }
+            return sb.ToString();
         }
 
         private static string GetStatusLabel(Need_FoodVariety.MealRowInfo row)

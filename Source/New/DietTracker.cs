@@ -37,6 +37,10 @@
         private readonly HashSet<ThingDef> _breakdownOverlapScratch = new HashSet<ThingDef>();
         private readonly HashSet<ThingDef> _breakdownFreshScratch = new HashSet<ThingDef>();
 
+        // Scratch for GetMealsAgoForOverlapDefs. Not on the hot path (tooltip only).
+        // Consumers: GetMealsAgoForOverlapDefs.
+        private readonly List<EatenFoodByPawn> _mealIndexScratch = new List<EatenFoodByPawn>();
+
         public int Version => this._version;
 
         public DietTracker()
@@ -479,6 +483,63 @@
             this._breakdownCacheMeal = meal;
             this._breakdownCacheVersion = this._version;
             return (this._breakdownOverlapScratch, this._breakdownFreshScratch);
+        }
+
+        // For each def in overlapDefs, writes the most-recent past-meal-index distance
+        // (1 = immediately preceding meal, 2 = two meals back, etc.) into result.
+        // Only considers meals within VarietyDecayTicks of meal.AteAtTick.
+        // Clears result on entry. Tooltip-only path — not hot.
+        public void GetMealsAgoForOverlapDefs(EatenFoodSource meal, HashSet<ThingDef> overlapDefs, Dictionary<ThingDef, int> result)
+        {
+            result.Clear();
+            if (meal == null || overlapDefs == null || overlapDefs.Count == 0) return;
+
+            this._mealIndexScratch.Clear();
+            foreach (EatenFoodByPawn e in this.foodSourcesByOrderV2)
+            {
+                this._mealIndexScratch.Add(e);
+            }
+
+            int mealIdx = -1;
+            for (int i = 0; i < this._mealIndexScratch.Count; i++)
+            {
+                if (ReferenceEquals(this._mealIndexScratch[i].Source, meal))
+                {
+                    mealIdx = i;
+                    break;
+                }
+            }
+            if (mealIdx < 0) return;
+
+            int anchorTick = meal.AteAtTick;
+            int remaining = overlapDefs.Count;
+            int distance = 0;
+            for (int i = mealIdx - 1; i >= 0 && remaining > 0; i--)
+            {
+                EatenFoodSource src = this._mealIndexScratch[i].Source;
+                if (src == null || src.IsForgotten) continue;
+                int t = src.AteAtTick;
+                if (anchorTick >= 0 && t >= 0 && anchorTick - t > VarietyDecayTicks) break;
+                distance++;
+                List<ThingDef> defs = src.IngredientsDefs;
+                if (defs != null && defs.Count > 0)
+                {
+                    for (int j = 0; j < defs.Count; j++)
+                    {
+                        ThingDef d = defs[j];
+                        if (d != null && overlapDefs.Contains(d) && !result.ContainsKey(d))
+                        {
+                            result[d] = distance;
+                            remaining--;
+                        }
+                    }
+                }
+                else if (src.ThingDef != null && overlapDefs.Contains(src.ThingDef) && !result.ContainsKey(src.ThingDef))
+                {
+                    result[src.ThingDef] = distance;
+                    remaining--;
+                }
+            }
         }
 
         public void ExposeData()
