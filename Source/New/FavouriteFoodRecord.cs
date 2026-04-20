@@ -206,10 +206,27 @@ namespace VarietyMatters.New
             if (!VarietyProvider.DoesFoodHasVarietyValueForPawn(pawn, eatenByPawn, out _)) return;
 
             PawnFavData data = this.GetOrCreate(pawn);
+
+            // Auto-assign: seed empty slots from random ingredients in the bucket pool. Skips
+            // the 15-meal floor + 3-fresh-meals-across-2-days discovery. Freshness gate still
+            // applies to mood, and saturation-driven rival displacement still runs — only the
+            // origin of the favourite changes. Idempotent per slot (slots with a favourite are
+            // left alone). If a pool is empty (e.g., no PlantFoodRaw defs loaded), slot stays
+            // empty and a later meal will retry.
+            if (ModSettings_VarietyMatters.autoAssignFavourites)
+            {
+                TrySeedEmptySlots(pawn, data);
+            }
+
             data.totalEligibleMealsEaten++;
 
             // Gate 3: discovery floor. Pawn must have eaten N eligible meals before progress accrues.
-            if (data.totalEligibleMealsEaten < DiscoveryFloor) return;
+            // Skipped under auto-assign since favourites are seeded directly — no need to prevent
+            // spurious earn-from-eating crystallization. (Discovery/crystallization still runs for
+            // any currently-empty slots that couldn't be seeded, so the floor is not purely dead
+            // code under auto-assign — it only guards the from-scratch path.)
+            if (!ModSettings_VarietyMatters.autoAssignFavourites
+                && data.totalEligibleMealsEaten < DiscoveryFloor) return;
 
             // Gate 4: freshness. Meal score must exceed 80% of the pawn's tier palate baseline,
             // so monoculture-low-score meals can't crystallize a favourite.
@@ -384,6 +401,73 @@ namespace VarietyMatters.New
         private static bool IsGourmand(Pawn pawn)
         {
             return pawn?.story?.traits?.HasTrait(DefOf_VarietyMatters.Gourmand) == true;
+        }
+
+        // Auto-assign seed pool. Built lazily on first access; ingredient defs don't change
+        // after load so a one-shot build is safe. Filters to ingestible food defs under the
+        // target category tree, excluding corpse-meat (raw butchered corpse produces its own
+        // defs handled by VarietyProvider's eligibility gate anyway).
+        private static List<ThingDef> _meatPoolScratch;
+        private static List<ThingDef> _vegPoolScratch;
+        private static List<ThingDef> _wildPoolScratch;
+
+        private static List<ThingDef> GetPool(Bucket bucket)
+        {
+            switch (bucket)
+            {
+                case Bucket.Meat:
+                    if (_meatPoolScratch == null) _meatPoolScratch = BuildPool(Bucket.Meat);
+                    return _meatPoolScratch;
+                case Bucket.Veg:
+                    if (_vegPoolScratch == null) _vegPoolScratch = BuildPool(Bucket.Veg);
+                    return _vegPoolScratch;
+                case Bucket.Wild:
+                    if (_wildPoolScratch == null) _wildPoolScratch = BuildPool(Bucket.Wild);
+                    return _wildPoolScratch;
+                default:
+                    return null;
+            }
+        }
+
+        private static List<ThingDef> BuildPool(Bucket bucket)
+        {
+            List<ThingDef> pool = new List<ThingDef>();
+            List<ThingDef> all = DefDatabase<ThingDef>.AllDefsListForReading;
+            for (int i = 0; i < all.Count; i++)
+            {
+                ThingDef def = all[i];
+                if (def == null || def.ingestible == null) continue;
+                // Skip desperate-only / raw-bad so pawns aren't auto-assigned human corpse meat
+                // as a "favourite" when the roll happens. VarietyProvider filters these at trigger
+                // time anyway, but keeping them out of the seed pool avoids confusing UI displays.
+                if (def.ingestible.preferability <= FoodPreferability.DesperateOnlyForHumanlikes) continue;
+                Bucket b = ClassifyIngredient(def);
+                if (bucket == Bucket.Wild)
+                {
+                    if (b == Bucket.None) pool.Add(def);  // Wild bucket = everything NOT in meat/veg
+                }
+                else if (b == bucket)
+                {
+                    pool.Add(def);
+                }
+            }
+            return pool;
+        }
+
+        private static void TrySeedEmptySlots(Pawn pawn, PawnFavData data)
+        {
+            if (data.meatSlot.favourite == null) TrySeedSlot(data.meatSlot, Bucket.Meat);
+            if (data.vegSlot.favourite == null) TrySeedSlot(data.vegSlot, Bucket.Veg);
+            if (IsGourmand(pawn) && data.wildSlot.favourite == null) TrySeedSlot(data.wildSlot, Bucket.Wild);
+        }
+
+        private static void TrySeedSlot(SlotState slot, Bucket bucket)
+        {
+            List<ThingDef> pool = GetPool(bucket);
+            if (pool == null || pool.Count == 0) return;
+            slot.favourite = pool[Rand.Range(0, pool.Count)];
+            // Leave saturation / lastTriggerTick at defaults — auto-seeded favourite starts
+            // fresh, identical to an earned-through-eating crystallization at saturation 0.
         }
 
         public override void GameComponentTick()

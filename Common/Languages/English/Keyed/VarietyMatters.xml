@@ -246,5 +246,7 @@
   <VM_Settings_Favourites_Body>Pawns discover favourite ingredients from what they actually eat — freshness-gated, siloed into meat + vegetable slots (plus an open slot for Gourmands), and anti-monoculture so the same ingredient doesn't dominate forever. Eating a favourite grants a small mood bonus for a day.</VM_Settings_Favourites_Body>
   <VM_Settings_Favourites_EnabledLabel>Enable favourite foods:</VM_Settings_Favourites_EnabledLabel>
   <VM_Settings_Favourites_EnabledTooltip>Master kill-switch for the favourite-foods feature. When off, no new favourites are discovered, the mood thought never fires, letters/messages are suppressed, and the UI row is hidden. Previously discovered favourites are preserved across toggles — re-enabling picks up where each pawn left off.</VM_Settings_Favourites_EnabledTooltip>
+  <VM_Settings_Favourites_AutoAssignLabel>Auto-assign favourites:</VM_Settings_Favourites_AutoAssignLabel>
+  <VM_Settings_Favourites_AutoAssignTooltip>Seed each pawn's empty favourite slots with random ingredients on their first eligible meal, skipping the 15-meal floor and multi-day discovery wait. The freshness-gated mood reward and saturation-driven rotation still apply — this only changes how favourites ORIGINATE, not how they reward. Off by default: earn favourites through play. On: instant favourites at the cost of personalization.</VM_Settings_Favourites_AutoAssignTooltip>
 
 </LanguageData>

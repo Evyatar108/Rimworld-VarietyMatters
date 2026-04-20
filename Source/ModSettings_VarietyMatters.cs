@@ -101,6 +101,7 @@
 			Scribe_Values.Look<bool>(ref ModSettings_VarietyMatters.preferVariety, "preferVariety", true, false);
 			Scribe_Values.Look<bool>(ref ModSettings_VarietyMatters.preferSpoiling, "preferSpoiling", true, false);
 			Scribe_Values.Look<bool>(ref ModSettings_VarietyMatters.favouritesEnabled, "favouritesEnabled", true, false);
+			Scribe_Values.Look<bool>(ref ModSettings_VarietyMatters.autoAssignFavourites, "autoAssignFavourites", false, false);
 			Scribe_Collections.Look<string, RaceSetting>(ref ModSettings_VarietyMatters.raceVariety, "raceVarietyV2", LookMode.Value, LookMode.Deep, ref ModSettings_VarietyMatters.raceKeys, ref ModSettings_VarietyMatters.raceValues, true);
 
             base.ExposeData();
@@ -238,6 +239,16 @@
 		// pawn left off. Deliberately EXCLUDED from the Profile struct (Mod_VarietyMatters.cs)
 		// so preset buttons never flip it; it is a one-off kill-switch, not a difficulty lever.
 		public static bool favouritesEnabled = true;
+
+		// Auto-assign favourites instead of earning them through repeated eating. When `true`,
+		// a pawn's empty meat/veg/wild slots are seeded with random ingredients from the
+		// appropriate bucket on their first eligible meal (skips the 15-meal floor and the
+		// 3-fresh-meals-across-2-days discovery gate). Mood firing still requires the
+		// freshness gate — auto-assignment only changes how favourites originate, not the
+		// reward semantics. Existing saturation-driven rival displacement still works on
+		// auto-assigned favourites. Deliberately EXCLUDED from Profile for the same reason
+		// as favouritesEnabled (one-off knob, not a difficulty lever).
+		public static bool autoAssignFavourites = false;
 
 		// Token: 0x0400001F RID: 31
 		public static Dictionary<string, RaceSetting> raceVariety = new Dictionary<string, RaceSetting>();

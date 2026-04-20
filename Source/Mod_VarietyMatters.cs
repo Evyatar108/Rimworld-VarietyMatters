@@ -583,6 +583,9 @@ namespace VarietyMatters
             ls.CheckboxLabeled("VM_Settings_Favourites_EnabledLabel".Translate(),
                 ref ModSettings_VarietyMatters.favouritesEnabled,
                 "VM_Settings_Favourites_EnabledTooltip".Translate(), 0f, 1f);
+            ls.CheckboxLabeled("VM_Settings_Favourites_AutoAssignLabel".Translate(),
+                ref ModSettings_VarietyMatters.autoAssignFavourites,
+                "VM_Settings_Favourites_AutoAssignTooltip".Translate(), 0f, 1f);
             ls.Gap(8f);
         }
 
