@@ -39,14 +39,16 @@
 		{
 			Listing_Standard listing_Standard = new Listing_Standard();
 
-            // After this line:
-            // Add these lines:
-            float contentHeight1 = 665f; // This is a tentative value; adjust as needed based on the actual content of your column
+            // Scroll view height is driven by the measured content height from the previous frame
+            // (_lastLeftContentHeight). Seeded at 900f so the first frame is tall enough for the
+            // default settings layout; subsequent frames use the real measured value so conditional
+            // sections (slave/prisoner sub-sliders) resize the scrollbar correctly.
+            float contentHeight1 = Mathf.Max(_lastLeftContentHeight, 200f);
             Rect rectScroll = new Rect(5f, 35f, inRect.width * 0.54f, inRect.height);
             Rect viewRect1 = new Rect(0f, 0f, rectScroll.width - 16f, contentHeight1); // 16f is the width of the scrollbar
             Widgets.BeginScrollView(rectScroll, ref leftScrollPosition, viewRect1);
 
-            Rect rect = new Rect(10f, 0f, inRect.width * 0.5f, viewRect1.height*1.05f);
+            Rect rect = new Rect(10f, 0f, inRect.width * 0.5f, contentHeight1);
 			listing_Standard.Begin(rect);
 			listing_Standard.Label("VM_Settings_VarietyTrackingHeader".Translate(), -1f);
 
@@ -157,6 +159,9 @@
 			listing_Standard.Label("VM_Settings_AdjustmentFactorsHeader".Translate(), -1f);
             listing_Standard.CheckboxLabeled("VM_Settings_HalveVarietyMoodLabel".Translate(), ref ModSettings_VarietyMatters.halveVarietyMoodImpact, "VM_Settings_HalveVarietyMoodTooltip".Translate(), 0f, 1f);
             listing_Standard.CheckboxLabeled("VM_Settings_MoreVarietyMemoryLabel".Translate(), ref ModSettings_VarietyMatters.moreVarietyMemory, "VM_Settings_MoreVarietyMemoryTooltip".Translate(), 0f, 1f);
+            // Capture measured content height so next frame's scrollbar matches the real layout.
+            // +24f padding keeps the last row from flushing to the exact bottom.
+            _lastLeftContentHeight = listing_Standard.CurHeight + 24f;
             listing_Standard.End();
             Widgets.EndScrollView();
 
@@ -256,6 +261,12 @@
 		private static Vector2 rightScrollPosition = Vector2.zero;
 
         private static Vector2 leftScrollPosition = Vector2.zero;
+
+        // Measured content height of the left settings column. Seeded generously so the first
+        // frame renders all default rows without clipping; refreshed each frame from the real
+        // listing height so conditional sections (slave/prisoner sub-sliders) resize the
+        // scrollbar correctly as they toggle on/off.
+        private static float _lastLeftContentHeight = 900f;
 
     }
 }
