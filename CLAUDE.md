@@ -22,7 +22,7 @@ Bracketed ticket IDs, matching recent history:
 - `feat: [US-###] - short description` — feature work (user stories)
 - `chore: ...` / `docs: ...` — no ticket
 
-Check `git log --oneline | grep -E "\[F-"` before picking a new F-### — IDs can be reused across branches but not across master. Latest on master: F-033 (`a72b690`).
+Check `git log --oneline | grep -E "\[F-"` before picking a new F-### — IDs can be reused across branches but not across master. Latest on master: F-034 (`6fa0adb`).
 
 ## 3. Soft-cap pattern
 

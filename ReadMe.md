@@ -78,7 +78,7 @@ By integrating this mod, you're not just adding a feature; you're enhancing the 
 [h2]What Counts as a Variety?[/h2]
 A food must provide nutrition and either joy or be at least tasty raw to count as a variety. Rotten foods do not count. Cultural and preference variations apply, such as cannibals treating human flesh differently.
 [h3]How Variety Is Scored[/h3]
-Each meal is scored continuously between 0 and 1 based on ingredient overlap with meals eaten in the recent palate-memory window (configurable in Mod Settings, default 2 in-game days). Trivial swaps (rice+chicken+carrot then rice+chicken+lettuce) give diminishing variety, while wholly different meals (rice+chicken+carrot then bison+potato+egg) count as fresh. Eating a new meal type also adds a small complexity-scaled bonus on top (more ingredients in the recipe = bigger bonus, capped at +25%). Fine-grained, no yes/no thresholds.
+Each meal is scored continuously between 0 and 1 based on ingredient overlap with the pawn's last 6 meals. Trivial swaps (rice+chicken+carrot then rice+chicken+lettuce) give diminishing variety, while wholly different meals (rice+chicken+carrot then bison+potato+egg) count as fresh. Eating a new meal type also adds a step-scaled bonus on top — simple meals get nothing, fine/lavish meals earn +5%, and modded 3/4/5-slot recipes earn +12% / +20% / +30%. Fine-grained, no yes/no thresholds.
 
 [h2]How Much Variety Do Pawns Need?[/h2]
 The base variety expectation depends on a pawn's current thought expectation and can be adjusted in settings.
