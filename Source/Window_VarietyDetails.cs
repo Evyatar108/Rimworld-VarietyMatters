@@ -47,8 +47,9 @@ namespace VarietyMatters
         private int _mostVariedIngredientCount;
         private int _forgottenCount;
         // Overlap-mode aggregate scratch (per CLAUDE.md §1). Rebuilt with other aggregates.
-        // `_tiredOfDefs` — ingredient defs appearing >= 2 times in the active decay window.
-        // `_tryFeedingDefs` — defs the pawn ate before the decay window but no longer sees in recent meals.
+        // `_tiredOfDefs` — ingredient defs appearing in the active decay window (the current overlap set).
+        // `_tryFeedingDefs` — defs the pawn ate before the decay window but no longer in recent meals
+        //   (stale-favourites heuristic; FoodSourceFactory.AllFoodDefs stockpile scan is out of scope).
         private readonly Dictionary<ThingDef, int> _recentIngCountsScratch = new Dictionary<ThingDef, int>();
         private readonly HashSet<ThingDef> _decayedIngSetScratch = new HashSet<ThingDef>();
         private readonly List<ThingDef> _tiredOfDefs = new List<ThingDef>();
@@ -629,7 +630,7 @@ namespace VarietyMatters
             }
 
             // Overlap-mode aggregates: split ingredients by decay window relative to current tick.
-            // tiredOf = defs appearing >= 2 times within the last `VarietyDecayTicks`.
+            // tiredOf = all defs present in any meal within the last `VarietyDecayTicks` (= current overlap set).
             // tryFeeding = defs the pawn ate outside the window but no longer inside it — stale favourites.
             int nowTick = Find.TickManager != null ? Find.TickManager.TicksGame : 0;
             foreach (var foodByPawn in tracker.EatenFoodSourcesByOrder)
@@ -672,7 +673,7 @@ namespace VarietyMatters
             }
             foreach (var kv in this._recentIngCountsScratch)
             {
-                if (kv.Value >= 2) this._tiredOfDefs.Add(kv.Key);
+                this._tiredOfDefs.Add(kv.Key);
             }
             foreach (ThingDef d in this._decayedIngSetScratch)
             {
