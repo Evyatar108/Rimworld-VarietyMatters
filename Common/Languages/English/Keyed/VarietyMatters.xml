@@ -152,6 +152,7 @@
   <VM_DisabledReason_NonPlayerNotTracked>non-player pawns are excluded in Mod Settings</VM_DisabledReason_NonPlayerNotTracked>
   <VM_DisabledReason_TraitDisabled>this pawn's trait opts out of variety tracking</VM_DisabledReason_TraitDisabled>
   <VM_DisabledReason_RaceNotTracked>this race is disabled in Mod Settings</VM_DisabledReason_RaceNotTracked>
+  <VM_DisabledReason_GeneDisabled>this pawn has the "no taste memory" gene</VM_DisabledReason_GeneDisabled>
   <VM_DisabledReason_Unknown>unknown</VM_DisabledReason_Unknown>
 
   <!-- GetTipString template: {0}=expected count, {1}=actual count, {2}=memory depth, {3}=most-recent suffix -->

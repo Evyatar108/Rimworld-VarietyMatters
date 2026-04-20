@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Patch>
+
+  <!-- US-033: auto-apply VM_NoVarietyNeed to the vanilla Sanguophage xenotype so vampires are
+       opted out of the food-variety mood by default. Guarded by PatchOperationFindMod so this
+       patch is a no-op when Biotech isn't loaded (no XenotypeDef[defName="Sanguophage"] exists
+       in that case). -->
+  <Operation Class="PatchOperationFindMod">
+    <mods>
+      <li>Biotech</li>
+    </mods>
+    <match Class="PatchOperationAdd">
+      <xpath>Defs/XenotypeDef[defName="Sanguophage"]/genes</xpath>
+      <value>
+        <li>VM_NoVarietyNeed</li>
+      </value>
+    </match>
+  </Operation>
+
+</Patch>

@@ -9,5 +9,6 @@ namespace VarietyMatters.New
         NonPlayerNotTracked,
         TraitDisabled,
         RaceNotTracked,
+        GeneDisabled,
     }
 }

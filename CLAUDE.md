@@ -119,7 +119,9 @@ Do NOT double-bump inside `GenerateRaces` callers — those are already covered 
 
 ## 12. `Disabled` check — optimize, don't cache the bool
 
-`Need_FoodVariety.Disabled` is hot (read from `Patch_FoodUtility.FoodOptimality` per scoring candidate). The final bool is NOT cached — caching risks stale leaks into food scoring on trait/faction/settings change. Instead: reorder cheap early-exits first, cache the one expensive sub-result (`_enabledRaceKeys` HashSet, see §11). Preserve null-safe access chain (`pawn.story?.traits?`).
+`Need_FoodVariety.Disabled` is hot (read from `Patch_FoodUtility.FoodOptimality` per scoring candidate). The final bool is NOT cached — caching risks stale leaks into food scoring on trait/faction/settings/gene change. Instead: reorder cheap early-exits first, cache the one expensive sub-result (`_enabledRaceKeys` HashSet, see §11). Preserve null-safe access chain (`pawn.story?.traits?`, `pawn.genes?`).
+
+US-033 added a `DisabledReason.GeneDisabled` branch that checks `pawn.genes?.HasActiveGene(DefOf_VarietyMatters.VM_NoVarietyNeed)` guarded by `ModsConfig.BiotechActive`. Genes are mutable at runtime (gene extraction, xenogerm implant, germline edit) so the gene result must NOT be cached either — the ordering-first principle still applies (gene check runs AFTER trait check, AFTER faction/settings checks, since it's the narrowest edge case).
 
 ## Do NOT
 

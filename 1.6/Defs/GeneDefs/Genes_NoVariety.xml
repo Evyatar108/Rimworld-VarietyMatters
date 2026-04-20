@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+
+  <!-- US-033: gene that opts a pawn out of the food-variety need. Carriers still eat food
+       normally; they just don't register boredom with repetitive diets. Auto-applied to the
+       vanilla Sanguophage xenotype via Patches/Patch_SanguophageXenotype.xml; players can add
+       the gene to any custom xenotype through the normal Biotech gene-picker UI. -->
+  <GeneDef>
+    <defName>VM_NoVarietyNeed</defName>
+    <label>no taste memory</label>
+    <description>Carriers of this gene have no recall for what they recently ate. All meals register as equally novel; boredom with repetitive diets never develops. Useful for sanguophages, mechanoid-adjacent xenotypes, or any being who doesn't derive pleasure from culinary variety.</description>
+    <iconPath>UI/Icons/Genes/Gene_FoodPoisoningImmunity</iconPath>
+    <displayCategory>Digestion</displayCategory>
+    <displayOrderInCategory>55</displayOrderInCategory>
+    <biostatMet>0</biostatMet>
+    <biostatCpx>0</biostatCpx>
+    <biostatArc>0</biostatArc>
+    <marketValueFactor>1.0</marketValueFactor>
+    <minAgeActive>3</minAgeActive>
+  </GeneDef>
+
+</Defs>

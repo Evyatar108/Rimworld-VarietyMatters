@@ -214,6 +214,16 @@
 				return DisabledReason.TraitDisabled;
 			}
 
+			// US-033 gene-based opt-out. Cheap field reads, null-safe, Biotech-aware. Kept in
+			// Disabled (not cached as a bool per CLAUDE.md §12) because genes can be added /
+			// removed at runtime via gene extraction, xenogerm implants, germline edits, etc.
+			if (ModsConfig.BiotechActive
+				&& DefOf_VarietyMatters.VM_NoVarietyNeed != null
+				&& this.pawn.genes?.HasActiveGene(DefOf_VarietyMatters.VM_NoVarietyNeed) == true)
+			{
+				return DisabledReason.GeneDisabled;
+			}
+
 			int version = ModSettings_VarietyMatters.raceVarietyVersion;
 			if (version != _raceKeysVersion)
 			{
@@ -251,6 +261,7 @@
 				case DisabledReason.NonPlayerNotTracked: return "VM_DisabledReason_NonPlayerNotTracked".Translate();
 				case DisabledReason.TraitDisabled: return "VM_DisabledReason_TraitDisabled".Translate();
 				case DisabledReason.RaceNotTracked: return "VM_DisabledReason_RaceNotTracked".Translate();
+				case DisabledReason.GeneDisabled: return "VM_DisabledReason_GeneDisabled".Translate();
 				default: return "VM_DisabledReason_Unknown".Translate();
 			}
 		}

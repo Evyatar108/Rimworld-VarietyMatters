@@ -36,5 +36,10 @@
         public static TraitDef Cannibal;
 
         public static TraitDef Gourmand;
+
+        // US-033 no-variety gene. Biotech-optional — consumers must gate on ModsConfig.BiotechActive
+        // AND null-guard the field itself before calling pawn.genes.HasActiveGene(...).
+        [MayRequireBiotech]
+        public static GeneDef VM_NoVarietyNeed;
     }
 }
