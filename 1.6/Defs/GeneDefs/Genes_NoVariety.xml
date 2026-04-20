@@ -10,7 +10,7 @@
     <label>no taste memory</label>
     <description>Carriers of this gene have no recall for what they recently ate. All meals register as equally novel; boredom with repetitive diets never develops. Useful for sanguophages, mechanoid-adjacent xenotypes, or any being who doesn't derive pleasure from culinary variety.</description>
     <iconPath>UI/Icons/Genes/Gene_FoodPoisoningImmunity</iconPath>
-    <displayCategory>Digestion</displayCategory>
+    <displayCategory>Mood</displayCategory>
     <displayOrderInCategory>55</displayOrderInCategory>
     <biostatMet>0</biostatMet>
     <biostatCpx>0</biostatCpx>
