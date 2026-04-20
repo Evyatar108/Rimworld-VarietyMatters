@@ -14,8 +14,7 @@ namespace VarietyMatters
 
 		private static bool ShouldSkipIngredientMerge(CompIngredients instance)
 		{
-			return ModSettings_VarietyMatters.foodTrackingType == New.FoodTrackingType.ByMealNames
-				|| ModSettings_VarietyMatters.numIngredients <= 3
+			return ModSettings_VarietyMatters.numIngredients <= 3
 				|| instance.ingredients.Count == 0
 				|| instance.parent.def.defName == "Kibble";
 		}

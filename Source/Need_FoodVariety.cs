@@ -657,42 +657,10 @@
                 {
                     stringBuilder.Append("☆ ").Append("VM_FoodVarietyTip_AppearancePrefix".Translate()).Append(timesAlreadyIngestedSoFar).Append("VM_FoodVarietyTip_AppearanceOutOf".Translate()).Append(foodVarietyInfo.CountInMemory);
 
-                    if (ModSettings_VarietyMatters.clusterSimilarMealsTogether && eatenFoodSource.HasMealType)
-                    {
-                        switch (ModSettings_VarietyMatters.foodTrackingType)
-                        {
-                            case FoodTrackingType.ByMealNames:
-                                stringBuilder.Append("VM_FoodVarietyTip_ByType".Translate());
-                                break;
-                            case FoodTrackingType.ByIngredientsCombination:
-                                stringBuilder.Append("VM_FoodVarietyTip_ByIngredients".Translate());
-                                break;
-                            case FoodTrackingType.ByMealNamesAndIngredientsCombination:
-                                stringBuilder.Append("VM_FoodVarietyTip_ByMealTypeAndIngredients".Translate());
-                                break;
-                            case FoodTrackingType.ByIngredientOverlap:
-                                stringBuilder.Append("VM_FoodVarietyTip_ByIngredientOverlap".Translate());
-                                break;
-                        }
-                    }
-                    else
-                    {
-                        switch (ModSettings_VarietyMatters.foodTrackingType)
-                        {
-                            case FoodTrackingType.ByMealNames:
-                                stringBuilder.Append("VM_FoodVarietyTip_ByMealName".Translate());
-                                break;
-                            case FoodTrackingType.ByIngredientsCombination:
-                                stringBuilder.Append("VM_FoodVarietyTip_ByIngredients".Translate());
-                                break;
-                            case FoodTrackingType.ByMealNamesAndIngredientsCombination:
-                                stringBuilder.Append("VM_FoodVarietyTip_ByMealNameAndIngredients".Translate());
-                                break;
-                            case FoodTrackingType.ByIngredientOverlap:
-                                stringBuilder.Append("VM_FoodVarietyTip_ByIngredientOverlap".Translate());
-                                break;
-                        }
-                    }
+                    // Single tracking mode — the mode-label suffix is the same regardless of the
+                    // cluster-similar-meals toggle (it describes the scoring method, not the UI
+                    // grouping).
+                    stringBuilder.Append("VM_FoodVarietyTip_ByIngredientOverlap".Translate());
                     stringBuilder.AppendLine();
                 }
             }

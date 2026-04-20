@@ -77,15 +77,8 @@ By integrating this mod, you're not just adding a feature; you're enhancing the 
 
 [h2]What Counts as a Variety?[/h2]
 A food must provide nutrition and either joy or be at least tasty raw to count as a variety. Rotten foods do not count. Cultural and preference variations apply, such as cannibals treating human flesh differently.
-[h3]Meal Variety Options[/h3]
-[b]Option 1: Ingredients Only[/b]
-This mode focuses exclusively on the variety of ingredients. Meals are considered varied based on the different ingredients they contain, irrespective of the meal type. It's ideal for players who play without many mods that add additional meal types.
-[b]Option 2: Meal Name Only[/b]
-This option simplifies the variety mechanic by considering only the type of meal consumed, disregarding the ingredients used. It's particularly well-suited for gameplay with a wide array of meal types introduced by mods, where the meal itself brings the variety.
-[b]Option 3: Both Ingredients and Meal Name[/b]
-The most player-friendly option, this mode tracks both the meal's name and its ingredients. A meal is considered a new variety if either its name is different, or it contains a different ingredient. This approach is perfect for those seeking a challenge that is not too demanding, allowing for varied gameplay without extensive micromanagement.
-[b]Option 4: Ingredient Overlap[/b]
-Instead of a yes/no "is this a new variety?" decision, this mode scores each meal between 0 and 1 based on how many of its ingredients overlap with ingredients eaten in the last ~2 in-game days. Trivial swaps (rice+chicken+carrot then rice+chicken+lettuce) give diminishing variety, while wholly different meals (rice+chicken+carrot then bison+potato+egg) still count as fresh. It's ideal for players who want fine-grained variety tracking without relying on many meal-type mods.
+[h3]How Variety Is Scored[/h3]
+Each meal is scored continuously between 0 and 1 based on ingredient overlap with meals eaten in the recent palate-memory window (configurable in Mod Settings, default 2 in-game days). Trivial swaps (rice+chicken+carrot then rice+chicken+lettuce) give diminishing variety, while wholly different meals (rice+chicken+carrot then bison+potato+egg) count as fresh. Eating a new meal type also adds a small complexity-scaled bonus on top (more ingredients in the recipe = bigger bonus, capped at +25%). Fine-grained, no yes/no thresholds.
 
 [h2]How Much Variety Do Pawns Need?[/h2]
 The base variety expectation depends on a pawn's current thought expectation and can be adjusted in settings.

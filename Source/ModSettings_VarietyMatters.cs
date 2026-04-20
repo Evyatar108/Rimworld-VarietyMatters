@@ -48,7 +48,7 @@
 		// Token: 0x0600000F RID: 15 RVA: 0x00002520 File Offset: 0x00000720
 		public override void ExposeData()
 		{
-			Scribe_Values.Look<FoodTrackingType>(ref ModSettings_VarietyMatters.foodTrackingType, "foodTrackingType", FoodTrackingType.ByMealNamesAndIngredientsCombination, false);
+			Scribe_Values.Look<FoodTrackingType>(ref ModSettings_VarietyMatters.foodTrackingType, "foodTrackingType", FoodTrackingType.ByIngredientOverlap, false);
 			Scribe_Values.Look<bool>(ref ModSettings_VarietyMatters.nonControlledPawnsHaveVarietyNeed, "nonControlledPawnsHaveVarietyNeed", true, false);
 			Scribe_Values.Look<bool>(ref ModSettings_VarietyMatters.foodDrugsAreOnlyInMemoryOnce, "foodDrugsAreOnlyInMemoryOnce", true, false);
 			Scribe_Values.Look<bool>(ref ModSettings_VarietyMatters.clusterSimilarMealsTogether, "clusterSimilarMealsTogether", true, false);
@@ -79,17 +79,15 @@
 
 			ModSettings_VarietyMatters.raceVarietyVersion++;
 
-			// Post-load: if the active tracking mode is ByIngredientOverlap, every tracker's
-			// per-meal varietyScore may be stale (old save wrote 1f default, or user switched
-			// modes between save and load). Rebuild totals from stored IngredientsDefs/AteAtTick.
-			if (Scribe.mode == LoadSaveMode.PostLoadInit
-				&& ModSettings_VarietyMatters.foodTrackingType == FoodTrackingType.ByIngredientOverlap)
+			// Post-load: tracker.varietyScore may be stale (old save wrote 1f default, or legacy
+			// mode was active when saved). Rebuild totals from stored IngredientsDefs/AteAtTick.
+			if (Scribe.mode == LoadSaveMode.PostLoadInit)
 			{
 				VarietyRecord.ReCountAll();
 			}
 		}
 
-		public static FoodTrackingType foodTrackingType = FoodTrackingType.ByMealNamesAndIngredientsCombination;
+		public static FoodTrackingType foodTrackingType = FoodTrackingType.ByIngredientOverlap;
 
 		public static bool clusterSimilarMealsTogether = true;
 

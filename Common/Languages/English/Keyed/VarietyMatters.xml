@@ -3,11 +3,8 @@
 
   <!-- Settings UI -->
   <VM_Settings_Category>Variety Matters Redux</VM_Settings_Category>
-  <VM_Settings_VarietyTrackingHeader>Variety Tracking Options:</VM_Settings_VarietyTrackingHeader>
-  <VM_Settings_TrackByMealNamesAndIngredients>    Track meal names and their ingredients (Easy): </VM_Settings_TrackByMealNamesAndIngredients>
-  <VM_Settings_TrackByMealIngredients>    Track meal ingredients only (Normal): </VM_Settings_TrackByMealIngredients>
-  <VM_Settings_TrackByMealNames>    Track meals names only (Hard): </VM_Settings_TrackByMealNames>
-  <VM_Settings_TrackByIngredientOverlap>    Track ingredient overlap (Continuous): </VM_Settings_TrackByIngredientOverlap>
+  <VM_Settings_VarietyTrackingHeader>Variety Tracking:</VM_Settings_VarietyTrackingHeader>
+  <VM_Settings_TrackByIngredientOverlap>    Ingredient Overlap (continuous per-meal scoring)</VM_Settings_TrackByIngredientOverlap>
   <VM_Settings_TrackByIngredientOverlapTooltip>Per-meal variety is scored by how many ingredients overlap with meals eaten in the palate-memory window (configurable below, default 2 in-game days). Trivial swaps (one ingredient different) give partial credit; fully-different meals count as fresh; repeats count as stale.</VM_Settings_TrackByIngredientOverlapTooltip>
   <VM_Settings_OtherOptionsHeader>Other Options:</VM_Settings_OtherOptionsHeader>
   <VM_Settings_NonControlledPawnsLabel>    Non controlled pawns also have variety need: </VM_Settings_NonControlledPawnsLabel>
@@ -112,11 +109,6 @@
   <VM_FoodVarietyTip_MostRecent>, the most recent ones were:\n</VM_FoodVarietyTip_MostRecent>
   <VM_FoodVarietyTip_AppearancePrefix>Appearance </VM_FoodVarietyTip_AppearancePrefix>
   <VM_FoodVarietyTip_AppearanceOutOf> out of </VM_FoodVarietyTip_AppearanceOutOf>
-  <VM_FoodVarietyTip_ByType> by type</VM_FoodVarietyTip_ByType>
-  <VM_FoodVarietyTip_ByIngredients> by ingredients</VM_FoodVarietyTip_ByIngredients>
-  <VM_FoodVarietyTip_ByMealTypeAndIngredients> by meal type and ingredients</VM_FoodVarietyTip_ByMealTypeAndIngredients>
-  <VM_FoodVarietyTip_ByMealName> by meal name</VM_FoodVarietyTip_ByMealName>
-  <VM_FoodVarietyTip_ByMealNameAndIngredients> by meal name and ingredients</VM_FoodVarietyTip_ByMealNameAndIngredients>
   <VM_FoodVarietyTip_ByIngredientOverlap> by ingredient overlap</VM_FoodVarietyTip_ByIngredientOverlap>
 
   <!-- Flavor pool: Forgotten (20) — order preserved so seed-based RandChoose picks identically -->

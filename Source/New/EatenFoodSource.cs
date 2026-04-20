@@ -246,6 +246,9 @@
             }
         }
 
+        // Single tracking mode (ByIngredientOverlap). Key is the meal-type + ingredients string
+        // (or meal-type + fallback label when no ingredients). The cluster-similar-meals toggle
+        // still distinguishes "Simple meal type" clustering from per-exact-meal keys.
         public string GetFoodSourceKey()
         {
             if (this.IsForgotten)
@@ -255,41 +258,11 @@
 
             if (!ModSettings_VarietyMatters.clusterSimilarMealsTogether || !this.HasMealType)
             {
-                switch (ModSettings_VarietyMatters.foodTrackingType)
-                {
-                    case FoodTrackingType.ByMealNames:
-                        return this.MealAsString;
-                    case FoodTrackingType.ByIngredientsCombination:
-                        return this.IngredientsAsString;
-                    case FoodTrackingType.ByMealNamesAndIngredientsCombination:
-                    case FoodTrackingType.ByIngredientOverlap:
-                        if (this.IngredientsDefs.Count > 0)
-                        {
-                            return this.MealAndIngredientsAsString;
-                        }
-                        else
-                        {
-                            return this.MealAsString;
-                        }
-                    default:
-                        throw new Exception($"Not valid FoodTrackingType: {ModSettings_VarietyMatters.foodTrackingType}");
-                }
+                return this.IngredientsDefs.Count > 0
+                    ? this.MealAndIngredientsAsString
+                    : this.MealAsString;
             }
-            else
-            {
-                switch (ModSettings_VarietyMatters.foodTrackingType)
-                {
-                    case FoodTrackingType.ByMealNames:
-                        return this.MealTypeAsString;
-                    case FoodTrackingType.ByIngredientsCombination:
-                        return this.IngredientsAsString;
-                    case FoodTrackingType.ByMealNamesAndIngredientsCombination:
-                    case FoodTrackingType.ByIngredientOverlap:
-                        return this.MealTypeAndIngredientsAsString;
-                    default:
-                        throw new Exception($"Not valid FoodTrackingType: {ModSettings_VarietyMatters.foodTrackingType}");
-                }
-            }
+            return this.MealTypeAndIngredientsAsString;
         }
 
         public override string ToString()
@@ -301,48 +274,13 @@
 
             if (!ModSettings_VarietyMatters.clusterSimilarMealsTogether || !this.HasMealType)
             {
-                switch (ModSettings_VarietyMatters.foodTrackingType)
-                {
-                    case FoodTrackingType.ByMealNames:
-                        return this.MealAsString;
-                    case FoodTrackingType.ByIngredientsCombination:
-                        return this.IngredientsAsString;
-                    case FoodTrackingType.ByMealNamesAndIngredientsCombination:
-                    case FoodTrackingType.ByIngredientOverlap:
-                        if (this.IngredientsDefs.Count > 0)
-                        {
-                            return this.MealAndIngredientsAsString;
-                        }
-                        else
-                        {
-                            return this.MealAsString;
-                        }
-                    default:
-                        throw new Exception($"Not valid FoodTrackingType: {ModSettings_VarietyMatters.foodTrackingType}");
-                }
+                return this.IngredientsDefs.Count > 0
+                    ? this.MealAndIngredientsAsString
+                    : this.MealAsString;
             }
-            else
-            {
-                switch (ModSettings_VarietyMatters.foodTrackingType)
-                {
-                    case FoodTrackingType.ByMealNames:
-                        return this.MealNameAndTypeAsString;
-                    case FoodTrackingType.ByIngredientsCombination:
-                        return this.IngredientsAsString;
-                    case FoodTrackingType.ByMealNamesAndIngredientsCombination:
-                    case FoodTrackingType.ByIngredientOverlap:
-                        if (this.IngredientsDefs.Count > 0)
-                        {
-                            return this.MealNameAndTypeAndIngredientsAsString;
-                        }
-                        else
-                        {
-                            return this.MealNameAndTypeAsString;
-                        }
-                    default:
-                        throw new Exception($"Not valid FoodTrackingType: {ModSettings_VarietyMatters.foodTrackingType}");
-                }
-            }
+            return this.IngredientsDefs.Count > 0
+                ? this.MealNameAndTypeAndIngredientsAsString
+                : this.MealNameAndTypeAsString;
         }
 
         private string uniqueId;

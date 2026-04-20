@@ -93,7 +93,7 @@
 		              return true;
 		          }
 
-		          if (ModSettings_VarietyMatters.foodTrackingType != New.FoodTrackingType.ByMealNames && ModSettings_VarietyMatters.stackByIngredients)
+		          if (ModSettings_VarietyMatters.stackByIngredients)
 		          {
 		              CompVariety otherComp = other.TryGetComp<CompVariety>();
 		              if (otherComp == null)

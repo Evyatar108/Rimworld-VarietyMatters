@@ -33,7 +33,7 @@ namespace VarietyMatters
 		private static void GetChef(Bill bill, Pawn pawn)
 		{
 			if (bill == null) return;
-			if (ModSettings_VarietyMatters.foodTrackingType != New.FoodTrackingType.ByMealNames && ModSettings_VarietyMatters.preferVariety)
+			if (ModSettings_VarietyMatters.preferVariety)
 			{
 				chefByBill[bill] = pawn;
 			}
@@ -60,7 +60,7 @@ namespace VarietyMatters
 		{
 			// Clear scratch up front regardless of early-return path. Holding stale Thing refs until the next eligible AllowMix call is harmless functionally, but releasing them now is free and keeps the invariant simple: scratch is empty after every call.
 			_takenByThingScratch.Clear();
-			if (ModSettings_VarietyMatters.foodTrackingType == New.FoodTrackingType.ByMealNames || !ModSettings_VarietyMatters.preferVariety)
+			if (!ModSettings_VarietyMatters.preferVariety)
 			{
 				return true;
 			}
@@ -170,7 +170,7 @@ namespace VarietyMatters
 		private static void BestVariety_NoMix(List<Thing> availableThings, Bill bill, IntVec3 rootCell, ref bool alreadySorted)
 		{
 			bool flag = false;
-			if (ModSettings_VarietyMatters.foodTrackingType != New.FoodTrackingType.ByMealNames && ModSettings_VarietyMatters.preferVariety && bill.recipe.workSkill == SkillDefOf.Cooking)
+			if (ModSettings_VarietyMatters.preferVariety && bill.recipe.workSkill == SkillDefOf.Cooking)
 			{
 				ThingDef producedThingDef = bill.recipe.ProducedThingDef;
 				if (producedThingDef?.ingestible != null)
@@ -426,7 +426,7 @@ namespace VarietyMatters
 		private static void Postfix(RimWorld.Bill __instance, Verse.Pawn billDoer, System.Collections.Generic.List<Verse.Thing> ingredients)
 		{
 			if (__instance == null || billDoer == null || ingredients == null || ingredients.Count == 0) return;
-			if (ModSettings_VarietyMatters.foodTrackingType == New.FoodTrackingType.ByMealNames || !ModSettings_VarietyMatters.preferVariety) return;
+			if (!ModSettings_VarietyMatters.preferVariety) return;
 			if (__instance.recipe?.workSkill != RimWorld.SkillDefOf.Cooking) return;
 			Verse.ThingDef producedThingDef = __instance.recipe?.ProducedThingDef;
 			if (producedThingDef?.ingestible == null) return;

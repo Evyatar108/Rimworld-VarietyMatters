@@ -50,91 +50,39 @@
 			listing_Standard.Begin(rect);
 			listing_Standard.Label("VM_Settings_VarietyTrackingHeader".Translate(), -1f);
 
-			var previousFoodTrackingType = ModSettings_VarietyMatters.foodTrackingType;
-			var previousClusterSimilarMealsTogether = ModSettings_VarietyMatters.clusterSimilarMealsTogether;
-
-			bool trackByMealNamesAndTheirIngredients = listing_Standard.RadioButton("VM_Settings_TrackByMealNamesAndIngredients".Translate(), ModSettings_VarietyMatters.foodTrackingType == FoodTrackingType.ByMealNamesAndIngredientsCombination, 0f, null, null);
-			if (trackByMealNamesAndTheirIngredients)
-			{
-				ModSettings_VarietyMatters.foodTrackingType = FoodTrackingType.ByMealNamesAndIngredientsCombination;
-			}
-
-			bool trackByMealIngredients = listing_Standard.RadioButton("VM_Settings_TrackByMealIngredients".Translate(), ModSettings_VarietyMatters.foodTrackingType == FoodTrackingType.ByIngredientsCombination, 0f, null, null);
-			if (trackByMealIngredients)
-			{
-				ModSettings_VarietyMatters.foodTrackingType = FoodTrackingType.ByIngredientsCombination;
-			}
-
-            bool trackByMealNames = listing_Standard.RadioButton("VM_Settings_TrackByMealNames".Translate(), ModSettings_VarietyMatters.foodTrackingType == FoodTrackingType.ByMealNames, 0f, null, null);
-			if (trackByMealNames)
-			{
-				ModSettings_VarietyMatters.foodTrackingType = FoodTrackingType.ByMealNames;
-			}
-
-			bool trackByIngredientOverlap = listing_Standard.RadioButton("VM_Settings_TrackByIngredientOverlap".Translate(), ModSettings_VarietyMatters.foodTrackingType == FoodTrackingType.ByIngredientOverlap, 0f, "VM_Settings_TrackByIngredientOverlapTooltip".Translate(), null);
-			if (trackByIngredientOverlap)
-			{
-				ModSettings_VarietyMatters.foodTrackingType = FoodTrackingType.ByIngredientOverlap;
-			}
+			// Single tracking mode now (ByIngredientOverlap). Legacy mode picker removed — see
+			// the mode description/tooltip for what this means.
+			listing_Standard.Label("VM_Settings_TrackByIngredientOverlap".Translate(),
+				-1f, new TipSignal((string)"VM_Settings_TrackByIngredientOverlapTooltip".Translate()));
 
 			listing_Standard.Label("VM_Settings_OtherOptionsHeader".Translate(), -1f);
 			listing_Standard.CheckboxLabeled("VM_Settings_NonControlledPawnsLabel".Translate(), ref ModSettings_VarietyMatters.nonControlledPawnsHaveVarietyNeed, null, 0f, 1f);
             listing_Standard.CheckboxLabeled("VM_Settings_FoodDrugsOnceLabel".Translate(), ref ModSettings_VarietyMatters.foodDrugsAreOnlyInMemoryOnce, "VM_Settings_FoodDrugsOnceTooltip".Translate(), 0f, 1f);
-			bool flag4 = ModSettings_VarietyMatters.foodTrackingType != FoodTrackingType.ByMealNames;
-            if (flag4)
+			listing_Standard.CheckboxLabeled("VM_Settings_PreferVarietyLabel".Translate(), ref ModSettings_VarietyMatters.preferVariety, "VM_Settings_PreferVarietyTooltip".Translate(), 0f, 1f);
+			listing_Standard.CheckboxLabeled("VM_Settings_PreferSpoilingLabel".Translate(), ref ModSettings_VarietyMatters.preferSpoiling, null, 0f, 1f);
+			listing_Standard.CheckboxLabeled("VM_Settings_StackByIngredientsLabel".Translate(), ref ModSettings_VarietyMatters.stackByIngredients, null, 0f, 1f);
+
+			string label = "VM_Settings_NumIngredientsLabel".Translate();
+			string text = ModSettings_VarietyMatters.numIngredients.ToString();
+			this.LabeledIntEntry(listing_Standard.GetRect(24f, 1f), label, ref ModSettings_VarietyMatters.numIngredients, ref text, 1, 1, 1, 10);
+
+			string cookingMemLabel = "VM_Settings_CookingMemoryDepthLabel".Translate();
+			string cookingMemText = ModSettings_VarietyMatters.cookingMemoryDepth.ToString();
+			this.LabeledIntEntry(listing_Standard.GetRect(24f, 1f), cookingMemLabel, ref ModSettings_VarietyMatters.cookingMemoryDepth, ref cookingMemText, 1, 5, 1, 100);
+
+			float previousOverlapDays = ModSettings_VarietyMatters.varietyOverlapMemoryDays;
+			string overlapLabel = (string)"VM_Settings_OverlapMemoryDaysLabel".Translate(
+				ModSettings_VarietyMatters.varietyOverlapMemoryDays.ToString("F1"));
+			TipSignal overlapTooltip = new TipSignal((string)"VM_Settings_OverlapMemoryDaysTooltip".Translate());
+			listing_Standard.Label(overlapLabel, -1f, overlapTooltip);
+			float sliderVal = listing_Standard.Slider(
+				ModSettings_VarietyMatters.varietyOverlapMemoryDays, 0.5f, 5f);
+			// Snap to 0.5 increments so labels don't jitter.
+			ModSettings_VarietyMatters.varietyOverlapMemoryDays = Mathf.Round(sliderVal * 2f) / 2f;
+			if (Mathf.Abs(ModSettings_VarietyMatters.varietyOverlapMemoryDays - previousOverlapDays) > 0.01f)
 			{
-				listing_Standard.CheckboxLabeled("VM_Settings_PreferVarietyLabel".Translate(), ref ModSettings_VarietyMatters.preferVariety, "VM_Settings_PreferVarietyTooltip".Translate(), 0f, 1f);
-				listing_Standard.CheckboxLabeled("VM_Settings_PreferSpoilingLabel".Translate(), ref ModSettings_VarietyMatters.preferSpoiling, null, 0f, 1f);
-				listing_Standard.CheckboxLabeled("VM_Settings_StackByIngredientsLabel".Translate(), ref ModSettings_VarietyMatters.stackByIngredients, null, 0f, 1f);
-				if (ModSettings_VarietyMatters.foodTrackingType != FoodTrackingType.ByIngredientsCombination)
-				{
-					listing_Standard.CheckboxLabeled("VM_Settings_ClusterSimilarMealsLabel".Translate(), ref ModSettings_VarietyMatters.clusterSimilarMealsTogether, null, 0f, 1f);
-				}
-				else
-				{
-					ModSettings_VarietyMatters.clusterSimilarMealsTogether = false;
-                }
-
-				listing_Standard.Label("VM_Settings_ClusterSimilarMealsExample".Translate(), -1f);
-
-				string label = "VM_Settings_NumIngredientsLabel".Translate();
-				string text = ModSettings_VarietyMatters.numIngredients.ToString();
-				this.LabeledIntEntry(listing_Standard.GetRect(24f, 1f), label, ref ModSettings_VarietyMatters.numIngredients, ref text, 1, 1, 1, 10);
-
-				string cookingMemLabel = "VM_Settings_CookingMemoryDepthLabel".Translate();
-				string cookingMemText = ModSettings_VarietyMatters.cookingMemoryDepth.ToString();
-				this.LabeledIntEntry(listing_Standard.GetRect(24f, 1f), cookingMemLabel, ref ModSettings_VarietyMatters.cookingMemoryDepth, ref cookingMemText, 1, 5, 1, 100);
-
-				if (ModSettings_VarietyMatters.foodTrackingType == FoodTrackingType.ByIngredientOverlap)
-				{
-					float previousOverlapDays = ModSettings_VarietyMatters.varietyOverlapMemoryDays;
-					string overlapLabel = (string)"VM_Settings_OverlapMemoryDaysLabel".Translate(
-						ModSettings_VarietyMatters.varietyOverlapMemoryDays.ToString("F1"));
-					TipSignal overlapTooltip = new TipSignal((string)"VM_Settings_OverlapMemoryDaysTooltip".Translate());
-					listing_Standard.Label(overlapLabel, -1f, overlapTooltip);
-					float sliderVal = listing_Standard.Slider(
-						ModSettings_VarietyMatters.varietyOverlapMemoryDays, 0.5f, 5f);
-					// Snap to 0.5 increments so labels don't jitter.
-					ModSettings_VarietyMatters.varietyOverlapMemoryDays = Mathf.Round(sliderVal * 2f) / 2f;
-					if (Mathf.Abs(ModSettings_VarietyMatters.varietyOverlapMemoryDays - previousOverlapDays) > 0.01f)
-					{
-						DebouncedSettingsHandler.QueueRecalculation();
-					}
-				}
+				DebouncedSettingsHandler.QueueRecalculation();
 			}
-
-            if (ModSettings_VarietyMatters.foodTrackingType != previousFoodTrackingType
-    || ModSettings_VarietyMatters.clusterSimilarMealsTogether != previousClusterSimilarMealsTogether)
-            {
-                // Use debounced recalculation to prevent UI freezing
-                DebouncedSettingsHandler.QueueRecalculation();
-            }
-
-            if (ModSettings_VarietyMatters.foodTrackingType != previousFoodTrackingType
-				&& ModSettings_VarietyMatters.foodTrackingType != FoodTrackingType.ByIngredientsCombination)
-			{
-                ModSettings_VarietyMatters.clusterSimilarMealsTogether = true;
-            }
 
             listing_Standard.GapLine(12f);
 			bool flag5 = listing_Standard.ButtonTextLabeled("VM_Settings_ExpectationHeader".Translate(), "VM_Settings_ResetButton".Translate(), 0, null, null);
