@@ -158,6 +158,17 @@ namespace VarietyMatters
 
             if (overlapMode)
             {
+                // Palate-memory subheader — shows the active decay-window setting so the player
+                // can interpret "Tired of" / "Try feeding" against a concrete timespan.
+                float days = ModSettings_VarietyMatters.varietyOverlapMemoryDays;
+                int wholeDays = (int)Math.Round(days);
+                string daysStr = wholeDays == 1 && Math.Abs(days - 1f) < 0.05f
+                    ? (string)"VM_Aggregate_OverlapWindow_One".Translate()
+                    : "VM_Aggregate_OverlapWindow_Many".Translate(days.ToString("F1"));
+                Widgets.Label(new Rect(inner.x, y, inner.xMax - inner.x, lineHeight),
+                    "VM_Aggregate_OverlapWindow".Translate(daysStr));
+                y += lineHeight + 2f;
+
                 Widgets.Label(new Rect(inner.x, y, labelWidth, lineHeight), "VM_Aggregate_TiredOf".Translate());
                 Rect valueRect = new Rect(inner.x + labelWidth, y - 2f, inner.xMax - inner.x - labelWidth, IngredientIcon);
                 DrawIngredientIconList(valueRect, this._tiredOfDefs);
@@ -491,7 +502,28 @@ namespace VarietyMatters
 
             int totalIngredients = overlap.Count + fresh.Count;
             int freshCount = fresh.Count;
-            sb.AppendLine("VM_Details_ScoreTooltip".Translate(pct, freshCount, totalIngredients));
+
+            // Pre-compute meal-def bonus state for the header (if bonus applied, show
+            // decomposition "ingredient% + bonus% = total%"). Recomputed below for the line item
+            // but the cost is negligible on tooltip path.
+            bool mealDefFresh = row.MealDef != null && tracker.IsMealDefFreshInWindow(row.Source);
+            int mealDefBonusPct = 0;
+            if (mealDefFresh)
+            {
+                int c = row.Ingredients != null && row.Ingredients.Count > 0 ? row.Ingredients.Count : 1;
+                mealDefBonusPct = (int)Math.Round(
+                    Mathf.Min(DietTracker.MealDefBonusCap, DietTracker.MealDefBonusPerIngredient * c) * 100f);
+            }
+
+            if (mealDefBonusPct > 0)
+            {
+                int ingPct = Math.Max(0, pct - mealDefBonusPct);
+                sb.AppendLine("VM_Details_ScoreTooltipWithBonus".Translate(pct, ingPct, mealDefBonusPct));
+            }
+            else
+            {
+                sb.AppendLine("VM_Details_ScoreTooltip".Translate(pct, freshCount, totalIngredients));
+            }
 
             tracker.GetMealsAgoForOverlapDefs(row.Source, overlap, this._mealsAgoScratch);
 
@@ -512,20 +544,30 @@ namespace VarietyMatters
                 sb.AppendLine("VM_Overlap_New".Translate(d.LabelCap));
             }
 
-            // US-025 meal-def-new bonus line. Shown only when the bonus actually applied —
-            // identified by re-running IsMealDefFreshInWindow against the tracker (cheap, tooltip
-            // path only). The stored varietyScore on the row already includes the bonus; this line
-            // just explains why the score is higher than ingredient-overlap alone.
-            if (row.MealDef != null && tracker.IsMealDefFreshInWindow(row.Source))
+            // US-025 meal-def bonus line. When bonus applied, show complexity-scaled % with a
+            // "(capped)" note if we hit MealDefBonusCap. When the meal def was repeated, emit a
+            // muted "no bonus" line so the player knows the system considered it. Stored
+            // varietyScore on the row already includes the bonus math; these lines are just UX.
+            if (row.MealDef != null && mealDefFresh)
             {
                 int complexity = row.Ingredients != null && row.Ingredients.Count > 0
                     ? row.Ingredients.Count
                     : 1;
                 float bonus = Mathf.Min(DietTracker.MealDefBonusCap,
                     DietTracker.MealDefBonusPerIngredient * complexity);
+                bool capped = bonus >= DietTracker.MealDefBonusCap - 0.0001f
+                    && DietTracker.MealDefBonusPerIngredient * complexity > DietTracker.MealDefBonusCap;
                 int bonusPct = (int)Math.Round(bonus * 100f);
                 sb.AppendLine();
-                sb.Append("VM_Overlap_MealDefNewBonus".Translate(bonusPct, complexity));
+                string key = capped ? "VM_Overlap_MealDefNewBonusCapped" : "VM_Overlap_MealDefNewBonus";
+                sb.Append(key.Translate(bonusPct, complexity));
+            }
+            else if (row.MealDef != null)
+            {
+                // Meal type was in the recent-meals window — no bonus, but show the line so the
+                // player knows the system considered it (otherwise absence looks like a bug).
+                sb.AppendLine();
+                sb.Append("VM_Overlap_MealDefRepeated".Translate());
             }
 
             return sb.ToString();

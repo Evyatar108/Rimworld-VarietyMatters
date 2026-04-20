@@ -8,7 +8,7 @@
   <VM_Settings_TrackByMealIngredients>    Track meal ingredients only (Normal): </VM_Settings_TrackByMealIngredients>
   <VM_Settings_TrackByMealNames>    Track meals names only (Hard): </VM_Settings_TrackByMealNames>
   <VM_Settings_TrackByIngredientOverlap>    Track ingredient overlap (Continuous): </VM_Settings_TrackByIngredientOverlap>
-  <VM_Settings_TrackByIngredientOverlapTooltip>Per-meal variety is scored by how many ingredients overlap with meals eaten in the last ~2 in-game days. Trivial swaps (one ingredient different) give partial credit; fully-different meals count as fresh; repeats count as stale.</VM_Settings_TrackByIngredientOverlapTooltip>
+  <VM_Settings_TrackByIngredientOverlapTooltip>Per-meal variety is scored by how many ingredients overlap with meals eaten in the palate-memory window (configurable below, default 2 in-game days). Trivial swaps (one ingredient different) give partial credit; fully-different meals count as fresh; repeats count as stale.</VM_Settings_TrackByIngredientOverlapTooltip>
   <VM_Settings_OtherOptionsHeader>Other Options:</VM_Settings_OtherOptionsHeader>
   <VM_Settings_NonControlledPawnsLabel>    Non controlled pawns also have variety need: </VM_Settings_NonControlledPawnsLabel>
   <VM_Settings_FoodDrugsOnceLabel>    Foods that are also drugs are stored in memory just once: </VM_Settings_FoodDrugsOnceLabel>
@@ -71,6 +71,7 @@
   <VM_MealAgo_Days_Many>{0} days ago</VM_MealAgo_Days_Many>
   <VM_Details_ScoreBadge>{0}%</VM_Details_ScoreBadge>
   <VM_Details_ScoreTooltip>Variety score: {0}% ({1} of {2} ingredients fresh)</VM_Details_ScoreTooltip>
+  <VM_Details_ScoreTooltipWithBonus>Variety score: {0}% — {1}% from ingredients + {2}% from new meal type</VM_Details_ScoreTooltipWithBonus>
   <VM_Details_ScoreTooltipNoIngredients>Variety score: {0}%</VM_Details_ScoreTooltipNoIngredients>
   <VM_Details_Repeated>Repeated:</VM_Details_Repeated>
   <VM_Details_New>New:</VM_Details_New>
@@ -78,6 +79,9 @@
   <VM_Details_EmptyIngredientsFallback>{0} (no ingredients)</VM_Details_EmptyIngredientsFallback>
   <VM_Aggregate_TiredOf>Tired of:</VM_Aggregate_TiredOf>
   <VM_Aggregate_TryFeeding>Try feeding:</VM_Aggregate_TryFeeding>
+  <VM_Aggregate_OverlapWindow>Palate memory: last {0}</VM_Aggregate_OverlapWindow>
+  <VM_Aggregate_OverlapWindow_One>1 day</VM_Aggregate_OverlapWindow_One>
+  <VM_Aggregate_OverlapWindow_Many>{0} days</VM_Aggregate_OverlapWindow_Many>
   <VM_Aggregate_None>—</VM_Aggregate_None>
   <VM_Overlap_Glyph_Fresh>◆</VM_Overlap_Glyph_Fresh>
   <VM_Overlap_Glyph_Repeat>■</VM_Overlap_Glyph_Repeat>
@@ -90,6 +94,8 @@
   <VM_Overlap_MealsAgo_One>1 meal</VM_Overlap_MealsAgo_One>
   <VM_Overlap_MealsAgo_Many>{0} meals</VM_Overlap_MealsAgo_Many>
   <VM_Overlap_MealDefNewBonus>New meal type: +{0}% ({1}-ingredient recipe)</VM_Overlap_MealDefNewBonus>
+  <VM_Overlap_MealDefNewBonusCapped>New meal type: +{0}% ({1}-ingredient recipe, capped)</VM_Overlap_MealDefNewBonusCapped>
+  <VM_Overlap_MealDefRepeated>Same meal type as a recent meal — no bonus.</VM_Overlap_MealDefRepeated>
 
   <!-- Disabled reason tip (US-017) -->
   <VM_DisabledPrefix>Disabled: </VM_DisabledPrefix>
