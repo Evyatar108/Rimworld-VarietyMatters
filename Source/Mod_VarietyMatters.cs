@@ -71,6 +71,12 @@
 				ModSettings_VarietyMatters.foodTrackingType = FoodTrackingType.ByMealNames;
 			}
 
+			bool trackByIngredientOverlap = listing_Standard.RadioButton("VM_Settings_TrackByIngredientOverlap".Translate(), ModSettings_VarietyMatters.foodTrackingType == FoodTrackingType.ByIngredientOverlap, 0f, "VM_Settings_TrackByIngredientOverlapTooltip".Translate(), null);
+			if (trackByIngredientOverlap)
+			{
+				ModSettings_VarietyMatters.foodTrackingType = FoodTrackingType.ByIngredientOverlap;
+			}
+
 			listing_Standard.Label("VM_Settings_OtherOptionsHeader".Translate(), -1f);
 			listing_Standard.CheckboxLabeled("VM_Settings_NonControlledPawnsLabel".Translate(), ref ModSettings_VarietyMatters.nonControlledPawnsHaveVarietyNeed, null, 0f, 1f);
             listing_Standard.CheckboxLabeled("VM_Settings_FoodDrugsOnceLabel".Translate(), ref ModSettings_VarietyMatters.foodDrugsAreOnlyInMemoryOnce, "VM_Settings_FoodDrugsOnceTooltip".Translate(), 0f, 1f);

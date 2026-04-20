@@ -2,6 +2,7 @@ namespace VarietyMatters
 {
     using System;
     using System.Collections.Generic;
+    using System.Text;
     using RimWorld;
     using UnityEngine;
     using VarietyMatters.New;
@@ -45,6 +46,19 @@ namespace VarietyMatters
         private readonly List<ThingDef> _mostVariedIngredientDefs = new List<ThingDef>();
         private int _mostVariedIngredientCount;
         private int _forgottenCount;
+        // Overlap-mode aggregate scratch (per CLAUDE.md §1). Rebuilt with other aggregates.
+        // `_tiredOfDefs` — ingredient defs appearing in the active decay window (the current overlap set).
+        // `_tryFeedingDefs` — defs the pawn ate before the decay window but no longer in recent meals
+        //   (stale-favourites heuristic; FoodSourceFactory.AllFoodDefs stockpile scan is out of scope).
+        private readonly Dictionary<ThingDef, int> _recentIngCountsScratch = new Dictionary<ThingDef, int>();
+        private readonly HashSet<ThingDef> _decayedIngSetScratch = new HashSet<ThingDef>();
+        private readonly List<ThingDef> _tiredOfDefs = new List<ThingDef>();
+        private readonly List<ThingDef> _tryFeedingDefs = new List<ThingDef>();
+        // Reused per-hover tooltip builder. Cleared at the top of `BuildOverlapTooltip`.
+        private readonly StringBuilder _tooltipBuilder = new StringBuilder();
+        // Scratch for per-ingredient "meals ago" lookup in BuildOverlapTooltip.
+        // Consumer: BuildOverlapTooltip (via DietTracker.GetMealsAgoForOverlapDefs).
+        private readonly Dictionary<ThingDef, int> _mealsAgoScratch = new Dictionary<ThingDef, int>();
 
         public override Vector2 InitialSize => new Vector2(640f, 620f);
 
@@ -140,21 +154,73 @@ namespace VarietyMatters
             const float labelWidth = 220f;
             float y = inner.y;
 
-            // Most-repeated meals (all ties).
-            Widgets.Label(new Rect(inner.x, y, labelWidth, lineHeight), "VM_Aggregate_RepeatChamp".Translate());
-            Rect valueRect = new Rect(inner.x + labelWidth, y - 2f, inner.xMax - inner.x - labelWidth, IngredientIcon);
-            DrawAggregateIcons(valueRect, this._repeatChampDefs, this._repeatChampCount);
-            y += lineHeight + 4f;
+            bool overlapMode = ModSettings_VarietyMatters.foodTrackingType == FoodTrackingType.ByIngredientOverlap;
 
-            // Most-used ingredients (all ties).
-            Widgets.Label(new Rect(inner.x, y, labelWidth, lineHeight), "VM_Aggregate_MostVariedIngredient".Translate());
-            valueRect = new Rect(inner.x + labelWidth, y - 2f, inner.xMax - inner.x - labelWidth, IngredientIcon);
-            DrawAggregateIcons(valueRect, this._mostVariedIngredientDefs, this._mostVariedIngredientCount);
-            y += lineHeight + 4f;
+            if (overlapMode)
+            {
+                Widgets.Label(new Rect(inner.x, y, labelWidth, lineHeight), "VM_Aggregate_TiredOf".Translate());
+                Rect valueRect = new Rect(inner.x + labelWidth, y - 2f, inner.xMax - inner.x - labelWidth, IngredientIcon);
+                DrawIngredientIconList(valueRect, this._tiredOfDefs);
+                y += lineHeight + 4f;
+
+                Widgets.Label(new Rect(inner.x, y, labelWidth, lineHeight), "VM_Aggregate_TryFeeding".Translate());
+                valueRect = new Rect(inner.x + labelWidth, y - 2f, inner.xMax - inner.x - labelWidth, IngredientIcon);
+                DrawIngredientIconList(valueRect, this._tryFeedingDefs);
+                y += lineHeight + 4f;
+            }
+            else
+            {
+                Widgets.Label(new Rect(inner.x, y, labelWidth, lineHeight), "VM_Aggregate_RepeatChamp".Translate());
+                Rect valueRect = new Rect(inner.x + labelWidth, y - 2f, inner.xMax - inner.x - labelWidth, IngredientIcon);
+                DrawAggregateIcons(valueRect, this._repeatChampDefs, this._repeatChampCount);
+                y += lineHeight + 4f;
+
+                Widgets.Label(new Rect(inner.x, y, labelWidth, lineHeight), "VM_Aggregate_MostVariedIngredient".Translate());
+                valueRect = new Rect(inner.x + labelWidth, y - 2f, inner.xMax - inner.x - labelWidth, IngredientIcon);
+                DrawAggregateIcons(valueRect, this._mostVariedIngredientDefs, this._mostVariedIngredientCount);
+                y += lineHeight + 4f;
+            }
 
             // Forgotten count.
             Rect fgRect = new Rect(inner.x, y, inner.width, lineHeight);
             Widgets.Label(fgRect, "VM_Aggregate_Forgotten".Translate(this._forgottenCount, this._rows.Count));
+        }
+
+        // Plain icon list (no trailing "×N"). Used for overlap-mode tired-of / try-feeding.
+        private static void DrawIngredientIconList(Rect rect, List<ThingDef> defs)
+        {
+            if (defs == null || defs.Count == 0)
+            {
+                Text.Anchor = TextAnchor.MiddleLeft;
+                Widgets.Label(rect, "VM_Aggregate_None".Translate());
+                Text.Anchor = TextAnchor.UpperLeft;
+                return;
+            }
+            float x = rect.x;
+            float iy = rect.y;
+            int maxFit = Math.Max(1, (int)((rect.width + IngredientGap) / (IngredientIcon + IngredientGap)));
+            int drawn = Math.Min(defs.Count, maxFit);
+            for (int i = 0; i < drawn; i++)
+            {
+                ThingDef def = defs[i];
+                if (def == null) continue;
+                Rect iconRect = new Rect(x, iy, IngredientIcon, IngredientIcon);
+                if (def.uiIcon != null)
+                {
+                    Widgets.DrawTextureFitted(iconRect, def.uiIcon, 1f);
+                }
+                TooltipIfOver(iconRect, def.LabelCap);
+                x += IngredientIcon + IngredientGap;
+            }
+            if (defs.Count > drawn)
+            {
+                Rect moreRect = new Rect(x, iy, IngredientIcon, IngredientIcon);
+                Text.Anchor = TextAnchor.MiddleCenter;
+                GUI.color = new Color(1f, 1f, 1f, 0.7f);
+                Widgets.Label(moreRect, "+" + (defs.Count - drawn));
+                GUI.color = Color.white;
+                Text.Anchor = TextAnchor.UpperLeft;
+            }
         }
 
         private static void DrawAggregateIcons(Rect rect, List<ThingDef> defs, int count)
@@ -232,6 +298,12 @@ namespace VarietyMatters
             Widgets.BeginScrollView(rect, ref this._scrollPosition, viewRect);
             float y = 0f;
             i = 0;
+            bool overlapMode = ModSettings_VarietyMatters.foodTrackingType == FoodTrackingType.ByIngredientOverlap;
+            DietTracker tracker = null;
+            if (overlapMode)
+            {
+                VarietyRecord.TryGetVarietyRecord(this.pawn, out tracker);
+            }
             while (i < this._rows.Count)
             {
                 if (this._rows[i].IsForgotten)
@@ -245,7 +317,7 @@ namespace VarietyMatters
                 }
                 else
                 {
-                    DrawMealRow(new Rect(0f, y, viewRect.width, MealRowHeight), this._rows[i]);
+                    this.DrawMealRow(new Rect(0f, y, viewRect.width, MealRowHeight), this._rows[i], overlapMode, tracker);
                     y += MealRowHeight + 4f;
                     i++;
                 }
@@ -277,7 +349,7 @@ namespace VarietyMatters
             GUI.color = Color.white;
         }
 
-        private static void DrawMealRow(Rect rect, Need_FoodVariety.MealRowInfo row)
+        private void DrawMealRow(Rect rect, Need_FoodVariety.MealRowInfo row, bool overlapMode, DietTracker tracker)
         {
             Widgets.DrawBoxSolid(rect, SectionBg);
             Rect inner = rect.ContractedBy(6f);
@@ -291,7 +363,7 @@ namespace VarietyMatters
                 Text.Anchor = TextAnchor.MiddleCenter;
                 Text.Font = GameFont.Medium;
                 GUI.color = row.BorderColor;
-                Widgets.Label(mealInner, "?");
+                Widgets.Label(mealInner, "VM_Overlap_Glyph_Forgotten".Translate());
                 GUI.color = Color.white;
                 Text.Font = GameFont.Small;
                 Text.Anchor = TextAnchor.UpperLeft;
@@ -303,7 +375,15 @@ namespace VarietyMatters
                 {
                     Widgets.DrawTextureFitted(mealInner, row.MealDef.uiIcon, 1f);
                 }
-                TooltipIfOver(mealRect, row.MealDef.LabelCap);
+                Need_FoodVariety.DrawStatusGlyph(mealRect, row.Status, row.BorderColor);
+                if (overlapMode && tracker != null && row.Source != null && Mouse.IsOver(mealRect))
+                {
+                    TooltipHandler.TipRegion(mealRect, this.BuildOverlapTooltip(row, tracker));
+                }
+                else
+                {
+                    TooltipIfOver(mealRect, row.MealDef.LabelCap);
+                }
             }
 
             // Variety status label + meal name (center). Wider so long meal labels fit on one line.
@@ -317,13 +397,25 @@ namespace VarietyMatters
             Widgets.Label(statusRect, statusText.Truncate(statusRect.width));
             GUI.color = Color.white;
 
-            // Age indicator below status ("5h ago"). Greyed out.
+            // Age indicator below status. Greyed out. Plural-aware.
             if (!row.IsForgotten && row.AteAtTick >= 0)
             {
                 Rect ageRect = new Rect(mealRect.xMax + Padding, statusRect.yMax + 2f, StatusWidth, 20f);
                 GUI.color = new Color(1f, 1f, 1f, 0.55f);
                 Widgets.Label(ageRect, FormatAteAgo(row.AteAtTick));
                 GUI.color = Color.white;
+            }
+
+            // Overlap-mode score badge ("33%"). Right of the status+age block, before ingredient icons.
+            if (overlapMode && !row.IsForgotten)
+            {
+                Rect badgeRect = new Rect(mealRect.xMax + Padding, statusRect.yMax + 22f, 60f, 22f);
+                int pct = Math.Max(0, Math.Min(100, (int)Math.Round(row.VarietyScore * 100f)));
+                GUI.color = ColorForScore(row.VarietyScore);
+                Text.Font = GameFont.Small;
+                Widgets.Label(badgeRect, "VM_Details_ScoreBadge".Translate(pct));
+                GUI.color = Color.white;
+                TooltipIfOver(badgeRect, "VM_Details_ScoreTooltip".Translate(pct));
             }
 
             // Ingredient icons (right of status). Filling row from status.xMax to inner.xMax.
@@ -355,10 +447,66 @@ namespace VarietyMatters
             if (ateAtTick < 0) return "VM_MealAgo_Unknown".Translate();
             int nowTick = Find.TickManager != null ? Find.TickManager.TicksGame : 0;
             int diff = Math.Max(0, nowTick - ateAtTick);
-            // RimWorld: 60 ticks = 1 real second in paused, but in-game time uses 2500 ticks/hour, 60000 ticks/day.
-            if (diff < 2500) return "VM_MealAgo_Minutes".Translate(Math.Max(1, diff / 60));
-            if (diff < 60000) return "VM_MealAgo_Hours".Translate(diff / 2500);
-            return "VM_MealAgo_Days".Translate(diff / 60000);
+            // RimWorld in-game time: 2500 ticks/hour, 60000 ticks/day.
+            if (diff < 2500)
+            {
+                int m = Math.Max(1, diff / 60);
+                return m == 1 ? (string)"VM_MealAgo_Minute_One".Translate() : "VM_MealAgo_Minutes_Many".Translate(m);
+            }
+            if (diff < 60000)
+            {
+                int h = Math.Max(1, diff / 2500);
+                return h == 1 ? (string)"VM_MealAgo_Hour_One".Translate() : "VM_MealAgo_Hours_Many".Translate(h);
+            }
+            int d = Math.Max(1, diff / 60000);
+            return d == 1 ? (string)"VM_MealAgo_Day_One".Translate() : "VM_MealAgo_Days_Many".Translate(d);
+        }
+
+        private static Color ColorForScore(float score)
+        {
+            // Green high -> red low, interp through yellow. Grayscale-distinguishable via luminance.
+            float s = Mathf.Clamp01(score);
+            return Color.Lerp(new Color(0.85f, 0.35f, 0.35f), new Color(0.35f, 0.85f, 0.35f), s);
+        }
+
+        private string BuildOverlapTooltip(Need_FoodVariety.MealRowInfo row, DietTracker tracker)
+        {
+            int pct = Math.Max(0, Math.Min(100, (int)Math.Round(row.VarietyScore * 100f)));
+            StringBuilder sb = this._tooltipBuilder;
+            sb.Clear();
+            if (row.MealDef != null)
+            {
+                sb.AppendLine(row.MealDef.LabelCap);
+            }
+            sb.AppendLine("VM_Details_ScoreTooltip".Translate(pct));
+
+            var (overlap, fresh) = tracker.GetOverlapBreakdown(row.Source);
+            bool hasIngredients = (row.Ingredients != null && row.Ingredients.Count > 0);
+            if (!hasIngredients)
+            {
+                sb.AppendLine();
+                sb.Append("VM_Details_EmptyIngredientsFallback".Translate(row.MealDef?.LabelCap ?? ""));
+                return sb.ToString();
+            }
+
+            tracker.GetMealsAgoForOverlapDefs(row.Source, overlap, this._mealsAgoScratch);
+
+            sb.AppendLine();
+            foreach (ThingDef d in overlap)
+            {
+                if (d == null) continue;
+                this._mealsAgoScratch.TryGetValue(d, out int dist);
+                string agoStr = dist == 1
+                    ? (string)"VM_Overlap_MealsAgo_One".Translate()
+                    : "VM_Overlap_MealsAgo_Many".Translate(dist > 0 ? dist : 1);
+                sb.AppendLine("VM_Overlap_Repeated".Translate(d.LabelCap, agoStr));
+            }
+            foreach (ThingDef d in fresh)
+            {
+                if (d == null) continue;
+                sb.AppendLine("VM_Overlap_New".Translate(d.LabelCap));
+            }
+            return sb.ToString();
         }
 
         private static string GetStatusLabel(Need_FoodVariety.MealRowInfo row)
@@ -400,6 +548,8 @@ namespace VarietyMatters
                 this._repeatChampCount = 0;
                 this._mostVariedIngredientDefs.Clear();
                 this._mostVariedIngredientCount = 0;
+                this._tiredOfDefs.Clear();
+                this._tryFeedingDefs.Clear();
                 this._forgottenCount = 0;
                 return;
             }
@@ -412,6 +562,10 @@ namespace VarietyMatters
             this._repeatCounts.Clear();
             this._ingredientCounts.Clear();
             this._keyToDef.Clear();
+            this._recentIngCountsScratch.Clear();
+            this._decayedIngSetScratch.Clear();
+            this._tiredOfDefs.Clear();
+            this._tryFeedingDefs.Clear();
             this._forgottenCount = 0;
 
             for (int i = 0; i < this._rows.Count; i++)
@@ -470,6 +624,57 @@ namespace VarietyMatters
                         this._mostVariedIngredientDefs.Add(kv.Key);
                     }
                 }
+            }
+
+            // Overlap-mode aggregates: split ingredients by decay window relative to current tick.
+            // tiredOf = all defs present in any meal within the last `VarietyDecayTicks` (= current overlap set).
+            // tryFeeding = defs the pawn ate outside the window but no longer inside it — stale favourites.
+            int nowTick = Find.TickManager != null ? Find.TickManager.TicksGame : 0;
+            foreach (var foodByPawn in tracker.EatenFoodSourcesByOrder)
+            {
+                EatenFoodSource src = foodByPawn.Source;
+                if (src == null || src.IsForgotten) continue;
+                int t = src.AteAtTick;
+                bool recent = (t >= 0) && (nowTick - t <= DietTracker.VarietyDecayTicks);
+
+                List<ThingDef> defs = src.IngredientsDefs;
+                if (defs != null && defs.Count > 0)
+                {
+                    for (int idx = 0; idx < defs.Count; idx++)
+                    {
+                        ThingDef d = defs[idx];
+                        if (d == null) continue;
+                        if (recent)
+                        {
+                            this._recentIngCountsScratch.TryGetValue(d, out int c);
+                            this._recentIngCountsScratch[d] = c + 1;
+                        }
+                        else
+                        {
+                            this._decayedIngSetScratch.Add(d);
+                        }
+                    }
+                }
+                else if (src.ThingDef != null)
+                {
+                    if (recent)
+                    {
+                        this._recentIngCountsScratch.TryGetValue(src.ThingDef, out int c);
+                        this._recentIngCountsScratch[src.ThingDef] = c + 1;
+                    }
+                    else
+                    {
+                        this._decayedIngSetScratch.Add(src.ThingDef);
+                    }
+                }
+            }
+            foreach (var kv in this._recentIngCountsScratch)
+            {
+                this._tiredOfDefs.Add(kv.Key);
+            }
+            foreach (ThingDef d in this._decayedIngSetScratch)
+            {
+                if (!this._recentIngCountsScratch.ContainsKey(d)) this._tryFeedingDefs.Add(d);
             }
 
             this._lastAggregateVersion = version;

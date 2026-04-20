@@ -103,6 +103,15 @@
             private set => this.ateAtTick = value;
         }
 
+        // Per-meal Jaccard overlap score, in [0,1]. Set at ingest time by DietTracker when the
+        // tracking mode is ByIngredientOverlap. Default 1f preserves old saves + non-overlap modes.
+        private float varietyScore = 1f;
+        public float VarietyScore
+        {
+            get => this.varietyScore;
+            internal set => this.varietyScore = value;
+        }
+
         private FoodPreferability foodPreferability;
         public FoodPreferability FoodPreferability
         {
@@ -195,6 +204,9 @@
             Scribe_Values.Look(ref this.foodPreferability, "foodPreferability");
             // Default -1 = unknown timestamp for saves written before this field existed.
             Scribe_Values.Look(ref this.ateAtTick, "ateAtTick", -1);
+            // Default 1f = saves without the field (or non-overlap-mode saves) treat each meal as
+            // maximally fresh; ReCountAll rebuilds on mode switch.
+            Scribe_Values.Look(ref this.varietyScore, "varietyScore", 1f);
             Scribe_Collections.Look(ref this.ingredients, "ingredients", LookMode.Def);
             Scribe_Values.Look(ref this.isRotten, "isRotten");
             Scribe_Deep.Look(ref this.isAcceptableToCarnivores, "isAcceptableToCarnivores");
@@ -250,6 +262,7 @@
                     case FoodTrackingType.ByIngredientsCombination:
                         return this.IngredientsAsString;
                     case FoodTrackingType.ByMealNamesAndIngredientsCombination:
+                    case FoodTrackingType.ByIngredientOverlap:
                         if (this.IngredientsDefs.Count > 0)
                         {
                             return this.MealAndIngredientsAsString;
@@ -271,6 +284,7 @@
                     case FoodTrackingType.ByIngredientsCombination:
                         return this.IngredientsAsString;
                     case FoodTrackingType.ByMealNamesAndIngredientsCombination:
+                    case FoodTrackingType.ByIngredientOverlap:
                         return this.MealTypeAndIngredientsAsString;
                     default:
                         throw new Exception($"Not valid FoodTrackingType: {ModSettings_VarietyMatters.foodTrackingType}");
@@ -294,6 +308,7 @@
                     case FoodTrackingType.ByIngredientsCombination:
                         return this.IngredientsAsString;
                     case FoodTrackingType.ByMealNamesAndIngredientsCombination:
+                    case FoodTrackingType.ByIngredientOverlap:
                         if (this.IngredientsDefs.Count > 0)
                         {
                             return this.MealAndIngredientsAsString;
@@ -315,6 +330,7 @@
                     case FoodTrackingType.ByIngredientsCombination:
                         return this.IngredientsAsString;
                     case FoodTrackingType.ByMealNamesAndIngredientsCombination:
+                    case FoodTrackingType.ByIngredientOverlap:
                         if (this.IngredientsDefs.Count > 0)
                         {
                             return this.MealNameAndTypeAndIngredientsAsString;

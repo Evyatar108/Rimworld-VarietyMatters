@@ -15,9 +15,18 @@
 
             Need_FoodVariety varietyNeed = dietTracker.Pawn.needs.TryGetNeed<Need_FoodVariety>();
 
-            int currentVariety = dietTracker.TotalVariety;
+            double percentageOfVarietyComparedToExpected;
 
-            double percentageOfVarietyComparedToExpected = (double)currentVariety / (double)varietyExpectation;
+            if (ModSettings_VarietyMatters.foodTrackingType == FoodTrackingType.ByIngredientOverlap)
+            {
+                int mealsInMemory = dietTracker.MealsInMemory;
+                double meanScore = mealsInMemory > 0 ? (double)dietTracker.TotalVarietyScore / mealsInMemory : 0.0;
+                percentageOfVarietyComparedToExpected = meanScore * ModSettings_VarietyMatters.memoryMultiplier;
+            }
+            else
+            {
+                percentageOfVarietyComparedToExpected = (double)dietTracker.TotalVariety / (double)varietyExpectation;
+            }
 
             float varietyNeedValue = (float)(percentageOfVarietyComparedToExpected / 2);
 

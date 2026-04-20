@@ -22,7 +22,7 @@ Bracketed ticket IDs, matching recent history:
 - `feat: [US-###] - short description` — feature work (user stories)
 - `chore: ...` / `docs: ...` — no ticket
 
-Check `git log --oneline | grep -E "\[F-00"` before picking a new F-### — IDs can be reused across branches but not across master. Latest: F-006 (`8cd12cf`).
+Check `git log --oneline | grep -E "\[F-"` before picking a new F-### — IDs can be reused across branches but not across master. Latest on master: F-033 (`a72b690`).
 
 ## 3. Soft-cap pattern
 
@@ -61,11 +61,13 @@ When adding a new cap concern, thread it through Pass 1 + Pass 2a identically; l
 
 `Source/New/DietTracker.cs` has a `private int _version` field (not `Scribe_`-persisted) bumped at exactly three public entry points:
 
-- `AddFoodSource:99` (top, post null-guard)
-- `UpdateMaxFoodInMemory:89` (end)
-- `ReCount:136` (end)
+- `AddFoodSource:134` (top, post null-guard)
+- `UpdateMaxFoodInMemory:129` (end)
+- `ReCount:204` (end)
 
-All private mutators (`AddForgottenFoods`, `AddFoodSourceToMemory`, `AddFoodSourceToCount`, `RemoveFoodFromQueueAndCountBasedOnKey`, `RemoveOldestFoodSourceFromMemory`, `RemoveFoodFromCount`) are reached only through those three entry points — no redundant bumps needed. Consumers (e.g. `Need_FoodVariety` UI cache) compare against stored version + rebuild on mismatch. Sentinel `_lastVersion = -1` forces first-access rebuild regardless of tracker state. Load resets `_version` to 0; `ReCount` bumps it, cache rebuilds once.
+All private mutators (`AddForgottenFoods`, `AddFoodSourceToMemory`, `AddFoodSourceToCount`, `RemoveFoodFromQueueAndCountBasedOnKey`, `RemoveOldestFoodSourceFromMemory`, `RemoveFoodFromCount`) are reached only through those three entry points — no redundant bumps needed. Consumers (e.g. `Need_FoodVariety` UI cache, `DietTracker.GetOverlapBreakdown` cache) compare against stored version + rebuild on mismatch. Sentinel `_lastVersion = -1` forces first-access rebuild regardless of tracker state. Load resets `_version` to 0; `ReCount` bumps it, cache rebuilds once.
+
+Top-level driver `VarietyRecord.ReCountAll()` fans out to every tracker's `ReCount()`, then calls `VarietyAdjuster.AdjustVarietyLevel(tracker)` per tracker — used by settings mode-switch + post-load migration (see F-001 / §11 site 1). The fan-out relies on `ReCount`'s bump; no direct `_version++` in `ReCountAll`.
 
 If you add a new DietTracker mutation entry point, bump `_version` at the end. If you add a private helper, it's covered by its caller.
 
@@ -83,8 +85,9 @@ Allocating a tracker just to read a score is a perf regression. If your code onl
 Preserve `Scribe_` layout on any cache/perf change:
 
 - `VarietyCookingRecord.RecentListEx.entries` is serialized as `List<string>` with `LookMode.Value`. **Do not** swap storage to `ThingDef`. If you need ref-based keying, build a `Dictionary<string, ThingDef>` at use-site (see `SortIngredients` label→def map).
-- `DietTracker._version`, `Need_FoodVariety._lastTipVersion`, `Need_FoodVariety._lastIconsVersion`, `Need_FoodVariety._lastIconsMemoryMult`, `Need_FoodVariety._iconOverlayHash`, `Need_FoodVariety._overlayWidth`, `Need_FoodVariety._foodDefsScratch`, `Need_FoodVariety._drawHoverOverlayAction`, `_raceKeysVersion` — transient, never Scribed.
-- `_countByKey` in `DietTracker` — transient; rebuilt from scratch in `ReCount:136`.
+- `EatenFoodSource.varietyScore` (US-023) — `Scribe_Values.Look(..., "varietyScore", 1f)`. Default `1f` is deliberate: old saves loaded into `ByIngredientOverlap` mode get full-credit scores until `ReCountAll` rebuilds from stored `IngredientsDefs` / `AteAtTick`. Do not change the default — it is the migration contract.
+- `DietTracker._version`, `DietTracker.totalVarietyScore`, `DietTracker._breakdownCacheMeal`, `DietTracker._breakdownCacheVersion`, `DietTracker._breakdownOverlapScratch`, `DietTracker._breakdownFreshScratch`, `DietTracker._recentIngSetScratch`, `DietTracker._mealIndexScratch`, `Window_VarietyDetails._mealsAgoScratch`, `Need_FoodVariety._lastTipVersion`, `Need_FoodVariety._lastIconsVersion`, `Need_FoodVariety._lastIconsMemoryMult`, `Need_FoodVariety._iconOverlayHash`, `Need_FoodVariety._overlayWidth`, `Need_FoodVariety._foodDefsScratch`, `Need_FoodVariety._drawHoverOverlayAction`, `_raceKeysVersion` — transient, never Scribed.
+- `_countByKey` in `DietTracker` — transient; rebuilt from scratch in `ReCount:204`. `totalVarietyScore` rebuilt in same spot from each source's stored `varietyScore`.
 
 ## 9. Pawn-lifecycle cleanup hooks
 

@@ -58,6 +58,11 @@
 			public List<ThingDef> Ingredients;  // null/empty for forgotten
 			public MealRowStatus Status;
 			public int AteAtTick;               // -1 for forgotten / old saves
+			// Live tracker ref for overlap-breakdown tooltip. Null for forgotten rows and
+			// stale once DietTracker._version changes -- UX must rebuild on version bump.
+			public EatenFoodSource Source;
+			// Per-meal Jaccard score in [0,1]. 1f for non-overlap modes / forgotten (default).
+			public float VarietyScore;
 			public bool IsForgotten => this.Status == MealRowStatus.Forgotten;
 			public Color BorderColor
 			{
@@ -400,6 +405,8 @@
 					row.Ingredients = null;
 					row.Status = MealRowStatus.Forgotten;
 					row.AteAtTick = -1;
+					row.Source = null;
+					row.VarietyScore = 1f;
 					this._mealRowsScratch.Add(row);
 					continue;
 				}
@@ -407,6 +414,8 @@
 				row.MealDef = src.ThingDef;
 				row.Ingredients = src.IngredientsDefs;
 				row.AteAtTick = src.AteAtTick;
+				row.Source = src;
+				row.VarietyScore = src.VarietyScore;
 
 				string key = src.GetFoodSourceKey();
 				this._appearancesSoFarRowsScratch.TryGetValue(key, out int seenSoFar);
@@ -452,6 +461,28 @@
 			}
 		}
 
+		// Shape-distinguishable status glyph. Remains legible in grayscale (colorblind-safe).
+		public static void DrawStatusGlyph(Rect mealSlot, MealRowStatus status, Color color)
+		{
+			string glyph;
+			switch (status)
+			{
+				case MealRowStatus.HasVariety: glyph = "VM_Overlap_Glyph_Fresh".Translate(); break;
+				case MealRowStatus.Forgotten: glyph = "VM_Overlap_Glyph_Forgotten".Translate(); break;
+				default: glyph = "VM_Overlap_Glyph_Repeat".Translate(); break;
+			}
+			Rect badge = new Rect(mealSlot.x + 1f, mealSlot.y + 1f, 11f, 11f);
+			Widgets.DrawBoxSolid(badge, new Color(0f, 0f, 0f, 0.55f));
+			Text.Anchor = TextAnchor.MiddleCenter;
+			GameFont prev = Text.Font;
+			Text.Font = GameFont.Tiny;
+			GUI.color = color;
+			Widgets.Label(badge, glyph);
+			GUI.color = Color.white;
+			Text.Font = prev;
+			Text.Anchor = TextAnchor.UpperLeft;
+		}
+
 		private static void DrawMealRow(Rect rect, MealRowInfo row)
 		{
 			// Meal icon slot (left).
@@ -462,7 +493,7 @@
 			{
 				Text.Anchor = TextAnchor.MiddleCenter;
 				GUI.color = row.BorderColor;
-				Widgets.Label(mealInner, "?");
+				Widgets.Label(mealInner, "VM_Overlap_Glyph_Forgotten".Translate());
 				GUI.color = Color.white;
 				Text.Anchor = TextAnchor.UpperLeft;
 				if (Mouse.IsOver(mealSlot))
@@ -475,6 +506,8 @@
 			{
 				Widgets.DrawTextureFitted(mealInner, row.MealDef.uiIcon, 1f);
 			}
+			// Shape glyph badge (top-left corner) — colorblind-distinguishable: ◆ fresh vs ■ repeat.
+			DrawStatusGlyph(mealSlot, row.Status, row.BorderColor);
 			if (Mouse.IsOver(mealSlot) && row.MealDef != null)
 			{
 				TooltipHandler.TipRegion(mealSlot, row.MealDef.LabelCap);
@@ -637,6 +670,9 @@
                             case FoodTrackingType.ByMealNamesAndIngredientsCombination:
                                 stringBuilder.Append("VM_FoodVarietyTip_ByMealTypeAndIngredients".Translate());
                                 break;
+                            case FoodTrackingType.ByIngredientOverlap:
+                                stringBuilder.Append("VM_FoodVarietyTip_ByIngredientOverlap".Translate());
+                                break;
                         }
                     }
                     else
@@ -651,6 +687,9 @@
                                 break;
                             case FoodTrackingType.ByMealNamesAndIngredientsCombination:
                                 stringBuilder.Append("VM_FoodVarietyTip_ByMealNameAndIngredients".Translate());
+                                break;
+                            case FoodTrackingType.ByIngredientOverlap:
+                                stringBuilder.Append("VM_FoodVarietyTip_ByIngredientOverlap".Translate());
                                 break;
                         }
                     }
