@@ -18,5 +18,6 @@
 		<li IfModActive="syrchalis.coffeeandtea, syrchalis.blueberries" >Mods\SYR Coffee + Blueberries</li>
 		<!--<li IfModActive="Crustypeanut.RC2.Core">Mods\RimCuisine</li>-->
 		<li>1.6</li>
+		<li IfModActive="Ludeon.RimWorld.Biotech">1.6\Biotech</li>
 	</v1.6>
 </loadFolders>
