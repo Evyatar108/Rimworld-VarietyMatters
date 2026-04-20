@@ -1,4 +1,17 @@
 [img]https://imgur.com/PZEKJnd.png[/img]
+[h3] 2026-04-19 [/h3]
+[list]
+[*][b]Mod Settings redesigned:[/b] three difficulty presets (Easy / Default / Hardcore) at the top of the settings window batch-set all gameplay-affecting knobs with one click. Remaining controls are grouped into collapsible sections (Basics, Difficulty, Pawn Expectations, Meal Type Bonus, Cook Behavior, How Scoring Works) — all collapsed by default so new players see the preset row first. Renamed jargony labels; added tooltips to every control; made the active preset visually highlighted.
+[*][b]Direct tier tuning:[/b] each expectation tier now has two independently tunable knobs — "Memory" (how many past meals that tier averages into mood, set in meals) and "Palate" (how fresh a meal must be before it counts, set as a percentage 0–50%). Previously these were derived from a single tier integer multiplied by a hidden factor; now you set what you see. Noble defaults: 34-meal memory with a 48% palate threshold.
+[*][b]Tier-change resilience:[/b] per-pawn meal memory now stores up to the max tier's capacity plus a scoring buffer at all times, regardless of the pawn's current tier. Wealth swings, royal title changes, and mid-game setting edits no longer lose memory history — mood aggregation just shrinks its window instead.
+[*][b]Asymmetric mood range:[/b] the "Halve variety mood effect" checkbox is replaced by two direct mood-point sliders — max negative (default -12) and max positive (default +12). Tune penalties and rewards independently: -8/+12 for soft penalties with full rewards, -14/+12 for harsher starvation, 0/+12 to disable negative variety mood entirely. Gourmand trait still doubles the whole range on top.
+[*][b]Per-slot meal bonus sliders:[/b] the previously hardcoded meal-type-novelty bonus (simple/fine/lavish/modded) is now exposed as five direct percent sliders in a "Meal Type Bonus" section. Set any slot to 0 to disable that tier's bonus or raise them to reward complex cooking more.
+[*][b]Balancing pass — Noble reachable:[/b] palate threshold formula softened so Noble pawns at moderate pantries (~30 unique ingredients) now sit at roughly 40% variety mood instead of near zero. Perfect rotation 100% still requires effort (14 unique ingredients cycled through fine meals). Lower tiers unchanged.
+[*][b]New gene (Biotech) — "no taste":[/b] carriers have their variety need fully disabled. Auto-applied to vanilla Sanguophages so vampires no longer get "barren menu" mood hits from their hemogen-focused diet. Add the gene to any custom xenotype through the normal gene picker. Fully Biotech-optional — no effect on vanilla installs.
+[*][b]Recalculation coverage expanded:[/b] editing tier values, the floor, slave/prisoner toggles or %, mood sliders, or bonus sliders now recalculates pawn variety mood immediately. Previously some edits took effect only on the next meal.
+[*][b]Removed:[/b] the per-race enable/disable panel (right side of the settings window) — rarely used and cluttered the UI. Race-variety dict still auto-generates with every humanlike race enabled by default. Save-file editing remains an option for niche cases.
+[*][b]Save compat:[/b] existing saves load with new defaults. Previously-tuned tier values and the old halve-mood checkbox no longer drive gameplay (the Scribed fields remain for backward parsing). Click a preset or manually tune the new controls to restore custom feel.
+[/list]
 [h3] 2026-04-18 [/h3]
 [list]
 [*][b]Compatibility — Meals Over Preserved Foods:[/b] the variety food-scoring postfix now runs at a lower Harmony priority, so MOPF's adjustments stack cleanly with the variety bonus instead of being overridden.
@@ -84,7 +97,7 @@ Each meal is scored continuously between 0 and 1 based on ingredient overlap wit
 The base variety expectation depends on a pawn's current thought expectation and can be adjusted in settings.
 
 [h2]How do Pawns Track Varieties?[/h2]
-Pawns remember foods eaten up to 2.25x their current variety expectation, requiring around half of their diet to be new varieties to meet this need.
+Each expectation tier has a configurable memory depth (in meals) and a palate threshold (how fresh a meal needs to be to count). Defaults: Extremely Low remembers 9 meals with a 4% palate; Noble remembers 34 meals with a 48% palate. Both are directly tunable per tier in Mod Settings → Pawn Expectations.
 
 [h2]Will Pawns Seek New Varieties When Eating?[/h2]
 Pawns have a preference for new varieties and will choose meals accordingly, requiring less micromanagement.
