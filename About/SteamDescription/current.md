@@ -1,6 +1,6 @@
-# Steam Workshop Description — current (2026-04-19)
+# Steam Workshop Description — current (2026-04-20)
 
-The copy below is the intended Steam Workshop page body. Paste the fenced block (BBCode) into the Workshop editor when updating the Steam page. Agents + Codex validated this draft against the live codebase on 2026-04-19; see `archive/2025-08-04.md` for the prior version.
+The copy below is the intended Steam Workshop page body. Paste the fenced block (BBCode) into the Workshop editor when updating the Steam page. Agents + Codex validated the 2026-04-19 draft against the live codebase; the 2026-04-20 additions below it cover the favourite-foods rollout (US-034..US-038 + F-007). See `archive/2025-08-04.md` for the pre-overhaul snapshot.
 
 ---
 
@@ -17,6 +17,7 @@ Your colonists are tired of eating the same gruel. VarietyMatters adds a diet-va
 [*][b]Diet-variety need:[/b] each meal is graded the moment a pawn eats it, comparing its ingredients to their last 6. Rice+chicken+carrot then rice+chicken+lettuce? Slight drop. Bison+potato+egg after? Full credit.
 [*][b]Smarter cooks:[/b] each chef keeps their own ingredient-use history; the cook AI favors ingredients they haven't used recently when picking what to drop in the pot. Multi-slot recipes (fine / lavish) share the budget across slots so both meat and veg sides stay varied.
 [*][b]Tunable difficulty:[/b] three one-click presets — Easy / Default / Hardcore. Or drill into 20+ individual knobs if you want to tune.
+[*][b]Favourite foods:[/b] pawns discover personal favourite ingredients from what they actually eat (one meat slot + one veg slot, plus an "anything" slot for Gourmands). Eating a favourite in a fresh-enough meal fires a +3 mood thought; a saturation counter rotates stale favourites out so monoculture self-corrects. Optional auto-assign mode if you prefer VFVE-style "favourites just appear". All 7 tuning knobs in Mod Settings.
 [*][b]Biotech "no taste" gene:[/b] auto-applied to vanilla Sanguophages so vampires skip variety mood entirely (they'd rather drink hemogen anyway). Drop the gene on any custom xenotype via the normal gene picker.
 [*][b]Detailed inspection:[/b] hover the need bar for a food-icon strip of recent meals; open the details window for per-meal scores, ingredient repeat-vs-fresh breakdown, meal-age labels, and colorblind-friendly status glyphs.
 [/list]
@@ -51,9 +52,13 @@ Two more sliders control [b]max negative[/b] (default -12) and [b]max positive[/
 
 [h3] 2026-04-20 [/h3]
 [list]
-[*][b]Favourite foods:[/b] pawns now discover personal favourites from what they actually eat, not a spawn-roll.
+[*][b]Favourite foods:[/b] pawns discover personal favourites from what they actually eat — freshness-gated, siloed by food category (meat / veg, plus an "anything" slot for Gourmands), 15-meal floor so day-1 luck can't lock anything in, 2-day spread so a single feast can't monopolize a slot.
+[*][b]Freshness-gated reward:[/b] eating a favourite in a fresh-enough meal fires a +3 mood thought for 1 day. Back-to-back suppression means rice-rice fires once but rice-other-rice fires twice — the reward tracks active rotation, not passive repetition.
+[*][b]Saturation-driven rotation:[/b] each favourite accumulates saturation (cap 4) with every trigger. Higher saturation lowers the threshold for a rival ingredient to take over the slot, so monoculture self-rotates without punishing genuine preference. Saturation decays after 2 days without a triggering meal.
+[*][b]Two modes — earn or auto-assign:[/b] default mode makes pawns earn favourites through repeated eating. Flip one toggle and they're seeded randomly on first meal instead (matches the VFVE feel), keeping the same freshness-gated mood reward and saturation rotation on top.
+[*][b]Fully tunable:[/b] 7 player-facing knobs — mood amount, mood duration, discovery floor, freshness threshold, day-spread, saturation cap, plus the auto-assign mode toggle. Kept orthogonal to the Easy / Default / Hardcore preset strip so tuning it doesn't nudge your difficulty setting.
+[*][b]Opt-outs inherit:[/b] Ascetic pawns and pawns with the "no taste" Biotech gene never record favourites and never fire the mood thought — the same gate that hides their variety need also hides favourites.
 [/list]
-Discovery is freshness-gated, siloed by food category (meat / veg, plus an "anything" slot for Gourmands), and gated behind a 15-meal floor so day-1 luck can't lock anything in. Eating a fresh favourite fires a +3 mood thought for 1 day with back-to-back suppression, and a saturation counter rotates stale favourites out so monoculture self-corrects — all of it toggled by one kill-switch in a new "Favourite Foods" settings section.
 
 [h3] 2026-04-19 [/h3]
 [list]
