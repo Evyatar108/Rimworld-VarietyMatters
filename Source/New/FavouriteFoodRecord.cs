@@ -90,11 +90,19 @@ namespace VarietyMatters.New
     // OnMealIngested mood branch). Pawn-lifecycle cleanup is mirrored in Patch_PawnLifecycle.
     public class FavouriteFoodRecord : GameComponent
     {
-        public const int DiscoveryFloor = 15;
-        public const float FreshnessMultiplier = 0.80f;
-        public const int DaySpreadTicks = 120000;
-        public const int SaturationCap = 4;
+        // Fallbacks if settings somehow not yet initialized. Runtime reads delegate to
+        // ModSettings_VarietyMatters so players can tune these in the Favourite Foods section
+        // of mod settings. Raw constants left here as compile-time min bounds for sanity.
+        public const int DiscoveryFloorDefault = 15;
+        public const float FreshnessMultiplierDefault = 0.80f;
+        public const int DaySpreadTicksDefault = 120000;
+        public const int SaturationCapDefault = 4;
         private const int DecayTickInterval = 2500;
+
+        private static int DiscoveryFloor => System.Math.Max(0, ModSettings_VarietyMatters.favouriteDiscoveryFloor);
+        private static float FreshnessMultiplier => System.Math.Max(0f, System.Math.Min(1f, ModSettings_VarietyMatters.favouriteFreshnessPercent / 100f));
+        private static int DaySpreadTicks => System.Math.Max(0, ModSettings_VarietyMatters.favouriteDaySpreadDays) * 60000;
+        private static int SaturationCap => System.Math.Max(1, ModSettings_VarietyMatters.favouriteSaturationCap);
 
         private Dictionary<Pawn, PawnFavData> _data = new Dictionary<Pawn, PawnFavData>();
         private List<Pawn> _dataKeys;

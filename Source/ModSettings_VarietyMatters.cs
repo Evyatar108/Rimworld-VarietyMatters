@@ -102,6 +102,12 @@
 			Scribe_Values.Look<bool>(ref ModSettings_VarietyMatters.preferSpoiling, "preferSpoiling", true, false);
 			Scribe_Values.Look<bool>(ref ModSettings_VarietyMatters.favouritesEnabled, "favouritesEnabled", true, false);
 			Scribe_Values.Look<bool>(ref ModSettings_VarietyMatters.autoAssignFavourites, "autoAssignFavourites", false, false);
+			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.favouriteMoodBonus, "favouriteMoodBonus", 3, false);
+			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.favouriteMoodDurationHours, "favouriteMoodDurationHours", 24, false);
+			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.favouriteDiscoveryFloor, "favouriteDiscoveryFloor", 15, false);
+			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.favouriteFreshnessPercent, "favouriteFreshnessPercent", 80, false);
+			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.favouriteDaySpreadDays, "favouriteDaySpreadDays", 2, false);
+			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.favouriteSaturationCap, "favouriteSaturationCap", 4, false);
 			Scribe_Collections.Look<string, RaceSetting>(ref ModSettings_VarietyMatters.raceVariety, "raceVarietyV2", LookMode.Value, LookMode.Deep, ref ModSettings_VarietyMatters.raceKeys, ref ModSettings_VarietyMatters.raceValues, true);
 
             base.ExposeData();
@@ -249,6 +255,37 @@
 		// auto-assigned favourites. Deliberately EXCLUDED from Profile for the same reason
 		// as favouritesEnabled (one-off knob, not a difficulty lever).
 		public static bool autoAssignFavourites = false;
+
+		// Per-pawn mood bonus when a pawn eats their favourite in a fresh-enough meal. Read
+		// by Thought_Memory_VMAteFavourite.MoodOffset at runtime, so toggling takes effect on
+		// the NEXT fired thought (existing memories retain their original value). Default +3.
+		public static int favouriteMoodBonus = 3;
+
+		// Duration (in hours) of the VM_AteFavourite mood thought. Read by DurationTicks
+		// override at runtime, so toggling affects NEW thoughts only (existing memories keep
+		// their original duration). 24 hours = 1 in-game day (default).
+		public static int favouriteMoodDurationHours = 24;
+
+		// Number of eligible meals a pawn must eat before discovery starts crediting
+		// ingredients. Prevents spurious crystallization from a 2-meal history. Default 15.
+		// Bypassed under autoAssignFavourites.
+		public static int favouriteDiscoveryFloor = 15;
+
+		// Freshness threshold as a percent of the pawn's tier baseline. A meal's varietyScore
+		// must meet or exceed this fraction × baseline to count as "fresh enough" for mood +
+		// discovery credit. Default 80 (0.80× baseline). Lower = more meals qualify, higher =
+		// stricter. Slider range 50..100.
+		public static int favouriteFreshnessPercent = 80;
+
+		// Minimum span (in in-game days) from first credit to last credit for a rival
+		// ingredient to crystallize. Default 2. Lower = faster crystallization, higher =
+		// more play time needed. Also applies to saturation decay idle threshold.
+		public static int favouriteDaySpreadDays = 2;
+
+		// Saturation cap (max accumulation on a slot). Higher = rival takes longer to
+		// overtake a heavily-eaten favourite because the threshold-curve only bottoms at
+		// max saturation. Default 4.
+		public static int favouriteSaturationCap = 4;
 
 		// Token: 0x0400001F RID: 31
 		public static Dictionary<string, RaceSetting> raceVariety = new Dictionary<string, RaceSetting>();

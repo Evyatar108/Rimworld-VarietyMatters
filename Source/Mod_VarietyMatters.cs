@@ -109,6 +109,7 @@ namespace VarietyMatters
         private static string _maxNegMoodBuf;
         private static string _maxPosMoodBuf;
         private static string _bonus1Buf, _bonus2Buf, _bonus3Buf, _bonus4Buf, _bonus5Buf;
+        private static string _favMoodBuf, _favDurationBuf, _favFloorBuf, _favFreshBuf, _favDayBuf, _favSatCapBuf;
 
         public Mod_VarietyMatters(ModContentPack content) : base(content)
         {
@@ -586,6 +587,48 @@ namespace VarietyMatters
             ls.CheckboxLabeled("VM_Settings_Favourites_AutoAssignLabel".Translate(),
                 ref ModSettings_VarietyMatters.autoAssignFavourites,
                 "VM_Settings_Favourites_AutoAssignTooltip".Translate(), 0f, 1f);
+            ls.Gap(4f);
+
+            // Mood reward cluster (runtime-driven by Thought_Memory_VMAteFavourite subclass).
+            if (_favMoodBuf == null) _favMoodBuf = ModSettings_VarietyMatters.favouriteMoodBonus.ToString();
+            Rect moodRect = ls.GetRect(24f, 1f);
+            this.LabeledIntEntry(moodRect, "VM_Settings_Favourites_MoodLabel".Translate(),
+                ref ModSettings_VarietyMatters.favouriteMoodBonus, ref _favMoodBuf, 1, 3, 0, 20);
+            TooltipHandler.TipRegion(moodRect, "VM_Settings_Favourites_MoodTooltip".Translate());
+
+            if (_favDurationBuf == null) _favDurationBuf = ModSettings_VarietyMatters.favouriteMoodDurationHours.ToString();
+            Rect durRect = ls.GetRect(24f, 1f);
+            this.LabeledIntEntry(durRect, "VM_Settings_Favourites_DurationLabel".Translate(),
+                ref ModSettings_VarietyMatters.favouriteMoodDurationHours, ref _favDurationBuf, 1, 6, 1, 72);
+            TooltipHandler.TipRegion(durRect, "VM_Settings_Favourites_DurationTooltip".Translate());
+
+            ls.Gap(4f);
+
+            // Discovery cluster.
+            if (_favFloorBuf == null) _favFloorBuf = ModSettings_VarietyMatters.favouriteDiscoveryFloor.ToString();
+            Rect floorRect = ls.GetRect(24f, 1f);
+            this.LabeledIntEntry(floorRect, "VM_Settings_Favourites_FloorLabel".Translate(),
+                ref ModSettings_VarietyMatters.favouriteDiscoveryFloor, ref _favFloorBuf, 1, 5, 0, 50);
+            TooltipHandler.TipRegion(floorRect, "VM_Settings_Favourites_FloorTooltip".Translate());
+
+            if (_favFreshBuf == null) _favFreshBuf = ModSettings_VarietyMatters.favouriteFreshnessPercent.ToString();
+            Rect freshRect = ls.GetRect(24f, 1f);
+            this.LabeledIntEntry(freshRect, "VM_Settings_Favourites_FreshLabel".Translate(),
+                ref ModSettings_VarietyMatters.favouriteFreshnessPercent, ref _favFreshBuf, 5, 10, 0, 100);
+            TooltipHandler.TipRegion(freshRect, "VM_Settings_Favourites_FreshTooltip".Translate());
+
+            if (_favDayBuf == null) _favDayBuf = ModSettings_VarietyMatters.favouriteDaySpreadDays.ToString();
+            Rect dayRect = ls.GetRect(24f, 1f);
+            this.LabeledIntEntry(dayRect, "VM_Settings_Favourites_DaySpreadLabel".Translate(),
+                ref ModSettings_VarietyMatters.favouriteDaySpreadDays, ref _favDayBuf, 1, 1, 0, 10);
+            TooltipHandler.TipRegion(dayRect, "VM_Settings_Favourites_DaySpreadTooltip".Translate());
+
+            if (_favSatCapBuf == null) _favSatCapBuf = ModSettings_VarietyMatters.favouriteSaturationCap.ToString();
+            Rect satRect = ls.GetRect(24f, 1f);
+            this.LabeledIntEntry(satRect, "VM_Settings_Favourites_SatCapLabel".Translate(),
+                ref ModSettings_VarietyMatters.favouriteSaturationCap, ref _favSatCapBuf, 1, 1, 1, 10);
+            TooltipHandler.TipRegion(satRect, "VM_Settings_Favourites_SatCapTooltip".Translate());
+
             ls.Gap(8f);
         }
 

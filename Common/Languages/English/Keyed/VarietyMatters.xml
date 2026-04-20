@@ -248,5 +248,17 @@
   <VM_Settings_Favourites_EnabledTooltip>Master kill-switch for the favourite-foods feature. When off, no new favourites are discovered, the mood thought never fires, letters/messages are suppressed, and the UI row is hidden. Previously discovered favourites are preserved across toggles — re-enabling picks up where each pawn left off.</VM_Settings_Favourites_EnabledTooltip>
   <VM_Settings_Favourites_AutoAssignLabel>Auto-assign favourites:</VM_Settings_Favourites_AutoAssignLabel>
   <VM_Settings_Favourites_AutoAssignTooltip>Seed each pawn's empty favourite slots with random ingredients on their first eligible meal, skipping the 15-meal floor and multi-day discovery wait. The freshness-gated mood reward and saturation-driven rotation still apply — this only changes how favourites ORIGINATE, not how they reward. Off by default: earn favourites through play. On: instant favourites at the cost of personalization.</VM_Settings_Favourites_AutoAssignTooltip>
+  <VM_Settings_Favourites_MoodLabel>Mood bonus</VM_Settings_Favourites_MoodLabel>
+  <VM_Settings_Favourites_MoodTooltip>Mood gained for ~1 in-game day after eating a favourite in a fresh-enough meal. Default +3. Set to 0 to disable the mood reward entirely while keeping discovery + UI. Takes effect on the NEXT fired thought — existing mood memories retain their original value.</VM_Settings_Favourites_MoodTooltip>
+  <VM_Settings_Favourites_DurationLabel>Mood duration (hours)</VM_Settings_Favourites_DurationLabel>
+  <VM_Settings_Favourites_DurationTooltip>How long the favourite-meal mood thought lingers. Default 24 in-game hours (1 day). Longer = more "afterglow"; shorter = more frequent firing but less cumulative mood impact.</VM_Settings_Favourites_DurationTooltip>
+  <VM_Settings_Favourites_FloorLabel>Discovery floor (meals)</VM_Settings_Favourites_FloorLabel>
+  <VM_Settings_Favourites_FloorTooltip>Eligible meals a pawn must eat before discovery begins crediting ingredients. Prevents a random first-couple-meals from crystallizing. Default 15. Bypassed when Auto-assign is ON.</VM_Settings_Favourites_FloorTooltip>
+  <VM_Settings_Favourites_FreshLabel>Freshness threshold (% of palate)</VM_Settings_Favourites_FreshLabel>
+  <VM_Settings_Favourites_FreshTooltip>Meal's variety score must be at least this fraction of the pawn's tier palate baseline for the meal to qualify as "fresh enough" — gates both mood firing and discovery credit. Default 80%. Lower = more meals qualify (easier to discover/trigger); higher = stricter (near-perfect meals only).</VM_Settings_Favourites_FreshTooltip>
+  <VM_Settings_Favourites_DaySpreadLabel>Day-spread (days)</VM_Settings_Favourites_DaySpreadLabel>
+  <VM_Settings_Favourites_DaySpreadTooltip>Minimum span from a candidate's first credit to its last credit before it can crystallize as a favourite. Blocks lock-in via one-day spam. Default 2 days. Also controls the saturation decay idle window — a favourite with no recent trigger decays once this many days have passed.</VM_Settings_Favourites_DaySpreadTooltip>
+  <VM_Settings_Favourites_SatCapLabel>Saturation cap</VM_Settings_Favourites_SatCapLabel>
+  <VM_Settings_Favourites_SatCapTooltip>Maximum saturation a favourite can accumulate. Each mood firing adds 1; threshold-drop curve is fixed at cap-value / 2 / 1. Higher = rival takes longer to overtake a heavily-eaten favourite. Default 4.</VM_Settings_Favourites_SatCapTooltip>
 
 </LanguageData>
