@@ -110,14 +110,12 @@ Prefer DefOf over `TraitDef.Named("X")` / `DefDatabase<T>.GetNamed(...)` string 
 
 `ModSettings_VarietyMatters.raceVariety` is `Dictionary<string, RaceSetting>` keyed by `"modName-defName"` (see `GetRaceKey` at `ModSettings_VarietyMatters.cs:44`). NOT ThingDef-keyed. Any cache of enabled races must use `HashSet<string>` with the same key form.
 
-`Need_FoodVariety._enabledRaceKeys` + `_raceKeysVersion` invalidation sites (exactly these four):
+`Need_FoodVariety._enabledRaceKeys` + `_raceKeysVersion` invalidation sites (US-032 removed the per-race UI, so the two interactive sites are gone — only load-time + mod-driven regeneration remain):
 
 1. `ModSettings_VarietyMatters.ExposeData` post-load write
-2. `ModSettings_VarietyMatters.GenerateRaces` end (covers `AddCompVariety.cs:24` and `Mod_VarietyMatters.cs:181` callers)
-3. Race checkbox write at `Mod_VarietyMatters.cs:207`
-4. Reset Current Races button at `Mod_VarietyMatters.cs:177`
+2. `ModSettings_VarietyMatters.GenerateRaces` end (covers `AddCompVariety.cs` humanlike-race discovery callers)
 
-Do NOT double-bump inside `GenerateRaces` callers — those are already covered by (2). See `F-003` history.
+Do NOT double-bump inside `GenerateRaces` callers — those are already covered by (2). See `F-003` history. The old Race-checkbox + Reset-Races-button invalidation sites were removed in US-032 along with the right-side race panel.
 
 ## 12. `Disabled` check — optimize, don't cache the bool
 

@@ -137,12 +137,13 @@ namespace VarietyMatters
             // End() runs — too late for the current frame's BeginScrollView. Using the measured
             // value alone clips the Pawn Expectations body (~280px) plus Cook + Scoring headers
             // below it until the next redraw, which reads as "content disappeared".
+            // US-032 dropped the right race panel, so the settings column spans the full window.
             float contentHeight1 = Mathf.Max(_lastLeftContentHeight, 1500f);
-            Rect rectScroll = new Rect(5f, 35f, inRect.width * 0.54f, inRect.height);
+            Rect rectScroll = new Rect(5f, 35f, inRect.width - 10f, inRect.height);
             Rect viewRect1 = new Rect(0f, 0f, rectScroll.width - 16f, contentHeight1);
             Widgets.BeginScrollView(rectScroll, ref leftScrollPosition, viewRect1);
 
-            Rect rect = new Rect(10f, 0f, inRect.width * 0.5f, contentHeight1);
+            Rect rect = new Rect(10f, 0f, viewRect1.width - 20f, contentHeight1);
             listing_Standard.Begin(rect);
 
             DrawPresetStrip(listing_Standard);
@@ -179,8 +180,6 @@ namespace VarietyMatters
             _lastLeftContentHeight = Mathf.Max(listing_Standard.CurHeight + 24f, 1500f);
             listing_Standard.End();
             Widgets.EndScrollView();
-
-            DrawRacePanel(inRect, listing_Standard);
 
             base.DoSettingsWindowContents(inRect);
         }
@@ -565,54 +564,10 @@ namespace VarietyMatters
             ls.Gap(8f);
         }
 
-        private void DrawRacePanel(Rect inRect, Listing_Standard listing_Standard)
-        {
-            Rect rect2 = new Rect(50f + (inRect.width * 0.5f), 0f, inRect.width * 0.4f, 50f);
-            listing_Standard.Begin(rect2);
-            bool resetRacesSettings = listing_Standard.ButtonTextLabeled(
-                "VM_Settings_RaceSectionHeader".Translate(),
-                "VM_Settings_ResetRacesButton".Translate(), 0, null, null);
-            if (resetRacesSettings || ModSettings_VarietyMatters.raceVariety == null)
-            {
-                ModSettings_VarietyMatters.raceVariety?.Clear();
-                ModSettings_VarietyMatters.GenerateRaces();
-            }
-            listing_Standard.End();
-
-            if (ModSettings_VarietyMatters.raceVariety != null)
-            {
-                Rect rect3 = new Rect(50f + (inRect.width * 0.5f), 50f, inRect.width * 0.4f, inRect.height - 10f);
-                Rect rect4 = new Rect(0f, 0f, rect3.width - 30f, ModSettings_VarietyMatters.raceVariety.Count * 24f);
-                Widgets.BeginScrollView(rect3, ref rightScrollPosition, rect4, true);
-                listing_Standard.Begin(rect4);
-
-                foreach (var raceSettings in ModSettings_VarietyMatters.raceVariety.Values.OrderBy(x => x.name))
-                {
-                    if (raceSettings == null)
-                    {
-                        Log.Warning("raceSetting is null");
-                    }
-
-                    if (raceSettings.name == null)
-                    {
-                        Log.Warning("raceSetting.name is null");
-                    }
-
-                    bool value = raceSettings.isVarietyEnabled;
-                    string modName = raceSettings.modName;
-                    listing_Standard.CheckboxLabeled(GenText.CapitalizeFirst(raceSettings.name), ref value,
-                        "VM_Settings_FromMod".Translate(modName), 0f, 1f);
-                    if (raceSettings.isVarietyEnabled != value)
-                    {
-                        raceSettings.isVarietyEnabled = value;
-                        ModSettings_VarietyMatters.raceVarietyVersion++;
-                    }
-                }
-
-                listing_Standard.End();
-                Widgets.EndScrollView();
-            }
-        }
+        // US-032 removed the right-side race-toggle panel. The underlying raceVariety dict still
+        // initializes on load (GenerateRaces, called via AddCompVariety + ExposeData) with every
+        // humanlike race enabled by default. Players who want to disable variety for a specific
+        // race no longer have UI for it — the panel was rarely used and cluttered the window.
 
         private static void ApplyProfile(Profile p)
         {
@@ -742,7 +697,6 @@ namespace VarietyMatters
             Widgets.TextFieldNumeric<int>(new Rect(rect.xMax - (float)(num * 3), rect.yMin, (float)num, rect.height), ref value, ref editBuffer, (float)min, (float)max);
         }
 
-        private static Vector2 rightScrollPosition = Vector2.zero;
         private static Vector2 leftScrollPosition = Vector2.zero;
 
         // Measured content height of the left settings column. Refreshed each frame from the
