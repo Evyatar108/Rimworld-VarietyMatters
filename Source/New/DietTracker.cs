@@ -61,6 +61,17 @@
 
         public int Version => this._version;
 
+        // US-027 food-search + US-026 mood alignment: read-only probe for whether a stored meal
+        // was flagged at ingest as "non-variety" (raw-like food, insect meat, venerated, etc.
+        // — see VarietyProvider.DoesFoodHasVarietyValueForPawn). Consumers skip these when
+        // aggregating mood so raw-meat eating neither lifts nor drags mood under overlap mode.
+        public bool HasNoVarietyReason(EatenFoodByPawn eatenFood)
+        {
+            return eatenFood != null
+                && this.foodsNoVarietyReasons != null
+                && this.foodsNoVarietyReasons.ContainsKey(eatenFood);
+        }
+
         public DietTracker()
         {
         }

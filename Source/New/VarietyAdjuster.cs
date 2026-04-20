@@ -122,6 +122,10 @@ namespace VarietyMatters.New
                 {
                     var src = foodByPawn?.Source;
                     if (src == null || src.IsForgotten) continue;
+                    // Skip meals flagged at ingest as non-variety (raw meat, insect, humanlike,
+                    // rotten, venerated, etc.). Neither their score nor their slot contributes —
+                    // so eating raw meat doesn't lift mood but also doesn't drag it down.
+                    if (dietTracker.HasNoVarietyReason(foodByPawn)) continue;
 
                     int complexity = (src.IngredientsDefs != null && src.IngredientsDefs.Count > 0)
                         ? src.IngredientsDefs.Count
