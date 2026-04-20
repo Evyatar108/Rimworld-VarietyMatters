@@ -102,6 +102,10 @@
                 ModSettings_VarietyMatters.prisonersHaveVarietyNeed = false;
             }
             listing_Standard.Gap(8f);
+			// US-026 dual-purpose callout so players know these values now scale both memory
+			// capacity AND palate threshold (baseline = clamp((value − 3)/20, 0, 0.9)).
+			listing_Standard.Label("VM_Settings_ExpectationExplanation".Translate(), -1f);
+			listing_Standard.Gap(4f);
 			string label2 = "VM_Settings_ExtremelyLowLabel".Translate();
 			string text2 = ModSettings_VarietyMatters.extremelyLowVariety.ToString();
 			this.LabeledIntEntry(listing_Standard.GetRect(24f, 1f), label2, ref ModSettings_VarietyMatters.extremelyLowVariety, ref text2, 1, 5, 1, 50);

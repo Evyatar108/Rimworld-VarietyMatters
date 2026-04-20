@@ -18,7 +18,8 @@
   <VM_Settings_ClusterSimilarMealsExample>    ^For example, Fine and Lavish meals will counted as one type</VM_Settings_ClusterSimilarMealsExample>
   <VM_Settings_NumIngredientsLabel>    Ingredients When Stacking (vanilla = 3):</VM_Settings_NumIngredientsLabel>
   <VM_Settings_CookingMemoryDepthLabel>    Cooking memory depth (default 10):</VM_Settings_CookingMemoryDepthLabel>
-  <VM_Settings_ExpectationHeader>Expectation Level Base Varieties:</VM_Settings_ExpectationHeader>
+  <VM_Settings_ExpectationHeader>Expectation Tier Variety Targets:</VM_Settings_ExpectationHeader>
+  <VM_Settings_ExpectationExplanation>Each value drives two things for that tier: (1) how many past meals the pawn remembers, and (2) how picky their palate is — higher values make the tier harder to satisfy on both axes.</VM_Settings_ExpectationExplanation>
   <VM_Settings_ResetButton>Reset</VM_Settings_ResetButton>
   <VM_Settings_ExtremelyLowLabel>    Extremely Low (default 4):</VM_Settings_ExtremelyLowLabel>
   <VM_Settings_VeryLowLabel>    Very Low (default 5):</VM_Settings_VeryLowLabel>
