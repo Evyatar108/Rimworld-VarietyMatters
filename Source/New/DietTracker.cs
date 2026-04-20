@@ -42,10 +42,11 @@
 
         // US-025 meal-def-new bonus constants. A meal whose ThingDef has not been seen in the
         // decay window contributes an additive variety bonus proportional to its ingredient count,
-        // capped. Matches user intent: trivial 1-ing meal-def swap gives small bonus (+0.05); a
-        // 3+-ing meal-def swap gives a bigger signal (+0.15 at 3 ing, +0.25 cap at 5 ing).
-        public const float MealDefBonusPerIngredient = 0.05f;
-        public const float MealDefBonusCap = 0.25f;
+        // capped. Bumped in US-026 tuning pass (vanilla/modded balance) from (0.05 / 0.25) so
+        // nobles can reach moderate mood with active meal-tier rotation in vanilla colonies:
+        // 3-ing simple → +0.21; 5-ing lavish → +0.35 cap.
+        public const float MealDefBonusPerIngredient = 0.07f;
+        public const float MealDefBonusCap = 0.35f;
 
         // Breakdown cache. Keyed on (meal ref, _version) so any tracker mutation that bumps
         // _version invalidates it. UX consumers receive live refs; treat as read-only.

@@ -48,6 +48,14 @@ namespace VarietyMatters.New
         // circuit to the raw meanScore formula until this many meals are in memory.
         private const int WarmupMealCount = 3;
 
+        // US-026 tuning: soft floor — even meals below the tier baseline contribute a small
+        // fraction of their raw ingredient-score to the mood pool. Breaks the "noble stuck at 0%"
+        // lock in vanilla-pantry colonies while preserving the challenge at higher scores (the
+        // baseline curve beats the floor once (score - b)/(1 - b) > floor × score, around score
+        // 0.68 for noble b=0.65). Dial up if vanilla nobles still feel stuck; down if challenge
+        // is erased.
+        private const float SoftFloorCoeff = 0.25f;
+
         public static void AdjustVarietyLevel(DietTracker dietTracker)
         {
             if (dietTracker == null)
@@ -88,9 +96,14 @@ namespace VarietyMatters.New
                     if (src == null || src.IsForgotten) continue;
 
                     float ingScore = src.VarietyScore;   // ingredient-only post US-026
-                    float curved = ingScore > baseline
+                    float hardCurved = ingScore > baseline
                         ? (ingScore - baseline) / inverseBaseline
                         : 0f;
+                    // Soft floor ensures mediocre meals register *something* for high-tier pawns —
+                    // prevents the noble-stuck-at-0% trap in vanilla colonies. Takes whichever is
+                    // higher of the hard baseline curve or SoftFloorCoeff × raw score.
+                    float softFloor = SoftFloorCoeff * ingScore;
+                    float curved = Mathf.Max(hardCurved, softFloor);
 
                     float bonus = 0f;
                     if (dietTracker.IsMealDefFreshInWindow(src))
