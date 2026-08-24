@@ -42,7 +42,7 @@
 
 		public static string GetRaceKey(ThingDef thingDef)
 		{
-			return thingDef.modContentPack.Name + "-" + thingDef.defName;
+			return RaceKeyUtility.GetRaceKey(thingDef);
         }
 
 		// Token: 0x0600000F RID: 15 RVA: 0x00002520 File Offset: 0x00000720
