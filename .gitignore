@@ -2,5 +2,6 @@
 *.pdb
 obj
 objd
+bin
 .vs
 /Source/.vs/VarietyMatters/v17/.suo
