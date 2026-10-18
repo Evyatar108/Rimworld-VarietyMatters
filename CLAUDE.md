@@ -150,3 +150,7 @@ US-033 added a `DisabledReason.GeneDisabled` branch that checks `pawn.genes?.Has
 - Hook `Pawn.DeSpawn` for tracker cleanup (see §9).
 - Fold favourites data into `DietTracker` (see §13 — keeps §8 intact).
 - Fire favourites side-effects from `ReCountAll` (see §13 — the fan-out is in `UpdateVarietyRecord` only).
+
+## Retrospectives
+
+Retrospectives: also follow the portfolio rule in D:\MyRimworldMods\ModWorkspace\AGENTS.md ("Retrospectives"): give each candidate a scope and kind, route all-mods findings to the hub, and check swept spans there too.
