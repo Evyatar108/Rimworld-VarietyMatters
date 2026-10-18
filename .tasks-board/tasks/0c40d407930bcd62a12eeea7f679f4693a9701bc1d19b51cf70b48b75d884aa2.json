@@ -16,10 +16,11 @@
     ],
     "writablePaths": [],
     "actions": [],
+    "notes": "2026-10-17 feedback sweep (all 45 Bug Reports replies, capture D:\\MyRimworldMods\\ModWorkspace\\evidence\\2026-10-17\\steam-3044059819-2139.json). New reports beyond this task's description, each also filed against VM2: (1) 'Null key while loading dictionary ... label=VarietyRecordV2' on load, 3 reports from 2 players, latest 2026-06-16, after the April update; lead: VarietyRecord.cs:143 saves pawn-keyed trackers by reference (VM2 task vm2-diettracker-null-pawn-key). (2) Pawns repeat one meal and cooks ignore farther ingredients, 4 reports 2024-06 to 2026-08 (vm2-variety-seeking-reports). (3) VCE - Haute forced ingredient variety broken, 2026-02-10, alongside the known Gourmet condiment stacking (vm2-vce-compat-reports). Older items with no follow-up since 2024: malnutrition Feed option missing (Tyfo 2024-01, logs requested, none sent), NullReferenceException on every save (Tagaris 2024-02), 'DietTracker:: Variety reason mismatch' (chainlinc3 2024-05), settings described on the Workshop page missing from the menu (lintence91 2024-06). Status of these is unknown.",
     "lastTouchedBy": {
       "sessionId": "60abe606-5afc-4dcb-b4a8-13ad90f8650e",
       "host": "copilot",
-      "at": "2026-10-18T04:15:22.898Z"
+      "at": "2026-10-18T04:52:16.499Z"
     }
   }
 }
