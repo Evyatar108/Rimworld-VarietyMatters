@@ -151,6 +151,10 @@ US-033 added a `DisabledReason.GeneDisabled` branch that checks `pawn.genes?.Has
 - Fold favourites data into `DietTracker` (see §13 — keeps §8 intact).
 - Fire favourites side-effects from `ReCountAll` (see §13 — the fan-out is in `UpdateVarietyRecord` only).
 
-## Retrospectives
+## Portfolio hub
 
-Retrospectives: also follow the portfolio rule in D:\MyRimworldMods\ModWorkspace\AGENTS.md ("Retrospectives"): give each candidate a scope and kind, route all-mods findings to the hub, and check swept spans there too.
+This mod is one of Evyatar's mods managed from `D:\MyRimworldMods\ModWorkspace`; its `AGENTS.md` holds the rules below in full.
+
+- Design studies: before settling the numbers of a feature or a balance, difficulty, default-setting or immersion change, run a design study (the hub's `DESIGN-STUDIES.md`) and judge it against this mod's `design\DESIGN_PARAMETERS.md`. If that file is missing, start it from the hub's `templates\DESIGN-PARAMETERS.md`. Studies change nothing; Evyatar decides from their options.
+- Retrospectives: also follow the portfolio rule in D:\MyRimworldMods\ModWorkspace\AGENTS.md ("Retrospectives"): give each candidate a scope and kind, route all-mods findings to the hub, and check swept spans there too.
+- Before building a tool or workflow, check the hub's `CAPABILITIES.md`; for engine and testing lessons, its `SHARED-PRACTICES.md`. Player feedback is swept and triaged from the hub (`FEEDBACK.md`).
