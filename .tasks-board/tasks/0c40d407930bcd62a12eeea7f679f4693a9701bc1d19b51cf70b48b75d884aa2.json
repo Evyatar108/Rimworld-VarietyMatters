@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "taskKey": "fb059e45-ffca-4fe8-85fa-fc4fce74e2d6",
+  "boardId": "main",
+  "task": {
+    "id": "redux-deferred-reports",
+    "title": "Review the community PR, the crash issue and the 1.5 eating reports",
+    "description": "Deferred while VM2 has priority (hub decision variety-matters-priority, 2026-10-17). 1) Review community PR 2 (https://github.com/Evyatar108/Rimworld-VarietyMatters/pull/2) against a reproduction of issue 1 (https://github.com/Evyatar108/Rimworld-VarietyMatters/issues/1): an ownerless ThingDef causes initialization and food-job exceptions on RimWorld 1.6. The contributor supplies a regression harness and reports a successful build; neither has been run. 2) Separately reproduce the 2026-05-17 Workshop reports that pawns stop eating on 1.5, and the 2026-05-03 report of Gourmet Meals with different condiments merging under Vanilla Cooking Expanded. A passing 1.6 test does not close the 1.5 reports. 3) Check whether each fix also applies to VM2, which forked from this code. Dated comments: D:\\MyRimworldMods\\ModWorkspace\\evidence\\2026-10-17\\steam-recent-comments-dated.json.\n\nCreated 2026-10-17 from the mod-portfolio hub (D:\\MyRimworldMods\\ModWorkspace\\MODS.md). Read this repository's CLAUDE.md and the hub's SHARED-PRACTICES.md first, and record results with the hub's templates\\MOD-VERIFICATION.md. This task grants no deploy, push, Workshop upload or public reply.",
+    "stage": "backlog",
+    "lifecycle": "active",
+    "dependsOn": [],
+    "tags": [
+      "portfolio",
+      "deferred",
+      "bug-report"
+    ],
+    "writablePaths": [],
+    "actions": [],
+    "lastTouchedBy": {
+      "sessionId": "60abe606-5afc-4dcb-b4a8-13ad90f8650e",
+      "host": "copilot",
+      "at": "2026-10-18T04:15:22.898Z"
+    }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "operationId": "archive-example-VarietyMatters",
+  "fingerprint": "3dd65f703ec7e708b18c0ee44ac4dae70d73475946804fbe756b5b98afb00dad",
+  "epoch": 1,
+  "caller": {
+    "host": "copilot",
+    "sessionId": "60abe606-5afc-4dcb-b4a8-13ad90f8650e",
+    "deviceId": null
+  },
+  "entries": [
+    {
+      "id": "c93c1312-9840-473e-9954-7d5cbc736d16",
+      "at": "2026-10-18T04:14:53.674Z",
+      "host": "copilot",
+      "sessionId": "60abe606-5afc-4dcb-b4a8-13ad90f8650e",
+      "deviceId": null,
+      "verb": "set-lifecycle",
+      "taskId": "example-task",
+      "outcome": "updated"
+    }
+  ],
+  "effects": {
+    "changedFiles": [
+      ".tasks-board/tasks/0b9eced05d551b0d11a5cba1361918956aeed41131358c38fe91173be397a535.json"
+    ],
+    "taskRevisions": {
+      "example-task": "93112e8bcf71c852cea0631c45a91ab27992cb69bc1347ccd97374e803060f96"
+    }
+  }
+}

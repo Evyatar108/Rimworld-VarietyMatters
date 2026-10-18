@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "kind": "tasks-board-codex-workspace",
+  "marketplace": "ai-developer-toolkit",
+  "plugin": "tasks-board",
+  "repoRoot": "D:\\MyRimworldMods\\VarietyMatters",
+  "wrapperPath": "D:\\MyRimworldMods\\VarietyMatters\\bin\\tasks-board.mjs",
+  "wrapperSha256": "8eb1f8d9515f66fdf69c0e021de147b1de68cda383924078a67e875ae697ff5e"
+}

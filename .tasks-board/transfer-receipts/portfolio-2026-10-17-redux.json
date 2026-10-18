@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "kind": "local-completion",
+  "operation": "create-tasks",
+  "operationId": "portfolio-2026-10-17-redux",
+  "fingerprint": "c68723279e75aa863c3ba12d4cbd7d902ab73881a4b2742a3d28376ce6c310dd",
+  "epoch": 1,
+  "boardPath": ".tasks-board",
+  "markerToken": "09b7dd9a-237a-4b54-a1f4-57528f0d60b3",
+  "finalImageSetDigest": "e8ba49ae0ea9d4e65a6fc98b9f048ae94d53c1fb3eeb29ca750d3304f929c519"
+}

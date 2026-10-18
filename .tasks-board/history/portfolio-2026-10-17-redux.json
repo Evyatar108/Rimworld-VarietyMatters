@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "operationId": "portfolio-2026-10-17-redux",
+  "fingerprint": "c68723279e75aa863c3ba12d4cbd7d902ab73881a4b2742a3d28376ce6c310dd",
+  "epoch": 1,
+  "caller": {
+    "host": "copilot",
+    "sessionId": "60abe606-5afc-4dcb-b4a8-13ad90f8650e",
+    "deviceId": null
+  },
+  "entries": [
+    {
+      "id": "883ff126-0e04-43a1-be38-c6f44e2e2a81",
+      "at": "2026-10-18T04:15:22.898Z",
+      "host": "copilot",
+      "sessionId": "60abe606-5afc-4dcb-b4a8-13ad90f8650e",
+      "deviceId": null,
+      "verb": "create-task",
+      "taskId": "redux-deferred-reports",
+      "outcome": "created"
+    }
+  ],
+  "effects": {
+    "changedFiles": [
+      ".tasks-board/tasks/0c40d407930bcd62a12eeea7f679f4693a9701bc1d19b51cf70b48b75d884aa2.json",
+      ".tasks-board/transfer-receipts/portfolio-2026-10-17-redux.json"
+    ],
+    "taskRevisions": {
+      "redux-deferred-reports": "3dd0bca28fb40b8cebb80e4c1b5fd0044202a79fb82b5db0850719ed503e379b"
+    }
+  }
+}

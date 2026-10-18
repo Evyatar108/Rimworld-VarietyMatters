@@ -12,3 +12,9 @@ objd
 # Session research + design scratch
 VFVE_UX_INSPIRATION.md
 design/
+
+.tasks-board/worktrees/
+.tasks-board/runs/
+.tasks-board/.locks/
+.tasks-board/generated/
+.tasks-board/repositories.local.json

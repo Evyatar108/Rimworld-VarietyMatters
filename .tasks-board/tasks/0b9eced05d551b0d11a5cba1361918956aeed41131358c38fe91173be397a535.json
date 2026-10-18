@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "taskKey": "90833189-c459-43ae-91ae-12b5f46163c3",
+  "boardId": "main",
+  "task": {
+    "id": "example-task",
+    "title": "Example task",
+    "stage": "backlog",
+    "lifecycle": "archived",
+    "dependsOn": [],
+    "writablePaths": [
+      "src/example"
+    ],
+    "validationCommand": "npm test",
+    "actions": [
+      {
+        "id": "start",
+        "label": "Start task",
+        "prompt": "Implement example-task.",
+        "allowedStages": [
+          "backlog",
+          "ready"
+        ]
+      }
+    ],
+    "lastTouchedAt": "2026-10-18T04:14:53.673Z",
+    "lastTouchedBy": {
+      "sessionId": "60abe606-5afc-4dcb-b4a8-13ad90f8650e",
+      "host": "copilot",
+      "at": "2026-10-18T04:14:53.674Z"
+    }
+  }
+}

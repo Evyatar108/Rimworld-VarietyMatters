@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "kind": "local-completion",
+  "operation": "initialize",
+  "operationId": "79a77be7-70e1-445d-b0ab-8d55713f9629",
+  "fingerprint": "f2349df3f145dc1233a5f39ac15e5eac9b7442508995797587a4e4de6c7db2c9",
+  "epoch": 1,
+  "boardPath": ".tasks-board",
+  "markerToken": "7b32d488-519f-4c31-a00e-1833135cb253",
+  "finalImageSetDigest": "c06dcd2ebc7055a57ee4e51854841de86e03c7215c275333c4888e6888d07f7b"
+}

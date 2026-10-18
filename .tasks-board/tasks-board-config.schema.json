@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Tasks Board Config",
+  "type": "object",
+  "required": ["dataFile", "coldFile", "runsRoot", "worktreesRoot", "workflow", "outputs"],
+  "properties": {
+    "dataFile": { "type": "string" },
+    "coldFile": { "type": "string" },
+    "provenanceFile": { "type": "string" },
+    "coldProvenanceFile": { "type": "string" },
+    "runsRoot": { "type": "string" },
+    "worktreesRoot": { "type": "string" },
+    "locksRoot": { "type": "string" },
+    "references": {
+      "type": "object",
+      "required": ["open", "close", "definitionPrefix", "documents", "exclude"],
+      "additionalProperties": false,
+      "description": "Optional delimiter scanning. Runtime validation also requires distinct delimiters outside the identifier alphabet, colon and whitespace, and a prefix containing neither delimiter.",
+      "properties": {
+        "open": { "type": "string", "minLength": 1, "maxLength": 1 },
+        "close": { "type": "string", "minLength": 1, "maxLength": 1 },
+        "definitionPrefix": { "type": "string", "maxLength": 16 },
+        "documents": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "exclude": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+      }
+    },
+    "git": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Where this board's files are committed. Absent means the operator has not chosen; commit steps refuse and ask. Write it with `tasks-board commit-repository set`.",
+      "properties": {
+        "commitRepository": {
+          "enum": ["main", "dedicated"],
+          "description": "main: the board lives in the target repository itself. dedicated: the board lives in a separate repository nested inside the target repository's working tree; Git checks on board files run there."
+        }
+      }
+    },
+    "workflow": {
+      "type": "object",
+      "required": ["stages", "lifecycles"],
+      "properties": {
+        "stages": { "type": "array", "items": { "type": "object", "required": ["id", "label"], "properties": { "semantic": { "enum": ["default", "ready", "working", "review", "blocked", "terminal"] } } } },
+        "lifecycles": { "type": "array", "items": { "enum": ["active", "completed", "archived"] } }
+      }
+    },
+    "outputs": {
+      "type": "object",
+      "required": ["boardStateJson", "boardStateJs", "activity", "viewerHtml"],
+      "properties": {
+        "sessionQueuesDir": { "type": "string", "minLength": 1 },
+        "boardStateJson": { "type": "string" },
+        "boardStateJs": { "type": "string" },
+        "boardState": { "type": "string" },
+        "activity": { "type": "string" },
+        "viewerHtml": { "type": "string" }
+      }
+    }
+  }
+}
