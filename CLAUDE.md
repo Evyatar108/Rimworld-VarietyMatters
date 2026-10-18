@@ -158,3 +158,6 @@ This mod is one of Evyatar's mods managed from `D:\MyRimworldMods\ModWorkspace`;
 - Design studies and agent playtests (the hub's `DESIGN-STUDIES.md`): agents simulate and play this mod so Evyatar doesn't have to do most of it. Run a design study before settling the numbers of a feature or a balance, difficulty, default-setting or immersion change. Run an agent playtest when a feature lands, before a release, and before asking Evyatar to playtest; his own playtest covers only the questions it lists for him. Judge both against this mod's `design\DESIGN_PARAMETERS.md` (start it from the hub's `templates\DESIGN-PARAMETERS.md` if missing). They change nothing; Evyatar decides from their options.
 - Retrospectives: also follow the portfolio rule in D:\MyRimworldMods\ModWorkspace\AGENTS.md ("Retrospectives"): give each candidate a scope and kind, route all-mods findings to the hub, and check swept spans there too.
 - Before building a tool or workflow, check the hub's `CAPABILITIES.md`; for engine and testing lessons, its `SHARED-PRACTICES.md`. Player feedback is swept and triaged from the hub (`FEEDBACK.md`).
+
+Design records in this repository use the typed sigil grammar
+(`⟦decision:<name>⟧`-style wrappers).
