@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "operationId": "portable-text-redux-deferred-reports-20261020",
+  "fingerprint": "0978192568f0e68625e89164085b56ecca94b8b52f5b65fd3da267559b2740a7",
+  "epoch": 2,
+  "caller": {
+    "host": "copilot",
+    "sessionId": "43bf3dfa-16f5-4c4a-80f1-ac9924e1deaa",
+    "deviceId": null
+  },
+  "entries": [
+    {
+      "id": "5a555053-3350-4825-a311-52cee344dec1",
+      "at": "2026-10-21T00:08:59.839Z",
+      "host": "copilot",
+      "sessionId": "43bf3dfa-16f5-4c4a-80f1-ac9924e1deaa",
+      "deviceId": null,
+      "verb": "update-task",
+      "taskId": "redux-deferred-reports",
+      "outcome": "updated"
+    }
+  ],
+  "effects": {
+    "changedFiles": [
+      ".tasks-board/tasks/0c40d407930bcd62a12eeea7f679f4693a9701bc1d19b51cf70b48b75d884aa2.json"
+    ],
+    "taskRevisions": {
+      "redux-deferred-reports": "fa8d5f1b367db66019f300ba83ba8a93db86b210e76714d07b5050bcce996551"
+    }
+  }
+}

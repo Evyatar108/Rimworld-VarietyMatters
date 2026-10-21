@@ -18,3 +18,7 @@ design/
 .tasks-board/.locks/
 .tasks-board/generated/
 .tasks-board/repositories.local.json
+# Written by tasks-board init with this PC's paths; each PC regenerates them
+.mcp.json
+.codex/config.toml
+.tasks-board/codex-workspace.json

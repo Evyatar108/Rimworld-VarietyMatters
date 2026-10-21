@@ -1,5 +1,0 @@
-# BEGIN tasks-board managed MCP
-[mcp_servers.tasks-board]
-command = "node"
-args = ["D:\\MyRimworldMods\\VarietyMatters\\bin\\tasks-board.mjs", "--codex-mcp", "--binding", "D:\\MyRimworldMods\\VarietyMatters\\.tasks-board\\codex-workspace.json"]
-# END tasks-board managed MCP
