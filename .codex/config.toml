@@ -1,0 +1,5 @@
+# BEGIN tasks-board managed MCP
+[mcp_servers.tasks-board]
+command = "node"
+args = ["bin/tasks-board.mjs", "--codex-mcp", "--binding", ".tasks-board/codex-workspace.json"]
+# END tasks-board managed MCP

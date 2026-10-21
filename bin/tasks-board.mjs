@@ -10,25 +10,41 @@
 // Why this file exists: Claude Code, Copilot CLI, and Codex install plugins in
 // different layouts and do not put `tasks-board` on PATH. This wrapper resolves
 // the plugin location so package scripts, terminal users, and the generated
-// consumer-local Codex MCP registration can share one stable consumer command.
+// consumer-local MCP registrations can share one stable consumer command.
 // Once located, it spawns the plugin's own `bin/tasks-board.mjs` dispatcher with
 // the original argv and forwards stdio/signals/exit code.
 //
-// Normal command resolution order (first usable install wins; "usable" = has
-// the plugin manifest AND the bin dispatcher):
+// Modes:
+//   (default)      forward argv to the plugin's bin dispatcher.
+//   --mcp          the committed `.mcp.json` registration
+//                  (`node bin/tasks-board.mjs --mcp`): start the plugin's MCP
+//                  launcher (`launch.cjs`) for the repository this wrapper
+//                  lives in. The repository root comes from the wrapper's own
+//                  location, so the committed registration carries no machine
+//                  path.
+//   --codex-mcp    the generated Codex registration: verify the git-ignored
+//                  machine binding, then start `launch.cjs`.
+//
+// Normal command and --mcp resolution order (first usable install wins;
+// "usable" = has the plugin manifest AND the bin dispatcher, plus `launch.cjs`
+// in --mcp mode):
 //   1. TASKS_BOARD_PLUGIN_ROOT env var
-//   2. CLAUDE_PLUGIN_ROOT/tasks-board (Claude Code harness-set)
-//   3. CLAUDE_PLUGIN_ROOT/cache/ai-developer-toolkit/tasks-board/<newest>
-//   4. ~/.claude/plugins/cache/ai-developer-toolkit/tasks-board/<newest>
-//   5. ~/.codex/plugins/cache/ai-developer-toolkit/tasks-board/<newest>
-//   6. ~/.copilot/installed-plugins/ai-developer-toolkit/tasks-board/
+//   2. ~/.copilot/installed-plugins/ai-developer-toolkit/tasks-board/, only
+//      when COPILOT_AGENT_SESSION_ID is set (Copilot CLI launched us, so its
+//      own copy wins over other hosts' caches)
+//   3. CLAUDE_PLUGIN_ROOT/tasks-board (Claude Code harness-set)
+//   4. CLAUDE_PLUGIN_ROOT/cache/ai-developer-toolkit/tasks-board/<newest>
+//   5. ~/.claude/plugins/cache/ai-developer-toolkit/tasks-board/<newest>
+//   6. ~/.codex/plugins/cache/ai-developer-toolkit/tasks-board/<newest>
+//   7. ~/.copilot/installed-plugins/ai-developer-toolkit/tasks-board/
 //      (Copilot CLI install layout; single live copy, no per-version subdir)
-//   7. consumerWrapper.localDevPluginRootRel from .tasks-board/config.json
+//   8. consumerWrapper.localDevPluginRootRel from .tasks-board/config.json
 //      (optional in-tree / submodule local-dev fallback, repoRoot-relative)
 //
 // `--codex-mcp` keeps an explicit override first, then prioritizes Codex's own
-// versioned cache. Every candidate in that mode must pass its package-owned,
-// version-matched runtime inventory and per-file digest verification.
+// versioned cache, and ignores COPILOT_AGENT_SESSION_ID. Every candidate in
+// that mode must pass its package-owned, version-matched runtime inventory and
+// per-file digest verification.
 //
 // The tasks-board dispatcher has no plugin-root runtime dependencies (it uses
 // only Node built-ins + the pure scripts/lib core; the MCP and viewer runtimes
@@ -52,6 +68,7 @@ const PLUGIN_NAME = 'tasks-board'
 const SELF = 'bin/tasks-board.mjs'
 const MANIFEST_REL = path.join('.claude-plugin', 'plugin.json')
 const DISPATCHER_REL = path.join('bin', 'tasks-board.mjs')
+const LAUNCHER_REL = 'launch.cjs'
 export const CODEX_RUNTIME_INVENTORY_REL = 'runtime-inventory.json'
 
 function hasManifest(dir) {
@@ -64,6 +81,22 @@ function hasDispatcher(dir) {
 
 function isUsable(dir) {
     return hasManifest(dir) && hasDispatcher(dir)
+}
+
+function hasMcpLauncher(dir) {
+    return isUsable(dir) && fs.existsSync(path.join(dir, LAUNCHER_REL))
+}
+
+function usableForMode(mode) {
+    if (mode === 'codex-mcp') return hasCodexLaunchCapabilities
+    if (mode === 'mcp') return hasMcpLauncher
+    return isUsable
+}
+
+function missingCapabilityError(mode) {
+    if (mode === 'codex-mcp') return 'missing-codex-launch'
+    if (mode === 'mcp') return 'missing-launcher'
+    return 'missing-dispatcher'
 }
 
 function sha256File(file) {
@@ -176,13 +209,15 @@ function usableResult(pluginRoot, source, warnings) {
 // Pure resolver. Inputs are injected so the function is unit-testable without
 // touching the real process env/home. Returns one of:
 //   { pluginRoot, source, warnings }                 -- usable install selected
-//   { error: 'missing-dispatcher'|'missing-codex-launch', ... } -- explicit
-//        TASKS_BOARD_PLUGIN_ROOT lacks capabilities required by the mode
+//   { error: 'missing-dispatcher'|'missing-launcher'|'missing-codex-launch', ... }
+//        -- explicit TASKS_BOARD_PLUGIN_ROOT lacks capabilities required by the mode
 //   { error: 'not-found', warnings }                 -- total cascade miss
+// `mode` is 'command' (default), 'mcp' or 'codex-mcp'.
 export function resolvePluginRoot({ env = {}, homedir, cwd, config = {}, mode = 'command' } = {}) {
     void cwd
     const warnings = []
-    const usable = mode === 'codex-mcp' ? hasCodexLaunchCapabilities : isUsable
+    const usable = usableForMode(mode)
+    const copilotInstall = homedir ? path.join(homedir, '.copilot', 'installed-plugins', MARKETPLACE_NAME, PLUGIN_NAME) : null
 
     // 1. Explicit override.
     const explicit = env.TASKS_BOARD_PLUGIN_ROOT
@@ -195,13 +230,21 @@ export function resolvePluginRoot({ env = {}, homedir, cwd, config = {}, mode = 
             // broken (no dispatcher). Fail loudly instead of silently falling
             // through to a different install they did not choose.
             return {
-                error: mode === 'codex-mcp' ? 'missing-codex-launch' : 'missing-dispatcher',
+                error: missingCapabilityError(mode),
                 pluginRoot: explicit,
                 source: 'TASKS_BOARD_PLUGIN_ROOT',
                 warnings,
             }
         }
         warnings.push(`${SELF}: TASKS_BOARD_PLUGIN_ROOT=${explicit} is not a usable plugin install (missing ${MANIFEST_REL}); falling through`)
+    }
+
+    // 2. The launching host's own copy: Copilot CLI sets
+    // COPILOT_AGENT_SESSION_ID for the processes it starts, so its installed
+    // plugin wins over a Claude Code or Codex cache on the same machine.
+    // Codex static launches keep their own order below.
+    if (mode !== 'codex-mcp' && env.COPILOT_AGENT_SESSION_ID && copilotInstall && usable(copilotInstall)) {
+        return usableResult(copilotInstall, '~/.copilot', warnings)
     }
 
     // Codex static MCP launches prefer Codex's own versioned cache and require
@@ -228,26 +271,25 @@ export function resolvePluginRoot({ env = {}, homedir, cwd, config = {}, mode = 
     }
 
     if (homedir) {
-        // 4. Claude Code user-scope plugin cache (versioned).
+        // 5. Claude Code user-scope plugin cache (versioned).
         const userVersioned = newestVersionedSubdir(path.join(homedir, '.claude', 'plugins', 'cache', MARKETPLACE_NAME, PLUGIN_NAME), usable)
         if (userVersioned) {
             return usableResult(userVersioned, '~/.claude/cache', warnings)
         }
-        // 5. Codex versioned plugin cache.
+        // 6. Codex versioned plugin cache.
         if (mode !== 'codex-mcp') {
-            const codexVersioned = newestVersionedSubdir(path.join(homedir, '.codex', 'plugins', 'cache', MARKETPLACE_NAME, PLUGIN_NAME))
+            const codexVersioned = newestVersionedSubdir(path.join(homedir, '.codex', 'plugins', 'cache', MARKETPLACE_NAME, PLUGIN_NAME), usable)
             if (codexVersioned) {
                 return usableResult(codexVersioned, '~/.codex/cache', warnings)
             }
         }
-        // 6. Copilot CLI install layout (single live copy, no version subdir).
-        const copilotInstall = path.join(homedir, '.copilot', 'installed-plugins', MARKETPLACE_NAME, PLUGIN_NAME)
+        // 7. Copilot CLI install layout (single live copy, no version subdir).
         if (usable(copilotInstall)) {
             return usableResult(copilotInstall, '~/.copilot', warnings)
         }
     }
 
-    // 7. Consumer-configured local-dev fallback (e.g. an in-tree submodule).
+    // 8. Consumer-configured local-dev fallback (e.g. an in-tree submodule).
     if (config.localDevPluginRoot && usable(config.localDevPluginRoot)) {
         return usableResult(config.localDevPluginRoot, 'localDev', warnings)
     }
@@ -310,22 +352,44 @@ function writeCascadeError() {
     process.stderr.write(`${SELF}: could not locate the ${PLUGIN_NAME} plugin.\n`)
     process.stderr.write('  Tried:\n')
     process.stderr.write('    1. $TASKS_BOARD_PLUGIN_ROOT\n')
-    process.stderr.write(`    2. $CLAUDE_PLUGIN_ROOT/${PLUGIN_NAME}\n`)
-    process.stderr.write(`    3. $CLAUDE_PLUGIN_ROOT/cache/${MARKETPLACE_NAME}/${PLUGIN_NAME}/<newest>\n`)
-    process.stderr.write(`    4. ~/.claude/plugins/cache/${MARKETPLACE_NAME}/${PLUGIN_NAME}/<newest>\n`)
-    process.stderr.write(`    5. ~/.codex/plugins/cache/${MARKETPLACE_NAME}/${PLUGIN_NAME}/<newest>\n`)
-    process.stderr.write(`    6. ~/.copilot/installed-plugins/${MARKETPLACE_NAME}/${PLUGIN_NAME}/\n`)
-    process.stderr.write('    7. consumerWrapper.localDevPluginRootRel (.tasks-board/config.json)\n')
+    process.stderr.write(`    2. ~/.copilot/installed-plugins/${MARKETPLACE_NAME}/${PLUGIN_NAME}/ (when $COPILOT_AGENT_SESSION_ID is set)\n`)
+    process.stderr.write(`    3. $CLAUDE_PLUGIN_ROOT/${PLUGIN_NAME}\n`)
+    process.stderr.write(`    4. $CLAUDE_PLUGIN_ROOT/cache/${MARKETPLACE_NAME}/${PLUGIN_NAME}/<newest>\n`)
+    process.stderr.write(`    5. ~/.claude/plugins/cache/${MARKETPLACE_NAME}/${PLUGIN_NAME}/<newest>\n`)
+    process.stderr.write(`    6. ~/.codex/plugins/cache/${MARKETPLACE_NAME}/${PLUGIN_NAME}/<newest>\n`)
+    process.stderr.write(`    7. ~/.copilot/installed-plugins/${MARKETPLACE_NAME}/${PLUGIN_NAME}/\n`)
+    process.stderr.write('    8. consumerWrapper.localDevPluginRootRel (.tasks-board/config.json)\n')
     process.stderr.write(`  Fix: install the plugin via \`/plugin install ${PLUGIN_NAME}@${MARKETPLACE_NAME}\`\n`)
     process.stderr.write('       (or `copilot plugin install`), or set TASKS_BOARD_PLUGIN_ROOT to an absolute path.\n')
+}
+
+// The repository this wrapper was generated into: <repoRoot>/bin/tasks-board.mjs.
+function wrapperRepoRoot() {
+    return path.dirname(path.dirname(fileURLToPath(import.meta.url)))
+}
+
+function startMcpLauncher(pluginRoot, repoRoot) {
+    const child = spawn(process.execPath, [path.join(pluginRoot, LAUNCHER_REL)], {
+        stdio: 'inherit',
+        cwd: repoRoot,
+        env: {
+            ...process.env,
+            TASKS_BOARD_PLUGIN_ROOT: pluginRoot,
+            TASKS_BOARD_REPO_ROOT: repoRoot,
+        },
+    })
+    child.on('exit', (code, signal) => process.exit(code ?? (signal ? 1 : 0)))
+    process.on('SIGINT', () => child.kill('SIGINT'))
+    process.on('SIGTERM', () => child.kill('SIGTERM'))
 }
 
 async function main() {
     const argv = process.argv.slice(2)
     const codexMcp = argv[0] === '--codex-mcp'
+    const mcp = argv[0] === '--mcp'
     const bindingIndex = argv.findIndex((arg) => arg === '--binding')
-    const bindingPath = bindingIndex >= 0 ? argv[bindingIndex + 1] : null
-    const commandArgv = codexMcp ? [] : normalizeRepoArguments(argv)
+    const bindingArg = bindingIndex >= 0 ? argv[bindingIndex + 1] : null
+    const commandArgv = codexMcp || mcp ? [] : normalizeRepoArguments(argv)
     const hasRepo = commandArgv.some((arg) => arg === '--repo' || arg.startsWith('--repo='))
     let repoRoot
     if (hasRepo) {
@@ -335,7 +399,7 @@ async function main() {
             ? path.resolve(flag.slice('--repo='.length))
             : path.resolve(commandArgv[flagIndex + 1] ?? process.cwd())
     } else {
-        repoRoot = codexMcp ? path.dirname(path.dirname(fileURLToPath(import.meta.url))) : gitRepoRoot(process.cwd())
+        repoRoot = codexMcp || mcp ? wrapperRepoRoot() : gitRepoRoot(process.cwd())
     }
 
     const { localDevPluginRoot } = loadConsumerWrapperConfig(repoRoot)
@@ -345,7 +409,7 @@ async function main() {
         homedir: os.homedir(),
         cwd: process.cwd(),
         config: { localDevPluginRoot },
-        mode: codexMcp ? 'codex-mcp' : 'command',
+        mode: codexMcp ? 'codex-mcp' : mcp ? 'mcp' : 'command',
     })
 
     for (const warning of result.warnings ?? []) {
@@ -360,30 +424,31 @@ async function main() {
         process.stderr.write(`${SELF}: plugin found at ${result.pluginRoot} but missing ${DISPATCHER_REL}\n`)
         process.exit(3)
     }
+    if (result.error === 'missing-launcher') {
+        process.stderr.write(`${SELF}: plugin found at ${result.pluginRoot} but missing ${DISPATCHER_REL} or ${LAUNCHER_REL}\n`)
+        process.exit(3)
+    }
     if (result.error === 'missing-codex-launch') {
         process.stderr.write(`${SELF}: plugin found at ${result.pluginRoot} but missing Codex launcher or binding dependencies\n`)
         process.exit(3)
     }
 
+    if (mcp) {
+        startMcpLauncher(result.pluginRoot, repoRoot)
+        return
+    }
+
     if (codexMcp) {
         const bindingModule = await import(pathToFileURL(path.join(result.pluginRoot, 'scripts', 'lib', 'codex-workspace-binding.mjs')).href)
+        // The committed Codex block names the binding repository-relative;
+        // resolve it against this wrapper's repository, never the process cwd.
+        const bindingPath = bindingArg && !path.isAbsolute(bindingArg) ? path.resolve(repoRoot, bindingArg) : bindingArg
         const verified = bindingModule.verifyCodexWorkspaceBinding({
             bindingPath,
             wrapperPath: fileURLToPath(import.meta.url),
             pluginRoot: result.pluginRoot,
         })
-        const child = spawn(process.execPath, [path.join(result.pluginRoot, 'launch.cjs')], {
-            stdio: 'inherit',
-            cwd: verified.repoRoot,
-            env: {
-                ...process.env,
-                TASKS_BOARD_PLUGIN_ROOT: result.pluginRoot,
-                TASKS_BOARD_REPO_ROOT: verified.repoRoot,
-            },
-        })
-        child.on('exit', (code, signal) => process.exit(code ?? (signal ? 1 : 0)))
-        process.on('SIGINT', () => child.kill('SIGINT'))
-        process.on('SIGTERM', () => child.kill('SIGTERM'))
+        startMcpLauncher(result.pluginRoot, verified.repoRoot)
         return
     }
 

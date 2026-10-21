@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "tasks-board": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "bin/tasks-board.mjs",
+        "--mcp"
+      ],
+      "timeout": 180000
+    }
+  }
+}

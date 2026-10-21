@@ -15,6 +15,7 @@
     "exclude": ["archived/**", "wiki-repos/**", "node_modules/**"]
   },
   "workflow": {
+    "holdTags": {"needs-evyatar": "Waits for Evyatar: a decision, an install, his own playtest or an upload (hub rule task-readiness-tags)"},
     "stages": [
       { "id": "backlog", "label": "Backlog", "semantic": "default", "urgency": 10 },
       { "id": "ready", "label": "Ready", "semantic": "ready", "urgency": 40 },
