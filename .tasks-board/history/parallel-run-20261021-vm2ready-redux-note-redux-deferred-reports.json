@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "operationId": "parallel-run-20261021-vm2ready-redux-note-redux-deferred-reports",
+  "fingerprint": "a24a9730ca4907da95f2cac17bb51fe4ec7993865404168abe3224f4f08f7b5d",
+  "epoch": 4,
+  "caller": {
+    "host": "copilot",
+    "sessionId": "60abe606-5afc-4dcb-b4a8-13ad90f8650e",
+    "deviceId": null
+  },
+  "entries": [
+    {
+      "id": "6979d054-8c7c-4efa-a42d-99989ab470cb",
+      "at": "2026-10-21T10:29:01.266Z",
+      "host": "copilot",
+      "sessionId": "60abe606-5afc-4dcb-b4a8-13ad90f8650e",
+      "deviceId": null,
+      "verb": "update-task",
+      "taskId": "redux-deferred-reports",
+      "outcome": "updated"
+    }
+  ],
+  "effects": {
+    "changedFiles": [
+      ".tasks-board/tasks/0c40d407930bcd62a12eeea7f679f4693a9701bc1d19b51cf70b48b75d884aa2.json"
+    ],
+    "taskRevisions": {
+      "redux-deferred-reports": "2f55271690de25ef71fc16211205f0bdb6f5005947f514ad7d3b98613b7c717f"
+    }
+  }
+}
