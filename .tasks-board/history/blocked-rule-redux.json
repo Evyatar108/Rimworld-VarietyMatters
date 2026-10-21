@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "operationId": "blocked-rule-redux",
+  "fingerprint": "2d0d35fd3c105300d0486039b564303c6d3145c1a02411bcf940fbe8f2f0acb4",
+  "epoch": 2,
+  "caller": {
+    "host": "copilot",
+    "sessionId": "60abe606-5afc-4dcb-b4a8-13ad90f8650e",
+    "deviceId": null
+  },
+  "entries": [
+    {
+      "id": "b2fe8e2c-323c-4a9e-a432-7d263c938d20",
+      "at": "2026-10-21T00:02:51.949Z",
+      "host": "copilot",
+      "sessionId": "60abe606-5afc-4dcb-b4a8-13ad90f8650e",
+      "deviceId": null,
+      "verb": "update-task",
+      "taskId": "redux-deferred-reports",
+      "outcome": "updated"
+    }
+  ],
+  "effects": {
+    "changedFiles": [
+      ".tasks-board/tasks/0c40d407930bcd62a12eeea7f679f4693a9701bc1d19b51cf70b48b75d884aa2.json"
+    ],
+    "taskRevisions": {
+      "redux-deferred-reports": "85f55b906803345a78cf6cdd0667b036931bf1fb1361c13ef904270789754b07"
+    }
+  }
+}
