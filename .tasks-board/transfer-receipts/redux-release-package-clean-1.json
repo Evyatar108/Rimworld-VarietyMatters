@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "kind": "local-completion",
+  "operation": "create-tasks",
+  "operationId": "redux-release-package-clean-1",
+  "fingerprint": "bbf3fbf83826c967352894842f276b981731aa0ce1a8a4df1926d782717a992d",
+  "epoch": 4,
+  "boardPath": ".tasks-board",
+  "markerToken": "18f19172-1dab-453b-af51-f729f2f7faa1",
+  "finalImageSetDigest": "6a740f39349af96b7267fcdaa43bcea57be49d4e25f74361506e8158457cdd38"
+}

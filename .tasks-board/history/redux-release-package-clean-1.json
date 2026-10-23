@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "operationId": "redux-release-package-clean-1",
+  "fingerprint": "bbf3fbf83826c967352894842f276b981731aa0ce1a8a4df1926d782717a992d",
+  "epoch": 4,
+  "caller": {
+    "host": "copilot",
+    "sessionId": "60abe606-5afc-4dcb-b4a8-13ad90f8650e",
+    "deviceId": null
+  },
+  "entries": [
+    {
+      "id": "3e7a8aff-d52c-4727-bf41-0725d285a18e",
+      "at": "2026-10-23T07:10:12.726Z",
+      "host": "copilot",
+      "sessionId": "60abe606-5afc-4dcb-b4a8-13ad90f8650e",
+      "deviceId": null,
+      "verb": "create-task",
+      "taskId": "redux-release-package-clean",
+      "outcome": "created"
+    }
+  ],
+  "effects": {
+    "changedFiles": [
+      ".tasks-board/tasks/be1f86000f6531838c3ea8310689bc055ae41d6a75efb11973e7aa13e58955af.json",
+      ".tasks-board/transfer-receipts/redux-release-package-clean-1.json"
+    ],
+    "taskRevisions": {
+      "redux-release-package-clean": "c5d2fe0390ca9f4e27bb6d54038eef59703285592aa5202e396e097066ebbb86"
+    }
+  }
+}

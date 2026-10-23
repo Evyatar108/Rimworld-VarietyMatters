@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "taskKey": "8108751d-fcc2-4a66-92e6-474ecc80bcd8",
+  "boardId": "main",
+  "task": {
+    "id": "redux-release-package-clean",
+    "title": "Publish runtime content only: drop the PDBs and design folder from the next upload",
+    "description": "Hub decision no-source-in-published-packages (2026-10-22, Evyatar: \"lets make sure we dont bundle the source code in what we will publish, same for all of our mods\"). The published item 3044059819 carries two PDBs (1.4 and 1.6) and a root Mods\\ folder of conditional patches that no LoadFolders.xml loads (already a known release-checklist finding); the deployed upload folder in the Steam Mods directory also holds design\\ (thumbnail notes), which the audit blocks (hub evidence\\2026-10-22\\package-source-audit\\). The next upload must hold runtime content only and pass the hub's `python tools\\release_freeze.py audit <folder> --expect-id 3044059819`. The repository is public, so the source stays on GitHub, not in the package.\n\nCreated 2026-10-22 from the mod hub.",
+    "stage": "backlog",
+    "lifecycle": "active",
+    "dependsOn": [],
+    "writablePaths": [],
+    "actions": [],
+    "lastTouchedBy": {
+      "sessionId": "60abe606-5afc-4dcb-b4a8-13ad90f8650e",
+      "host": "copilot",
+      "at": "2026-10-23T07:10:12.726Z"
+    }
+  }
+}
