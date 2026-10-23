@@ -23,7 +23,11 @@
   },
   "workflow": {
     "holdTags": {
-      "needs-evyatar": "Waits for Evyatar: a decision, an install, his own playtest or an upload (hub rule task-readiness-tags)"
+      "needs-evyatar": "Waits for Evyatar: a decision, a review, an install, his own playtest, an upload or resuming paused work (hub rule task-readiness-tags)",
+      "proposal": "Filed, not accepted: agents don't start it until Evyatar accepts it (hub rule task-readiness-tags)",
+      "parked": "Looked at and deferred: no answer wanted now (hub rule task-readiness-tags)",
+      "needs-decision": "Old Pain Matters tag for needs-evyatar, held until no writer uses it (hub decision shared-board-vocabulary)",
+      "overnight-proposal": "Old Pain Matters tag for proposal, held until no writer uses it (hub decision shared-board-vocabulary)"
     },
     "stages": [
       {
