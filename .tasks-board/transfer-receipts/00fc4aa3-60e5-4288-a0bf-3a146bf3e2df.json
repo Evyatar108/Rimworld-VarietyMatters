@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "kind": "local-completion",
+  "operation": "set-commit-repository",
+  "operationId": "00fc4aa3-60e5-4288-a0bf-3a146bf3e2df",
+  "fingerprint": "5edb3142a97bf7e0ab39223a29ac92e1b466d6a2668b3721b51f2e13dd4102bf",
+  "epoch": 4,
+  "boardPath": ".tasks-board",
+  "markerToken": "d9b1021e-e52f-4f3f-ada2-790d5f59bbb3",
+  "finalImageSetDigest": "7d1a223c74272c9974a57a140b5181b7636798f7d3cce0faed7e2b8366d80bf1"
+}

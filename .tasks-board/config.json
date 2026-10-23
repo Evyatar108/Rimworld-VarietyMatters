@@ -11,20 +11,65 @@
     "open": "⟦",
     "close": "⟧",
     "definitionPrefix": "def ",
-    "documents": ["*.md", "plugins/*/AGENTS.md"],
-    "exclude": ["archived/**", "wiki-repos/**", "node_modules/**"]
+    "documents": [
+      "*.md",
+      "plugins/*/AGENTS.md"
+    ],
+    "exclude": [
+      "archived/**",
+      "wiki-repos/**",
+      "node_modules/**"
+    ]
   },
   "workflow": {
-    "holdTags": {"needs-evyatar": "Waits for Evyatar: a decision, an install, his own playtest or an upload (hub rule task-readiness-tags)"},
+    "holdTags": {
+      "needs-evyatar": "Waits for Evyatar: a decision, an install, his own playtest or an upload (hub rule task-readiness-tags)"
+    },
     "stages": [
-      { "id": "backlog", "label": "Backlog", "semantic": "default", "urgency": 10 },
-      { "id": "ready", "label": "Ready", "semantic": "ready", "urgency": 40 },
-      { "id": "working", "label": "Working", "semantic": "working", "urgency": 50 },
-      { "id": "reviewing", "label": "Reviewing", "semantic": "review", "urgency": 70 },
-      { "id": "blocked", "label": "Blocked", "semantic": "blocked", "blocked": true, "urgency": 100 },
-      { "id": "done", "label": "Done", "semantic": "terminal", "terminal": true, "urgency": 0 }
+      {
+        "id": "backlog",
+        "label": "Backlog",
+        "semantic": "default",
+        "urgency": 10
+      },
+      {
+        "id": "ready",
+        "label": "Ready",
+        "semantic": "ready",
+        "urgency": 40
+      },
+      {
+        "id": "working",
+        "label": "Working",
+        "semantic": "working",
+        "urgency": 50
+      },
+      {
+        "id": "reviewing",
+        "label": "Reviewing",
+        "semantic": "review",
+        "urgency": 70
+      },
+      {
+        "id": "blocked",
+        "label": "Blocked",
+        "semantic": "blocked",
+        "blocked": true,
+        "urgency": 100
+      },
+      {
+        "id": "done",
+        "label": "Done",
+        "semantic": "terminal",
+        "terminal": true,
+        "urgency": 0
+      }
     ],
-    "lifecycles": ["active", "completed", "archived"]
+    "lifecycles": [
+      "active",
+      "completed",
+      "archived"
+    ]
   },
   "outputs": {
     "sessionQueuesDir": ".tasks-board/generated/sessions",
@@ -43,5 +88,10 @@
     "watcherOwner": ".tasks-board/generated/.lock/watcher.owner",
     "syncLock": ".tasks-board/generated/.lock/sync.lock"
   },
-  "recommendations": { "topN": 20 }
+  "recommendations": {
+    "topN": 20
+  },
+  "git": {
+    "commitRepository": "main"
+  }
 }
