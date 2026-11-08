@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "taskKey": "995048d3-a7ed-4bdb-b556-f5d7fe9e24bc",
+  "boardId": "main",
+  "task": {
+    "id": "redux-favourite-pool-inedible",
+    "title": "Auto-picked favourites can be raw human or insect meat, kibble, a cotton plant, baby food or paste (1.6)",
+    "description": "Found 2026-11-07 by the hub's similar-issues sweep after VM2's water-taste bug (hub evidence\\2026-11-07\\similar-issues\\A-vm2-code.md, \"Redux can randomly assign favourites\"; rechecked by the coordinator in Source\\New\\FavouriteFoodRecord.cs:442-461).\n\nWhat a player sees: after an eligible meal triggers auto-assignment, an ordinary colonist can get raw human or insect meat as its meat favourite, and a Gourmand can get kibble, a living cotton plant, baby food or nutrient paste as its wild favourite.\n\nWhy: `BuildPool` admits every ingestible with `preferability > DesperateOnlyForHumanlikes`, so RawBad passes (the comment above it says raw-bad foods are skipped; the code doesn't). It never checks Nutrition, the eater's race (`Plant_Cotton` is foodType Plant, which humans can't eat), human or insect sources, kibble, drugs, or whether the pawn would eat it. `ClassifyIngredient` sends everything that isn't meat or vegetable to the wild pool. Ingredient discovery (`CreditIngredient`, lines 324-344) also classifies ingredients without an ingestibility or Nutrition check.\n\nFix sketch: build the pool from real foods only (Nutrition > 0, not a drug, not kibble foodType, not a plant or tree, not human or insect sourced, not baby-only), then pick per pawn from the entries `pawn.WillEat` accepts and the variety provider would credit. On load, clear a favourite that fails the new test so the slot reseeds.\n\nScope: the 1.6 build only (the local 1.4 and 1.5 DLLs have no FavouriteFoodRecord). DBH water is not affected in Redux (below the pool's floor, no Nutrition). Deferred like the other Redux work while VM2 has priority (hub decision variety-matters-priority). This task grants no deploy, push, Workshop upload or public reply.",
+    "stage": "backlog",
+    "lifecycle": "active",
+    "dependsOn": [],
+    "writablePaths": [],
+    "actions": [],
+    "lastTouchedBy": {
+      "sessionId": "18bc2040-3179-4a2c-a7b6-8e1d7d922ef7",
+      "host": "copilot",
+      "at": "2026-11-08T01:46:27.778Z"
+    }
+  }
+}
