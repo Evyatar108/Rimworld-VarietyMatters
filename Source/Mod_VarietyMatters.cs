@@ -13,14 +13,14 @@ namespace VarietyMatters
 
     internal class Mod_VarietyMatters : Mod
     {
-        // US-028 / US-029 preset profile. Covers 21 gameplay-affecting fields a difficulty
+        // Preset profile. Covers 21 gameplay-affecting fields a difficulty
         // preset is allowed to set: 7 memory values + 7 palate thresholds + 7 other toggles /
         // sliders. When adding a new gameplay-affecting setting to ModSettings, update ALL of:
         // this struct, the three Profile instances, ApplyProfile, MatchesProfile, and (if
         // defaults change) ModSettings field initializers. The `moreVarietyMemory` toggle is
         // DEPRECATED and no longer part of the profile.
         //
-        // US-035 `favouritesEnabled` is DELIBERATELY EXCLUDED from this struct / ApplyProfile /
+        // `favouritesEnabled` is DELIBERATELY EXCLUDED from this struct / ApplyProfile /
         // MatchesProfile. It is a feature kill-switch, not a difficulty lever — flipping a
         // preset should never silently disable discovered favourites or wipe per-pawn state.
         // Toggling it also must NOT move the active-preset highlight. Leave it out.
@@ -96,7 +96,7 @@ namespace VarietyMatters
 
         // IntEntry edit buffers. RimWorld's TextFieldNumeric needs stable ref string storage.
         // Nulled on preset apply / tier reset so next draw reseeds from the current value.
-        // US-029: 7 memory + 7 palate buffers for per-tier direct-value tuning.
+        // 7 memory + 7 palate buffers for per-tier direct-value tuning.
         private static string _numIngredientsBuf;
         private static string _cookingMemoryBuf;
         private static string _floorBuf;
@@ -144,7 +144,7 @@ namespace VarietyMatters
             // End() runs — too late for the current frame's BeginScrollView. Using the measured
             // value alone clips the Pawn Expectations body (~280px) plus Cook + Scoring headers
             // below it until the next redraw, which reads as "content disappeared".
-            // US-032 dropped the right race panel, so the settings column spans the full window.
+            // There is no right-side race panel, so the settings column spans the full window.
             float contentHeight1 = Mathf.Max(_lastLeftContentHeight, 1500f);
             Rect rectScroll = new Rect(5f, 35f, inRect.width - 10f, inRect.height);
             Rect viewRect1 = new Rect(0f, 0f, rectScroll.width - 16f, contentHeight1);
@@ -301,7 +301,7 @@ namespace VarietyMatters
 
         private void DrawDifficultySection(Listing_Standard ls)
         {
-            // US-031 direct mood-range endpoints. Two independent sliders replace the old
+            // Direct mood-range endpoints. Two independent sliders replace the old
             // single % scalar so negative and positive mood swings can be tuned asymmetrically.
             int prevNeg = ModSettings_VarietyMatters.maxNegativeMood;
             if (_maxNegMoodBuf == null) _maxNegMoodBuf = prevNeg.ToString();
@@ -325,7 +325,7 @@ namespace VarietyMatters
                 QueueRecalculationForGameplayAffectingChange();
             }
 
-            // US-029 dropped the moreVarietyMemory checkbox — player now sets per-tier memory
+            // There is no moreVarietyMemory checkbox: the player sets per-tier memory
             // values directly in the Pawn Expectations section. The field stays Scribed in
             // ModSettings for save-compat but no UI reads/writes it.
 
@@ -575,7 +575,7 @@ namespace VarietyMatters
             ls.Gap(8f);
         }
 
-        // US-035 favourite-foods section. One toggle only (the feature kill-switch). Not part
+        // Favourite-foods section. One toggle only (the feature kill-switch). Not part
         // of Profile — toggling it must NOT move the active-preset indicator.
         private void DrawFavouritesSection(Listing_Standard ls)
         {
@@ -632,7 +632,7 @@ namespace VarietyMatters
             ls.Gap(8f);
         }
 
-        // US-032 removed the right-side race-toggle panel. The underlying raceVariety dict still
+        // There is no right-side race-toggle panel. The underlying raceVariety dict still
         // initializes on load (GenerateRaces, called via AddCompVariety + ExposeData) with every
         // humanlike race enabled by default. Players who want to disable variety for a specific
         // race no longer have UI for it — the panel was rarely used and cluttered the window.
@@ -654,7 +654,7 @@ namespace VarietyMatters
             ModSettings_VarietyMatters.highPalate = p.highPalate;
             ModSettings_VarietyMatters.skyHighPalate = p.skyHighPalate;
             ModSettings_VarietyMatters.noblePalate = p.noblePalate;
-            // Difficulty-section fields + US-031 mood-range endpoints + 5 bonus
+            // Difficulty-section fields + mood-range endpoints + 5 bonus
             ModSettings_VarietyMatters.lowExpectationFloor = p.lowExpectationFloor;
             ModSettings_VarietyMatters.maxNegativeMood = p.maxNegativeMood;
             ModSettings_VarietyMatters.maxPositiveMood = p.maxPositiveMood;

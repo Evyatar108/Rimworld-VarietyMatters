@@ -10,7 +10,7 @@ namespace VarietyMatters.New
     {
         // Cache of `ThingDef (produced meal) → recipe.ingredients.Count (slot count)`. Populated
         // lazily on first lookup, rarely grows (one entry per meal ThingDef in the game). Used
-        // for the US-025 meal-def-new bonus: complexity should reflect the recipe's intrinsic
+        // for the meal-def-new bonus: complexity should reflect the recipe's intrinsic
         // slot count (1 for simple meal, 2 for fine/lavish), NOT how many distinct defs the mod
         // stuffed into the cooked meal via BestVariety_AllowMix. Per user feedback: "simple meal
         // with 3 ingredients stuffed in should still score as a 1-slot recipe."
@@ -81,7 +81,7 @@ namespace VarietyMatters.New
             return Mathf.Clamp01(curved + bonus);
         }
 
-        // US-029 direct palate lookup. Per-tier palate threshold is stored directly in
+        // Direct palate lookup. Per-tier palate threshold is stored directly in
         // ModSettings as a float (not derived from a tier integer × multiplier). Slave/prisoner
         // percentage scaling still applies so those pawn types can have proportionally softer
         // palate refinement via their dedicated knobs in Difficulty settings.
@@ -115,7 +115,7 @@ namespace VarietyMatters.New
             return ModSettings_VarietyMatters.noblePalate;
         }
 
-        // US-029 direct memory lookup. Per-tier queue size drives mood aggregation window AND
+        // Direct memory lookup. Per-tier queue size drives mood aggregation window AND
         // meal-def-new bonus gating. Exposed directly in ModSettings — no hidden multiplier.
         public static int GetMemoryForTier(ExpectationDef tier)
         {
@@ -148,7 +148,7 @@ namespace VarietyMatters.New
         // circuit to the raw meanScore formula until this many meals are in memory.
         private const int WarmupMealCount = 3;
 
-        // US-026 tuning: soft floor — even meals below the tier baseline contribute a small
+        // Soft floor: even meals below the tier baseline contribute a small
         // fraction of their raw ingredient-score to the mood pool. Breaks the "noble stuck at 0%"
         // lock in vanilla-pantry colonies while preserving the challenge at higher scores (the
         // baseline curve beats the floor once (score - b)/(1 - b) > floor × score, around score
@@ -189,12 +189,12 @@ namespace VarietyMatters.New
             else
             {
                 // I″: per-meal baseline, then post-curve additive bonus for meal-def novelty.
-                // `varietyScore` on each EatenFoodSource is ingredient-only (US-026 semantic);
+                // `varietyScore` on each EatenFoodSource is ingredient-only;
                 // per-meal effective combine lives in ComputeEffectiveScore so Patch_FoodUtility's
                 // candidate-estimate helper uses the exact same math.
                 float baseline = BaselineForTier(dietTracker.Pawn);
 
-                // US-029: aggregate over the pawn's tier-sized memory window, not the full stored
+                // Aggregate over the pawn's tier-sized memory window, not the full stored
                 // queue. Storage now caps at max(allTiers) + ScoringWindow so tier changes don't
                 // lose history, but mood-tick only averages across currentTierMemory recent
                 // eligible meals. Older entries live in memory as archival safety and never
@@ -239,7 +239,7 @@ namespace VarietyMatters.New
                 }
                 // Guard: counted==0 means every meal in memory was forgotten or NoVariety-flagged
                 // (raw/kibble/etc.). Avoids NaN from 0/0 division — fall back to 0 mood, matching
-                // the warmup-with-zero-meals branch. See codex review F-035.
+                // the warmup-with-zero-meals branch.
                 double meanEffective = counted > 0 ? sumEffective / counted : 0.0;
                 percentageOfVarietyComparedToExpected = meanEffective * ModSettings_VarietyMatters.memoryMultiplier;
             }

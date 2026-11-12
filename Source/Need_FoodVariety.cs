@@ -1,4 +1,4 @@
-﻿namespace VarietyMatters
+﻿﻿namespace VarietyMatters
 {
     using System;
     using System.Collections.Generic;
@@ -25,12 +25,12 @@
 		private static HashSet<string> _enabledRaceKeys = new HashSet<string>();
 		private static int _raceKeysVersion = -1;
 
-		// US-035 favourites-line scratch. Shared by BuildFavouritesLine (GetTipString +
+		// Favourites-line scratch. Shared by BuildFavouritesLine (GetTipString +
 		// BuildOverlayHeader). Cleared on entry.
 		private static readonly List<string> _favNameScratch = new List<string>();
 		private static readonly StringBuilder _favLineSb = new StringBuilder();
 
-		// Hover-overlay scratch (US-019 / F-019).
+		// Hover-overlay scratch.
 		// _mealRowsScratch: per-meal info for the hover overlay. Rebuilt only on (DietTracker.Version, memoryMultiplier) change.
 		// _appearancesSoFarRowsScratch: per-meal-key appearances-so-far counter, reused each rebuild.
 		private readonly List<MealRowInfo> _mealRowsScratch = new List<MealRowInfo>();
@@ -219,8 +219,8 @@
 				return DisabledReason.TraitDisabled;
 			}
 
-			// US-033 gene-based opt-out. Cheap field reads, null-safe, Biotech-aware. Kept in
-			// Disabled (not cached as a bool per CLAUDE.md §12) because genes can be added /
+			// Gene-based opt-out. Cheap field reads, null-safe, Biotech-aware. Kept in
+			// Disabled (not cached as a bool) because genes can be added /
 			// removed at runtime via gene extraction, xenogerm implants, germline edits, etc.
 			if (ModsConfig.BiotechActive
 				&& DefOf_VarietyMatters.VM_NoVarietyNeed != null
@@ -398,7 +398,7 @@
 			return baseTip + "\n\n" + stats;
 		}
 
-		// US-035. Shared favourites-text builder. Returns empty when the feature is disabled
+		// Shared favourites-text builder. Returns empty when the feature is disabled
 		// or the pawn has no crystallized favourites. Output shape is stable so GetTipString
 		// and BuildOverlayHeader produce identical lines for the same state.
 		internal static string BuildFavouritesLine(Pawn pawn)
@@ -881,7 +881,7 @@
             }
         }
 
-        // why-not-translated: NoVarietyReason sub-pools deferred to US-018b to cap initial Keyed count <= 200
+        // why-not-translated: NoVarietyReason sub-pools stay in code to keep the Keyed file under 200 entries
         private string RandChooseRottenStrings(int seed)
         {
             return this.RandChoose(
@@ -891,7 +891,7 @@
                 "(No Variety) Rotten food is a no-go. It's completely inedible.");
         }
 
-        // why-not-translated: NoVarietyReason sub-pools deferred to US-018b to cap initial Keyed count <= 200
+        // why-not-translated: NoVarietyReason sub-pools stay in code to keep the Keyed file under 200 entries
         private string RandChooseDisgustingMealStrings(int seed)
         {
             return this.RandChoose(
@@ -919,7 +919,7 @@
             );
         }
 
-        // why-not-translated: NoVarietyReason sub-pools deferred to US-018b to cap initial Keyed count <= 200
+        // why-not-translated: NoVarietyReason sub-pools stay in code to keep the Keyed file under 200 entries
         private string RandChooseHumanLikeMeatStrings(int seed)
         {
             return this.RandChoose(
@@ -929,7 +929,7 @@
                 "(No Variety) This is too much. Eating something so human-like is disturbing.");
         }
 
-        // why-not-translated: NoVarietyReason sub-pools deferred to US-018b to cap initial Keyed count <= 200
+        // why-not-translated: NoVarietyReason sub-pools stay in code to keep the Keyed file under 200 entries
         private string RandChooseInsectMeatStrings(int seed)
         {
             return this.RandChoose(
@@ -939,7 +939,7 @@
                 "(No Variety) Eating insects doesn't quite meet my expectations for diverse cuisine.");
         }
 
-        // why-not-translated: NoVarietyReason sub-pools deferred to US-018b to cap initial Keyed count <= 200
+        // why-not-translated: NoVarietyReason sub-pools stay in code to keep the Keyed file under 200 entries
         private string RandChooseRawOrRawlikeFoodStrings(int seed)
         {
             return this.RandChoose(
@@ -949,7 +949,7 @@
                 "(No Variety) This is too raw for my liking. Craving for something more cooked.");
         }
 
-        // why-not-translated: NoVarietyReason sub-pools deferred to US-018b to cap initial Keyed count <= 200
+        // why-not-translated: NoVarietyReason sub-pools stay in code to keep the Keyed file under 200 entries
         private string RandChooseFungusStrings(int seed)
         {
             return this.RandChoose(
@@ -959,7 +959,7 @@
                 "(No Variety) A diet heavy in fungus isn't what I'd call varied. It's pretty one-note.");
         }
 
-        // why-not-translated: NoVarietyReason sub-pools deferred to US-018b to cap initial Keyed count <= 200
+        // why-not-translated: NoVarietyReason sub-pools stay in code to keep the Keyed file under 200 entries
         private string RandChooseChemicalStrings(int seed)
         {
             return this.RandChoose(seed,
@@ -973,7 +973,7 @@
             );
         }
 
-        // why-not-translated: NoVarietyReason sub-pools deferred to US-018b to cap initial Keyed count <= 200
+        // why-not-translated: NoVarietyReason sub-pools stay in code to keep the Keyed file under 200 entries
         private string RandChooseUnacceptableByVegetariansStrings(int seed)
         {
             return this.RandChoose(
@@ -983,7 +983,7 @@
                 "(No Variety) Eating this would go against my vegetarian principles. It lacks variety.");
         }
 
-        // why-not-translated: NoVarietyReason sub-pools deferred to US-018b to cap initial Keyed count <= 200
+        // why-not-translated: NoVarietyReason sub-pools stay in code to keep the Keyed file under 200 entries
         private string RandChooseUnacceptableByCarnivoresStrings(int seed)
         {
             return this.RandChoose(
@@ -993,7 +993,7 @@
                 "(No Variety) All plants and no meat? That's not what a carnivore's diet should be.");
         }
 
-        // why-not-translated: NoVarietyReason sub-pools deferred to US-018b to cap initial Keyed count <= 200
+        // why-not-translated: NoVarietyReason sub-pools stay in code to keep the Keyed file under 200 entries
         private string RandChooseIsOrHasVeneratedAnimalMeatStrings(int seed)
         {
             return this.RandChoose(

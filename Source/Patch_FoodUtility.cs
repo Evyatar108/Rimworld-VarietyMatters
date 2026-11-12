@@ -54,7 +54,7 @@
 				return;
 			}
 
-			// US-026 food-search alignment: instead of the legacy binary "is this meal key new?"
+			// Food-search alignment: instead of the legacy binary "is this meal key new?"
 			// check, score the candidate by the same per-meal effective formula used for mood.
 			// A meal whose ingredients overlap the pawn's recent window scores low; a fresh-def
 			// meal with novel ingredients scores ~1.0. Pawn's pick preference now tracks what
