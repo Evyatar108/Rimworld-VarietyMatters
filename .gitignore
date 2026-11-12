@@ -20,3 +20,11 @@ design/
 .tasks-board/repositories.local.json
 # Tasks Board's Codex workspace binding holds this PC's path; .mcp.json and .codex/config.toml are portable since 5.20
 .tasks-board/codex-workspace.json
+
+# Agent instruction and tool configuration files: kept locally, not published
+CLAUDE.md
+.codex/
+.mcp.json
+
+# Local logs and captures
+raw/
