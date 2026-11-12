@@ -34,9 +34,9 @@
         private static readonly HashSet<ThingDef> _recentIngSetScratch = new HashSet<ThingDef>();
 
         // Previously held past-meal ThingDef set for the in-score meal-def-new bonus (dropped
-        // in US-026 when the bonus moved to mood-tick read time via IsMealDefFreshInWindow).
+        // when the bonus moved to mood-tick read time via IsMealDefFreshInWindow).
 
-        // US-025 / US-030 meal-def-new bonus — step table keyed on recipe slot count, now read
+        // Meal-def-new bonus — step table keyed on recipe slot count, now read
         // directly from per-slot settings. A meal whose ThingDef has not been seen in the decay
         // queue contributes an additive variety bonus sized by recipe complexity: simple meals
         // (1 slot) get nothing by default, vanilla fine/lavish (2 slots) earn +5%, modded 3+
@@ -74,7 +74,7 @@
 
         public int Version => this._version;
 
-        // US-027 food-search + US-026 mood alignment: read-only probe for whether a stored meal
+        // Food-search + mood alignment: read-only probe for whether a stored meal
         // was flagged at ingest as "non-variety" (raw-like food, insect meat, venerated, etc.
         // — see VarietyProvider.DoesFoodHasVarietyValueForPawn). Consumers skip these when
         // aggregating mood so raw-meat eating neither lifts nor drags mood under overlap mode.
@@ -147,7 +147,7 @@
             }
         }
 
-        // US-029 storage cap. Always store max(all tier memory settings) + ScoringWindow meals
+        // Storage cap. Always store max(all tier memory settings) + ScoringWindow meals
         // regardless of the pawn's current tier. Rationale:
         //   1. Tier changes (wealth swings, royal title gain/loss, mid-game settings edits)
         //      don't lose history — queue stays at max, aggregation window shrinks to current
@@ -462,14 +462,14 @@
                 return 1f;
             }
 
-            // Returns ingredient-only overlap score. The meal-def-new bonus (US-025) is applied
+            // Returns ingredient-only overlap score. The meal-def-new bonus is applied
             // AT MOOD-TICK READ TIME (VarietyAdjuster) AFTER the baseline curve — so novelty cuts
             // through a noble's refined palate instead of getting dampened alongside the ingredient
             // signal. Bonus is recomputed from IsMealDefFreshInWindow; we don't store it here.
             return 1f - (float)overlap / total;
         }
 
-        // US-025 / US-029 helper for UX tooltip + meal-def-new bonus gate. Returns whether the
+        // Helper for UX tooltip + meal-def-new bonus gate. Returns whether the
         // meal's ThingDef is absent from the pawn's current tier memory window strictly prior to
         // `meal`. Scoped to the current tier's memory size (not the full storage queue, which
         // includes the +ScoringWindow archive that absorbs ReCount warm-up bias). Anchored on
@@ -518,7 +518,7 @@
             return true;
         }
 
-        // US-026 food-search alignment: estimate the raw ingredient-overlap score a candidate
+        // Food-search alignment: estimate the raw ingredient-overlap score a candidate
         // Thing would receive if eaten *now*, without mutating tracker state. Used by
         // Patch_FoodUtility.FoodOptimality to steer pawn food choice toward meals that will score
         // well under the same formula the mood system uses, so eating preference and mood math
@@ -584,7 +584,7 @@
             return 1f - (float)overlap / total;
         }
 
-        // US-026 food-search: is this candidate meal's ThingDef absent from the queue? Mirrors
+        // Food-search: is this candidate meal's ThingDef absent from the queue? Mirrors
         // IsMealDefFreshInWindow for a Thing (not an EatenFoodSource). Queue is count-bounded,
         // no time filter.
         public bool IsCandidateMealDefFresh(Thing candidateThing)
@@ -595,7 +595,7 @@
                 ExpectationsUtility.CurrentExpectationFor(this.pawn));
 
             // Two-pass window: skip the oldest so only the current tier's memory range is
-            // checked, matching IsMealDefFreshInWindow's semantics after US-029.
+            // checked, matching IsMealDefFreshInWindow's semantics.
             int eligibleTotal = 0;
             foreach (EatenFoodByPawn past in this.foodSourcesByOrderV2)
             {

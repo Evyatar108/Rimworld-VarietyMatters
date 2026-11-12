@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Defs>
 
-  <!-- US-033: gene that opts a pawn out of the food-variety need. Carriers still eat food
+  <!-- Gene that opts a pawn out of the food-variety need. Carriers still eat food
        normally; they just don't register boredom with repetitive diets. Auto-applied to the
        vanilla Sanguophage xenotype via Patches/Patch_SanguophageXenotype.xml; players can add
        the gene to any custom xenotype through the normal Biotech gene-picker UI. -->

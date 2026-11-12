@@ -63,7 +63,7 @@
 			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.skyHighVariety, "skyHighVariety", 12, false);
 			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.nobleVariety, "nobleVariety", 15, false);
 			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.lowExpectationFloor, "lowExpectationFloor", 3, false);
-			// US-029 direct-value tier settings. Loaded with default values for saves written by
+			// Direct-value tier settings. Loaded with default values for saves written by
 			// older versions (no migration from the legacy `extremelyLowVariety`..`nobleVariety`
 			// integers) — players upgrading get the new defaults and re-tune from the preset strip.
 			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.extremelyLowMemory, "extremelyLowMemoryV2", 9, false);
@@ -80,10 +80,10 @@
 			Scribe_Values.Look<float>(ref ModSettings_VarietyMatters.highPalate, "highPalateV2", 0.28f, false);
 			Scribe_Values.Look<float>(ref ModSettings_VarietyMatters.skyHighPalate, "skyHighPalateV2", 0.36f, false);
 			Scribe_Values.Look<float>(ref ModSettings_VarietyMatters.noblePalate, "noblePalateV2", 0.48f, false);
-			// US-030 direct mood + meal-type bonus controls (integer percentages, Scribed with
+			// Direct mood + meal-type bonus controls (integer percentages, Scribed with
 			// new keys so older saves get defaults).
 			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.varietyMoodImpactPercent, "varietyMoodImpactPercent", 100, false);
-			// US-031 direct mood-range endpoints (replace the single % slider).
+			// Direct mood-range endpoints (replace the single % slider).
 			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.maxNegativeMood, "maxNegativeMood", -12, false);
 			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.maxPositiveMood, "maxPositiveMood", 12, false);
 			Scribe_Values.Look<int>(ref ModSettings_VarietyMatters.mealBonus1Slot, "mealBonus1Slot", 0, false);
@@ -135,16 +135,16 @@
 
 		public static bool foodDrugsAreOnlyInMemoryOnce = true;
 
-		// DEPRECATED (US-029): the moreVarietyMemory toggle no longer affects gameplay. Kept
-		// Scribed per CLAUDE.md §8 so old saves still deserialize cleanly. Players now set
+		// DEPRECATED: the moreVarietyMemory toggle no longer affects gameplay. Kept
+		// Scribed under its old name so old saves still load. Players now set
 		// per-tier memory directly via the new *Memory fields.
 		public static bool moreVarietyMemory = false;
 
-		// DEPRECATED: retained only for backward Scribe compatibility with pre-US-029 saves.
+		// DEPRECATED: retained only for backward Scribe compatibility with saves from before the per-tier memory settings.
 		// Gameplay reads per-tier *Memory fields directly now.
 		public static float memoryMultiplier => 2.25f;
 
-		// US-029 direct-value tier fields. Player sets queue size (meals remembered) per tier
+		// Direct-value tier fields. Player sets queue size (meals remembered) per tier
 		// directly — no hidden multiplier. Defaults preserve the prior `tier × 2.25` values so
 		// gameplay baselines stay intact for anyone tuning from the preset strip.
 		public static int extremelyLowMemory = 9;
@@ -155,7 +155,7 @@
 		public static int skyHighMemory = 27;
 		public static int nobleMemory = 34;
 
-		// US-029 per-tier palate threshold. 0.0 → any variety counts. 0.50 → only genuinely fresh
+		// Per-tier palate threshold. 0.0 → any variety counts. 0.50 → only genuinely fresh
 		// meals matter. Defaults match the previous clamp((tier − 3)/25, 0, 0.50) formula at
 		// default tier values. Exposed as a separate slider so players can tune palate pickiness
 		// independently from memory depth.
@@ -167,14 +167,14 @@
 		public static float skyHighPalate = 0.36f;
 		public static float noblePalate = 0.48f;
 
-		// DEPRECATED (US-031): the single percent-scale was replaced by two direct mood-range
+		// DEPRECATED: the single percent-scale was replaced by two direct mood-range
 		// endpoints (maxNegativeMood / maxPositiveMood) so negative and positive mood swings
 		// can be tuned asymmetrically. Kept Scribed for backward compatibility; not read by
 		// gameplay. Old saves with a non-default value load their stored percent but the UI
 		// exposes the direct endpoints instead.
 		public static int varietyMoodImpactPercent = 100;
 
-		// US-031 direct mood-range endpoints. The variety thought has 13 stages from very-low
+		// Direct mood-range endpoints. The variety thought has 13 stages from very-low
 		// (barren menu, vanilla -6) to very-high (overwhelming menu, vanilla +6). These two
 		// sliders control the worst-case negative and best-case positive mood the thought can
 		// produce at the extreme stages; intermediate stages linearly interpolate toward 0 at
@@ -183,7 +183,7 @@
 		public static int maxNegativeMood = -12;
 		public static int maxPositiveMood = 12;
 
-		// US-030 meal-type-new bonus per recipe slot count (integer percentages). Replaces the
+		// Meal-type-new bonus per recipe slot count (integer percentages). Replaces the
 		// hardcoded { 0, 0, 0.05, 0.12, 0.20, 0.30 } array. Slot 0 is unused (shouldn't occur);
 		// slots 1/2/3/4 map to single settings; slot 5+ clamps to mealBonus5Slot.
 		public static int mealBonus1Slot = 0;
@@ -197,7 +197,7 @@
 
 		public static int cookingMemoryDepth = 10;
 
-		// F-025 rotation-formula knob. Default 10 tiles = cook walks up to 10 extra tiles for an unused ingredient.
+		// Rotation-formula knob. Default 10 tiles = cook walks up to 10 extra tiles for an unused ingredient.
 		public static float varietyPull = 10f;
 
 		// Token: 0x04000015 RID: 21
@@ -238,7 +238,7 @@
 		// Token: 0x0400001D RID: 29
 		public static bool preferSpoiling = true;
 
-		// US-035 favourite-foods master kill-switch. `true` = feature active (discovery, mood,
+		// Favourite-foods master kill-switch. `true` = feature active (discovery, mood,
 		// letter/message, UI line). `false` = feature FROZEN: OnMealIngested short-circuits
 		// before any mutation, GameComponentTick skips decay, UI hides the line. Previously
 		// persisted per-pawn state is preserved across toggles — re-enabling picks up where the

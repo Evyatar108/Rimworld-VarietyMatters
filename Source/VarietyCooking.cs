@@ -17,7 +17,7 @@ namespace VarietyMatters
 		// Assumption: no other mod recursively re-enters BestVariety_AllowMix, CountEligibleDefs, or SortIngredients mid-execution via Harmony stacking. If that assumption breaks, nested calls would clobber each other's scratch state. Accepted risk for the GC savings; revisit if users report interactions with specific mods (e.g. RimThreaded, PickUpAndHaul).
 		private static readonly Dictionary<Thing, int> _takenByThingScratch = new Dictionary<Thing, int>();
 		private static readonly Dictionary<Thing, float> _sortKeysScratch = new Dictionary<Thing, float>();
-		// F-031: position-weighted graded penalty per def. Value is Σ (j - startIndex + 1) / count over matching entries in the recent slice. graded == 0 → unused (fresh), graded == 1 → one newest use (neutral), graded > 1 → multiple/deep repeats (penalize).
+		// Position-weighted graded penalty per def. Value is Σ (j - startIndex + 1) / count over matching entries in the recent slice. graded == 0 → unused (fresh), graded == 1 → one newest use (neutral), graded > 1 → multiple/deep repeats (penalize).
 		private static readonly Dictionary<ThingDef, float> _gradedPerDefScratch = new Dictionary<ThingDef, float>();
 		private static readonly Dictionary<ThingDef, float> _jitteredCapPerDefScratch = new Dictionary<ThingDef, float>();
 		private static readonly Dictionary<ThingDef, float> _consumedPerDefScratch = new Dictionary<ThingDef, float>();
@@ -154,8 +154,8 @@ namespace VarietyMatters
 		// Intentionally empty: prior UpdateVariety_AllowMix postfix recorded speculative picks from
 		// TryFindBestBillIngredientsInSet_AllowMix, which fires on both real work scans AND menu
 		// probes / region-BFS probes that never actually result in a cook job. That polluted the
-		// recent-meal list with phantom picks and broke the rotation formula (F-027 diagnosed via
-		// F-028 trace). The real recording now happens on `Bill.Notify_IterationCompleted` — see
+		// recent-meal list with phantom picks and broke the rotation formula. The real recording
+		// now happens on `Bill.Notify_IterationCompleted` — see
 		// BillPatches below — which fires exactly once per produced meal with the actual
 		// ingredients consumed.
 
@@ -346,7 +346,7 @@ namespace VarietyMatters
 			bool hasVarietyPenalty = recent.list != null && recent.count > 0;
 			if (hasVarietyPenalty)
 			{
-				// F-031 position-weighted graded: Σ (j - startIndex + 1) / count for matches. Newest positions contribute ≈1, oldest ≈1/count. Per unique def once (not per Thing stack).
+				// Position-weighted graded: Σ (j - startIndex + 1) / count for matches. Newest positions contribute ≈1, oldest ≈1/count. Per unique def once (not per Thing stack).
 				int recentEnd = recent.startIndex + recent.count;
 				float invCount = 1f / recent.count;
 				for (int i = 0; i < availableThings.Count; i++)
@@ -365,7 +365,7 @@ namespace VarietyMatters
 
 			bool preferSpoiling = ModSettings_VarietyMatters.preferSpoiling;
 
-			// F-031 C10-continuous rotation (replaces F-027 branchy fresh-bonus/in-last-meal/count-penalty):
+			// Continuous rotation (replaces the older branchy fresh-bonus/in-last-meal/count-penalty):
 			//   key = distance
 			//       − varietyPull × (1 − graded)   // unified fresh bonus + penalty, monotone, no cliff
 			//       − spoilPull × rotProgressPct
@@ -407,9 +407,9 @@ namespace VarietyMatters
 	}
 
 	// Records cook-recipe history at the true "meal produced" event, not at search time.
-	// F-029: `Bill.Notify_IterationCompleted` fires once per produced meal with the actually-consumed
-	// ingredients, bypassing the speculative-probe pollution that broke F-025/F-027.
-	// F-033: target the Bill_Production / Bill_ProductionWithUft OVERRIDES directly. The base Bill
+	// `Bill.Notify_IterationCompleted` fires once per produced meal with the actually-consumed
+	// ingredients, bypassing the speculative-probe pollution of search-time recording.
+	// Target the Bill_Production / Bill_ProductionWithUft OVERRIDES directly. The base Bill
 	// method is virtual; cooking uses Bill_Production which overrides it. Harmony patches at the
 	// method level, not call-site — a patch on the base won't fire when the override is dispatched
 	// via vtable. TargetMethods enumerates both concrete cooking bill types in one class.

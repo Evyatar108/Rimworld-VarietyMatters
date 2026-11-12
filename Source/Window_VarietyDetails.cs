@@ -46,7 +46,7 @@ namespace VarietyMatters
         private readonly List<ThingDef> _mostVariedIngredientDefs = new List<ThingDef>();
         private int _mostVariedIngredientCount;
         private int _forgottenCount;
-        // Overlap-mode aggregate scratch (per CLAUDE.md §1). Rebuilt with other aggregates.
+        // Overlap-mode aggregate scratch. Rebuilt with other aggregates.
         // `_tiredOfDefs` — ingredient defs appearing in the active decay window (the current overlap set).
         private readonly Dictionary<ThingDef, int> _recentIngCountsScratch = new Dictionary<ThingDef, int>();
         private readonly List<ThingDef> _tiredOfDefs = new List<ThingDef>();
@@ -119,7 +119,7 @@ namespace VarietyMatters
 
             // Stats rows. "Score" is the actual mood driver under ByIngredientOverlap mode
             // (sum of per-meal varietyScore over the memory window). Integer "Recent" key-count
-            // is no longer displayed — it was orthogonal to the mood calc post-US-023.
+            // is not displayed because it is orthogonal to the overlap-score mood calc.
             int expected = VarietyExpectation.GetVarietyExpectation(this.pawn);
             float score = 0f;
             if (VarietyRecord.TryGetVarietyRecord(this.pawn, out DietTracker tracker) && tracker != null)
@@ -139,7 +139,7 @@ namespace VarietyMatters
                 Widgets.Label(statRect, string.Format("{0} {1}", need.LabelCap, (need.CurLevelPercentage).ToStringPercent()));
             }
 
-            // US-035 favourites row. Kill-switch hides the row entirely. Otherwise draws
+            // Favourites row. Kill-switch hides the row entirely. Otherwise draws
             // "Favourites:" + per-slot uiIcon + ingredient label (inline). Empty state shows a
             // dim "—" so the player sees the feature is active but no favourite has crystallized yet.
             if (ModSettings_VarietyMatters.favouritesEnabled)
@@ -554,7 +554,7 @@ namespace VarietyMatters
 
         private string BuildOverlapTooltip(Need_FoodVariety.MealRowInfo row, DietTracker tracker)
         {
-            // Under US-026 semantic: row.VarietyScore = ingredient-only Jaccard (0-1). The
+            // row.VarietyScore = ingredient-only Jaccard (0-1). The
             // pawn's actual mood contribution is ComputeEffectiveScore(score, baseline, fresh,
             // complexity) — includes soft-floor, baseline curve, and post-curve bonus. Show both
             // so the tooltip matches reality: "ingredient X%, plus meal-type bonus Y%, effective
@@ -635,10 +635,10 @@ namespace VarietyMatters
                 sb.AppendLine("VM_Overlap_New".Translate(d.LabelCap));
             }
 
-            // US-025 meal-def bonus line. When bonus applied, show complexity-scaled % with a
+            // Meal-def bonus line. When bonus applied, show complexity-scaled % with a
             // "(capped)" note if we hit MealDefBonusCap. When the meal def was repeated, emit a
             // muted "no bonus" line so the player knows the system considered it. Stored
-            // Under US-026 semantic, row.VarietyScore is ingredient-only; the bonus lives in the
+            // row.VarietyScore is ingredient-only; the bonus lives in the
             // effective-score term added at mood-tick. These tooltip lines are purely informational.
             if (row.MealDef != null && mealDefFresh)
             {

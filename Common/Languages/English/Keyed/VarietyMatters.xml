@@ -4,7 +4,7 @@
   <!-- Settings UI -->
   <VM_Settings_Category>Variety Matters Redux</VM_Settings_Category>
 
-  <!-- Preset strip (US-028) -->
+  <!-- Preset strip -->
   <VM_Settings_Presets_Header>Difficulty Preset:</VM_Settings_Presets_Header>
   <VM_Settings_Preset_Easy>Easy</VM_Settings_Preset_Easy>
   <VM_Settings_Preset_Default>Default</VM_Settings_Preset_Default>
@@ -18,7 +18,7 @@
   <VM_Settings_Preset_CustomLabel>Custom</VM_Settings_Preset_CustomLabel>
   <VM_Settings_Preset_CustomDesc>Individual tuning — no preset matches the current settings.</VM_Settings_Preset_CustomDesc>
 
-  <!-- Section headers (US-028 redesign) -->
+  <!-- Section headers -->
   <VM_Settings_Section_Basics>Basics</VM_Settings_Section_Basics>
   <VM_Settings_Section_Difficulty>Difficulty</VM_Settings_Section_Difficulty>
   <VM_Settings_Section_PawnExpectations>Pawn Expectations</VM_Settings_Section_PawnExpectations>
@@ -27,7 +27,7 @@
   <VM_Settings_Section_Scoring>How Scoring Works</VM_Settings_Section_Scoring>
   <VM_Settings_Scoring_Body>Each meal is scored from 0% to 100% by how many of its ingredients are absent from the pawn's last 6 meals. Fully-fresh ingredients score 100%; full repeats score 0%. A meal whose recipe type has not appeared in the pawn's full memory queue earns an extra bonus on top: +0 for 1-slot (simple), +5% for 2-slot (fine / lavish), and up to +30% for modded 5-slot recipes. Each pawn's palate threshold is set by their expectation tier (Noble has the highest bar). Variety mood = average(per-meal effective) × memory multiplier, capped at 100%.</VM_Settings_Scoring_Body>
 
-  <!-- Individual settings (unchanged keys) -->
+  <!-- Individual settings -->
   <VM_Settings_NonControlledPawnsLabel>Non controlled pawns also have variety need: </VM_Settings_NonControlledPawnsLabel>
   <VM_Settings_NonControlledPawnsTooltip>Enables food-variety tracking for non-colonist pawns (guests, visitors, mechanoids' handlers, etc.). Off by default means only your controlled colonists care about variety.</VM_Settings_NonControlledPawnsTooltip>
   <VM_Settings_FoodDrugsOnceLabel>Foods that are also drugs are stored in memory just once: </VM_Settings_FoodDrugsOnceLabel>
@@ -49,7 +49,7 @@
   <VM_Settings_Tier_PalateSub>    Palate pickiness (%):</VM_Settings_Tier_PalateSub>
   <VM_Settings_Tier_PalateTooltip>How fresh a meal needs to be, as a percentage, before it counts meaningfully toward mood. Meals below this threshold contribute only 25% of their raw ingredient-fresh score; meals above it get full credit proportional to how far above. 0% = any variety counts; 50% = only genuinely fresh meals matter (max). Typical range: 4% (Extremely Low) to 48% (Noble).</VM_Settings_Tier_PalateTooltip>
 
-  <!-- Meal Type Bonus section (US-030) -->
+  <!-- Meal Type Bonus section -->
   <VM_Settings_MealBonus_Body>A meal whose recipe type hasn't been seen in the pawn's memory queue gets an additive variety bonus on top of its ingredient-fresh score. The bonus scales with recipe complexity (number of ingredient slots in the recipe definition, NOT the stuffed ingredient count of the produced meal). Simple meals (1 slot) get nothing by default; vanilla fine/lavish (2 slots) earn a small +5%; modded 3+ slot recipes escalate. Set any slot to 0 to disable its bonus.</VM_Settings_MealBonus_Body>
   <VM_Settings_MealBonus_1Slot>Simple meal (1 slot) bonus (%):</VM_Settings_MealBonus_1Slot>
   <VM_Settings_MealBonus_2Slot>Fine / lavish meal (2 slots) bonus (%):</VM_Settings_MealBonus_2Slot>
@@ -80,11 +80,11 @@
   <VM_Settings_ResetRacesButton>Reset Current Races</VM_Settings_ResetRacesButton>
   <VM_Settings_FromMod>From mod: {0}</VM_Settings_FromMod>
 
-  <!-- Hover overlay (F-019) -->
+  <!-- Hover overlay -->
   <VM_OverlayStats>Expected {0} / Score {1} / Memory {2}</VM_OverlayStats>
   <VM_ForgottenMealTip>Forgotten meal — details faded from memory</VM_ForgottenMealTip>
 
-  <!-- Details window (US-020) -->
+  <!-- Details window -->
   <VM_Details_OpenTooltip>Open variety details</VM_Details_OpenTooltip>
   <VM_DetailsWindow_NoMeals>No meals tracked yet.</VM_DetailsWindow_NoMeals>
   <VM_Favourites_Placeholder>Favourites: coming soon</VM_Favourites_Placeholder>
@@ -100,7 +100,7 @@
   <VM_MealAgo_Days>{0}d ago</VM_MealAgo_Days>
   <VM_MealAgo_Unknown>—</VM_MealAgo_Unknown>
 
-  <!-- US-024: ByIngredientOverlap UX -->
+  <!-- Meal history rows and the per-meal ingredient overlap tooltip -->
   <VM_MealAgo_Minute_One>1 minute ago</VM_MealAgo_Minute_One>
   <VM_MealAgo_Minutes_Many>{0} minutes ago</VM_MealAgo_Minutes_Many>
   <VM_MealAgo_Hour_One>1 hour ago</VM_MealAgo_Hour_One>
@@ -128,7 +128,7 @@
   <VM_Overlap_MealsAgo_Many>{0} meals</VM_Overlap_MealsAgo_Many>
   <VM_Overlap_MealDefNewBonus>New meal type: +{0}% ({1}-ingredient recipe)</VM_Overlap_MealDefNewBonus>
 
-  <!-- NoVarietyReason labels shown in meal-row status when a meal didn't count (US-027 UX). -->
+  <!-- NoVarietyReason labels shown in meal-row status when a meal didn't count. -->
   <VM_NoVarietyReason_Rotten>rotten</VM_NoVarietyReason_Rotten>
   <VM_NoVarietyReason_Raw>raw food</VM_NoVarietyReason_Raw>
   <VM_NoVarietyReason_Insect>insect meat</VM_NoVarietyReason_Insect>
@@ -144,7 +144,7 @@
   <VM_Overlap_MealDefNewBonusCapped>New meal type: +{0}% ({1}-ingredient recipe, capped)</VM_Overlap_MealDefNewBonusCapped>
   <VM_Overlap_MealDefRepeated>Same meal type as a recent meal — no bonus.</VM_Overlap_MealDefRepeated>
 
-  <!-- Disabled reason tip (US-017) -->
+  <!-- Disabled reason tip -->
   <VM_DisabledPrefix>Disabled: </VM_DisabledPrefix>
   <VM_DisabledReason_DeadOrMissingFaculties>pawn is dead or missing food/mood faculties</VM_DisabledReason_DeadOrMissingFaculties>
   <VM_DisabledReason_SlaveNotTracked>slaves are excluded in Mod Settings</VM_DisabledReason_SlaveNotTracked>
@@ -163,7 +163,7 @@
   <VM_FoodVarietyTip_AppearanceOutOf> out of </VM_FoodVarietyTip_AppearanceOutOf>
   <VM_FoodVarietyTip_ByIngredientOverlap> by ingredient overlap</VM_FoodVarietyTip_ByIngredientOverlap>
 
-  <!-- Flavor pool: Forgotten (20) — order preserved so seed-based RandChoose picks identically -->
+  <!-- Flavor pool: Forgotten (20). Lines are picked by a seeded index, so keep the numbering. -->
   <VM_FoodVariety_Forgotten_00>(Has Variety) There's variety in my meals, but I can't recall the specifics.</VM_FoodVariety_Forgotten_00>
   <VM_FoodVariety_Forgotten_01>(Has Variety) I remember enjoying a variety, though the details escape me.</VM_FoodVariety_Forgotten_01>
   <VM_FoodVariety_Forgotten_02>(Has Variety) There was something different about this meal, but what was it?</VM_FoodVariety_Forgotten_02>
@@ -185,7 +185,7 @@
   <VM_FoodVariety_Forgotten_18>(Has Variety) The feeling of variety is there, but the meals are a distant memory.</VM_FoodVariety_Forgotten_18>
   <VM_FoodVariety_Forgotten_19>(Has Variety) I recall the joy of varied meals, but not what they were.</VM_FoodVariety_Forgotten_19>
 
-  <!-- Flavor pool: NoVariety (20) — order preserved -->
+  <!-- Flavor pool: NoVariety (20). Keep the numbering. -->
   <VM_FoodVariety_NoVariety_00>(No Variety) Not this again! I need something different to keep things interesting.</VM_FoodVariety_NoVariety_00>
   <VM_FoodVariety_NoVariety_01>(No Variety) The same meal, yet again? It's becoming a dull routine.</VM_FoodVariety_NoVariety_01>
   <VM_FoodVariety_NoVariety_02>(No Variety) Another round of the usual... Where's the variety gone?</VM_FoodVariety_NoVariety_02>
@@ -207,7 +207,7 @@
   <VM_FoodVariety_NoVariety_18>(No Variety) Another day, the same meal. It's becoming predictably boring.</VM_FoodVariety_NoVariety_18>
   <VM_FoodVariety_NoVariety_19>(No Variety) Is our chef stuck in a loop? Time to switch things up!</VM_FoodVariety_NoVariety_19>
 
-  <!-- Flavor pool: HasVariety (20) — order preserved -->
+  <!-- Flavor pool: HasVariety (20). Keep the numbering. -->
   <VM_FoodVariety_HasVariety_00>(Has Variety) Finally, something different! This definitely counts as variety.</VM_FoodVariety_HasVariety_00>
   <VM_FoodVariety_HasVariety_01>(Has Variety) A pleasant change in our menu! It's refreshing to have some variety.</VM_FoodVariety_HasVariety_01>
   <VM_FoodVariety_HasVariety_02>(Has Variety) New flavors! This is the variety I've been craving.</VM_FoodVariety_HasVariety_02>
@@ -229,8 +229,8 @@
   <VM_FoodVariety_HasVariety_18>(Has Variety) The richness of choices here is amazing. Every meal is a discovery.</VM_FoodVariety_HasVariety_18>
   <VM_FoodVariety_HasVariety_19>(Has Variety) Gone are the days of boring meals. This variety is a game changer!</VM_FoodVariety_HasVariety_19>
 
-  <!-- Favourite foods (US-034 storage + US-035 mood/UI). Discovery message fires on first-ever
-       crystallization in a slot; replacement letter fires when a rival ousts an existing favourite. -->
+  <!-- Favourite foods. The discovery message fires the first time a slot gets a favourite;
+       the replacement letter fires when a rival ousts an existing favourite. -->
   <VM_Fav_DiscoveryMessage>{0} has discovered a favourite food: {1}.</VM_Fav_DiscoveryMessage>
   <VM_Fav_ReplacementLetterTitle>New favourite food</VM_Fav_ReplacementLetterTitle>
   <VM_Fav_ReplacementLetterBody>{0} used to love {1}, but after eating it too often they've moved on. {2} is their new favourite.</VM_Fav_ReplacementLetterBody>
@@ -241,7 +241,7 @@
   <VM_Fav_Hint_Opening>becoming more open to other foods</VM_Fav_Hint_Opening>
   <VM_Fav_Hint_Tiring>getting tired of this as a staple</VM_Fav_Hint_Tiring>
 
-  <!-- Favourites settings section (US-035 kill-switch; NOT in preset profile). -->
+  <!-- Favourites settings section (the feature's on/off switch; not part of the presets). -->
   <VM_Settings_Section_Favourites>Favourite Foods</VM_Settings_Section_Favourites>
   <VM_Settings_Favourites_Body>Pawns discover favourite ingredients from what they actually eat — freshness-gated, siloed into meat + vegetable slots (plus an open slot for Gourmands), and anti-monoculture so the same ingredient doesn't dominate forever. Eating a favourite grants a small mood bonus for a day.</VM_Settings_Favourites_Body>
   <VM_Settings_Favourites_EnabledLabel>Enable favourite foods:</VM_Settings_Favourites_EnabledLabel>

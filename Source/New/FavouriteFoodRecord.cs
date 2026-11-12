@@ -86,8 +86,8 @@ namespace VarietyMatters.New
 
     // GameComponent that tracks per-pawn favourite food discovery (meat / veg / gourmand-wild
     // slots), gated by eligibility floor + freshness + day-spread to prevent monoculture abuse.
-    // Mood / UI / letter / message consumers live in US-035 (Need_FoodVariety, Window_VarietyDetails,
-    // OnMealIngested mood branch). Pawn-lifecycle cleanup is mirrored in Patch_PawnLifecycle.
+    // Mood / UI / letter / message consumers live in Need_FoodVariety, Window_VarietyDetails
+    // and the OnMealIngested mood branch. Pawn-lifecycle cleanup is mirrored in Patch_PawnLifecycle.
     public class FavouriteFoodRecord : GameComponent
     {
         // Fallbacks if settings somehow not yet initialized. Runtime reads delegate to
@@ -108,7 +108,7 @@ namespace VarietyMatters.New
         private List<Pawn> _dataKeys;
         private List<PawnFavData> _dataValues;
 
-        // Scratch catalog (CLAUDE.md §1). Never held across frames.
+        // Scratch catalog. Never held across frames.
         //   _deadPawnScratch  : FinalizeInit sweep buffer.
         //   _creditedDefNamesScratch : de-dup set for OnMealIngested ingredient walk.
         //   _debugSb          : DebugAction_LogFavData string builder.
@@ -197,7 +197,7 @@ namespace VarietyMatters.New
         {
             if (pawn == null || eatenFoodSource == null) return;
 
-            // US-035 kill-switch. `favouritesEnabled = false` FREEZES all favourite-foods state
+            // Kill-switch. `favouritesEnabled = false` FREEZES all favourite-foods state
             // mutation — no discovery, no mood, no saturation change, no flag flip. Previously
             // persisted data is preserved so re-enabling picks up where the pawn left off.
             if (!ModSettings_VarietyMatters.favouritesEnabled) return;
@@ -272,7 +272,7 @@ namespace VarietyMatters.New
                 }
             }
 
-            // Favourite-match detection (US-035). Compares against pre-swap snapshot so a meal
+            // Favourite-match detection. Compares against pre-swap snapshot so a meal
             // that crystallizes a new favourite does not immediately match it and fire mood.
             // lastTriggerTick is updated from the live post-swap slot — decay-block tracks the
             // current favourite, not the pre-swap one. Saturation increments only when the mood
@@ -385,7 +385,7 @@ namespace VarietyMatters.New
             slot.lastDecayTick = -1;
             progressMap.Clear();
 
-            // US-035 player-facing notification. Gated by the feature kill-switch so a disabled
+            // Player-facing notification. Gated by the feature kill-switch so a disabled
             // player never sees a letter. First-ever slot crystallization → Message (non-intrusive);
             // rival replacing an existing favourite → Letter (calls attention to the swap).
             if (!ModSettings_VarietyMatters.favouritesEnabled) return;
@@ -481,7 +481,7 @@ namespace VarietyMatters.New
         public override void GameComponentTick()
         {
             base.GameComponentTick();
-            // US-035 kill-switch: freeze saturation decay. Re-enable resumes from persisted
+            // Kill-switch: freeze saturation decay. Re-enable resumes from persisted
             // state — slots that were mid-decay stay put until the next tick after re-enable.
             if (!ModSettings_VarietyMatters.favouritesEnabled) return;
             int tick = Find.TickManager != null ? Find.TickManager.TicksGame : 0;

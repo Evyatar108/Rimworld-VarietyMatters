@@ -11,7 +11,7 @@
 	{
         public override float MoodMultiplier(Pawn p)
         {
-            // US-031 stage-aware asymmetric scaling. The variety thought has 13 stages where
+            // Stage-aware asymmetric scaling. The variety thought has 13 stages where
             // vanilla baseMoodEffect ranges from -6 (barren menu) through 0 (average) to +6
             // (overwhelming). The player sets maxNegativeMood (default -12, applied at stage 0)
             // and maxPositiveMood (default +12, applied at stage 12); intermediate stages

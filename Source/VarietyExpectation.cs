@@ -15,7 +15,7 @@
             }
 
 			ExpectationDef expectationDef = ExpectationsUtility.CurrentExpectationFor(ingester);
-            // US-029: expectation count now derives from the pawn's per-tier memory setting so
+            // The expectation count derives from the pawn's per-tier memory setting so
             // the vanilla Need_FoodVariety "Expected N" display stays meaningful after the tier
             // integer was replaced by a direct queue-size knob. Keeps the legacy factor 2.25 so
             // old values (ExLow=4, Noble=15) line up with new memory defaults (9, 34).
