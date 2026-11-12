@@ -3,12 +3,13 @@
   <name>Variety Matters Redux</name>
   <author>Evyatar108</author>
   <packageId>Evyatar108.VarietyMattersImprovedRedux</packageId>
-  <description>Cooks actually rotate ingredients instead of smashing the same three berries into every meal. Variety Matters Redux hooks the bill solver (BestVariety_AllowMix) so each meal draws from different ingredient stacks, and pawns track what they've eaten across a sliding window to drive a 13-stage variety thought — compared to the 2 mood stages offered by Vanilla Food Variety Expanded.
+  <description>Pawns get tired of eating the same thing. Every colonist has a Food Variety need that looks at the ingredients in their recent meals. A meal made from ingredients they haven't had lately counts as fresh, and a meal that repeats the last few dinners counts for little. The need drives a mood thought with 13 steps, from a barren menu at -12 to an overwhelming one at +12 by default.
 
-Pawns gain a Variety need that rises with repetitive meals and falls when their diet genuinely diversifies. Expectations scale by wealth tier, and per-race settings let you tune or disable the need for animals, mechanoids, and modded xenotypes. Under the hood, no per-meal allocations in the cooking hot path, save-compatible scribe layout, and defensive compat with Human Alien Races and Meals Over Preserved Foods.
+Cooks do their part. When a bill allows mixed ingredients, the cook reaches for ingredients they haven't used lately, so meals rotate through your freezer instead of the same three berries every time. Pawns choosing a meal lean toward the one that does their variety the most good.
 
-If you want cooks that diversify ingredients rather than just label meals differently, this is the one.
-  </description>
+Wealthy and titled pawns expect more variety. Gourmands care twice as much, ascetics don't care at all, and with Biotech the "no taste" gene turns the need off; sanguophages have it by default. Pawns also settle on favourite foods, one meat and one vegetable (Gourmands get a third pick), and get a small mood boost when they eat one.
+
+Hover over the need for a pawn's recent meals, or open its details window to see why each meal scored as it did. The settings offer Easy, Default and Hardcore presets, and you can change every number.</description>
   <supportedVersions>
     <li>1.4</li>
     <li>1.5</li>
